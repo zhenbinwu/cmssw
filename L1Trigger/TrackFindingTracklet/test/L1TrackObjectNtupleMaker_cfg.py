@@ -111,6 +111,7 @@ elif (L1TRKALGO == 'HYBRID_PROMPTANDDISP'):
 # Primary vertex
 ############################################################
 process.load("L1Trigger.L1TTrackMatch.L1TkPrimaryVertexProducer_cfi")
+process.L1TkPrimaryVertex.nVtx = cms.int32 (5)
 process.pPV = cms.Path(process.L1TkPrimaryVertex)
 
 

@@ -194,7 +194,8 @@ private:
   // primary vertex
   // std::vector<float>* m_pv_L1recotruesumpt;
   // std::vector<float>* m_pv_L1recosumpt;
-  std::vector<float>* m_pv_L1reco;
+  std::vector<float>* m_pv_L1reco_z0;
+  std::vector<float>* m_pv_L1reco_sum;
   // std::vector<float>* m_pv_L1TP;
   // std::vector<float>* m_pv_L1TPsumpt;
   std::vector<float>* m_pv_MC;
@@ -615,7 +616,8 @@ void L1TrackObjectNtupleMaker::beginJob() {
 
   // m_pv_L1recotruesumpt = new std::vector<float>;
   // m_pv_L1recosumpt = new std::vector<float>;
-  m_pv_L1reco = new std::vector<float>;
+  m_pv_L1reco_z0 = new std::vector<float>;
+  m_pv_L1reco_sum = new std::vector<float>;
   // m_pv_L1TP = new std::vector<float>;
   // m_pv_L1TPsumpt = new std::vector<float>;
   m_pv_MC = new std::vector<float>;
@@ -828,7 +830,8 @@ void L1TrackObjectNtupleMaker::beginJob() {
   if (SaveTrackJets) {
     // eventTree->Branch("pv_L1recotruesumpt", &m_pv_L1recotruesumpt);
     // eventTree->Branch("pv_L1recosumpt", &m_pv_L1recosumpt);
-    eventTree->Branch("pv_L1reco", &m_pv_L1reco);
+    eventTree->Branch("pv_L1reco_z0", &m_pv_L1reco_z0);
+    eventTree->Branch("pv_L1reco_sum", &m_pv_L1reco_sum);
     // eventTree->Branch("pv_L1TP", &m_pv_L1TP);
     // eventTree->Branch("pv_L1TPsumpt", &m_pv_L1TPsumpt);
     eventTree->Branch("MC_lep", &m_MC_lep);
@@ -1080,7 +1083,8 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       // m_pv_L1recotruesumpt->clear();
       // m_pv_L1recosumpt->clear();
-      m_pv_L1reco->clear();
+      m_pv_L1reco_z0->clear();
+      m_pv_L1reco_sum->clear();
       // m_pv_L1TPsumpt->clear();
       // m_pv_L1TP->clear();
       m_pv_MC->clear();
@@ -1130,6 +1134,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     //Vertex
     edm::Handle< l1t::TkPrimaryVertexCollection >L1TkPrimaryVertexHandle;
     iEvent.getByToken(L1VertexToken_, L1TkPrimaryVertexHandle);
+    std::vector< l1t::TkPrimaryVertex >::const_iterator vtxIter;
 
     // Track jets
     edm::Handle< std::vector<l1t::TkJet> > TrackFastJetsHandle;
@@ -2244,7 +2249,10 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       }
 
       if (L1TkPrimaryVertexHandle.isValid()) {
-        m_pv_L1reco->push_back(L1TkPrimaryVertexHandle->begin()->zvertex());
+         for (vtxIter = L1TkPrimaryVertexHandle->begin(); vtxIter != L1TkPrimaryVertexHandle->end(); ++vtxIter) {
+            m_pv_L1reco_z0->push_back(vtxIter->zvertex());
+            m_pv_L1reco_sum->push_back(vtxIter->sum());
+         }
       }
       else {
         edm::LogWarning("DataNotFound")<< "\nWarning: L1TkPrimaryVertexHandle not found in the event"<< std::endl;
