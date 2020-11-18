@@ -339,7 +339,7 @@ void L1TkFastVertexProducer::produce(edm::StreamID, edm::Event& iEvent, const ed
       float a1 = htmp_weight.GetBinContent(i);
       float a2 = htmp_weight.GetBinContent(i + 1);
       float sigma = a0 + a1 + a2;
-      if ( (sigma > sigma_max) && (find(found.begin(),found.end(),i) == found.end()) ) {
+      if ((sigma > sigma_max) && (find(found.begin(), found.end(), i) == found.end())) {
         sigma_max = sigma;
         imax = i;
         float z0 = htmp_weight.GetBinCenter(i - 1);
@@ -350,7 +350,7 @@ void L1TkFastVertexProducer::produce(edm::StreamID, edm::Event& iEvent, const ed
     }
     found.push_back(imax);
     TkPrimaryVertex vtx4(zvtx_sliding, sigma_max);
-    result->push_back(vtx4);    
+    result->push_back(vtx4);
   }
 
   iEvent.put(std::move(result));
