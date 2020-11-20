@@ -98,6 +98,8 @@ private:
 
   float etaMin_;
   float etaMax_;
+  float etaBO_;  //eta value for barrel-overlap fontier
+  float etaOE_;  //eta value for overlap-endcap fontier
   float zMax_;  // |z_track| < zMax_ in cm
   float chi2Max_;
   float pTMinTra_;
@@ -106,6 +108,7 @@ private:
   bool correctGMTPropForTkZ_;
   bool use5ParameterFit_;
   bool useTPMatchWindows_;
+  bool applyQuality_; 
 
   AlgoType bmtfMatchAlgoVersion_;
   AlgoType omtfMatchAlgoVersion_;
@@ -129,11 +132,14 @@ private:
 L1TkMuonProducer::L1TkMuonProducer(const edm::ParameterSet& iConfig)
     : etaMin_((float)iConfig.getParameter<double>("ETAMIN")),
       etaMax_((float)iConfig.getParameter<double>("ETAMAX")),
+      etaBO_( iConfig.exists("ETABARRELOVERLAP") ? (float)iConfig.getParameter<double>("ETABARRELOVERLAP") : 0.83),
+      etaOE_( iConfig.exists("ETAOVERLAPENDCAP") ? (float)iConfig.getParameter<double>("ETAOVERLAPENDCAP") : 1.24),
       zMax_((float)iConfig.getParameter<double>("ZMAX")),
       chi2Max_((float)iConfig.getParameter<double>("CHI2MAX")),
       pTMinTra_((float)iConfig.getParameter<double>("PTMINTRA")),
       dRMax_((float)iConfig.getParameter<double>("DRmax")),
       nStubsmin_(iConfig.getParameter<int>("nStubsmin")),
+     
       // --- mantra corr params
       mantra_n_trk_par_(iConfig.getParameter<int>("mantra_n_trk_par")),
       bmtfToken_(consumes<RegionalMuonCandBxCollection>(iConfig.getParameter<edm::InputTag>("L1BMTFInputTag"))),
@@ -192,6 +198,8 @@ L1TkMuonProducer::L1TkMuonProducer(const edm::ParameterSet& iConfig)
 
   use5ParameterFit_ = iConfig.getParameter<bool>("use5ParameterFit");
   useTPMatchWindows_ = iConfig.getParameter<bool>("useTPMatchWindows");
+  applyQuality_ = iConfig.exists("applyQualityCuts") ? iConfig.getParameter<bool>("applyQualityCuts") : true;
+
   produces<TkMuonCollection>();
 
   // initializations
@@ -359,7 +367,7 @@ void L1TkMuonProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   for (const auto& p : {oc_bmtf_tkmuon, oc_omtf_tkmuon, oc_emtf_tkmuon}) {
     oc_tkmuon->insert(oc_tkmuon->end(), p.begin(), p.end());
   }
-
+  
   // put the new track+muon objects in the event!
   iEvent.put(std::move(oc_tkmuon));
 };
@@ -460,13 +468,25 @@ void L1TkMuonProducer::runOnMTFCollection_v1(const edm::Handle<RegionalMuonCandB
         float p4e = sqrt(mu_mass * mu_mass + p3.mag2());
 
         math::XYZTLorentzVector l1tkp4(p3.x(), p3.y(), p3.z(), p4e);
-
+	
         const auto& tkv3 = matchTk.POCA();
         math::XYZPoint v3(tkv3.x(), tkv3.y(), tkv3.z());  // why is this defined?
 
         float trkisol = -999;
 
         TkMuon l1tkmu(l1tkp4, l1muRef, l1tkPtr, trkisol);
+	
+	if (detector == barrel_MTF_region ) {
+	  if (std::abs(l1tkp4.eta()) > etaBO_) continue;
+	}
+	else if (detector == overlap_MTF_region) {
+	  if (std::abs(l1tkp4.eta()) < etaBO_) continue;
+	  if (std::abs(l1tkp4.eta()) > etaOE_) continue;
+	  if (applyQuality_ && l1tkmu.quality() < 12) continue;
+	}
+	else if (detector == endcap_MTF_region) {
+	  if (std::abs(l1tkp4.eta()) < etaOE_) continue;
+	}
 
         l1tkmu.setTrackCurvature(matchTk.rInv());
         l1tkmu.setTrkzVtx((float)tkv3.z());
@@ -509,6 +529,10 @@ void L1TkMuonProducer::runOnMTFCollection_v2(const edm::Handle<EMTFTrackCollecti
     edm::Ptr<L1TTTrackType> l1tkPtr(l1tksH, il1ttrack);
     float trkisol = -999;  // now doing as in the TP algo
     TkMuon l1tkmu(l1tkp4, l1muRef, l1tkPtr, trkisol);
+    
+    // avoid leaking of candidates to overlap region... 
+    if (std::abs(l1tkp4.eta()) < etaOE_) continue;
+    
     l1tkmu.setTrackCurvature(matchTk.rInv());
     l1tkmu.setTrkzVtx((float)tkv3.z());
     l1tkmu.setMuonDetector(endcap_MTF_region);
@@ -635,6 +659,12 @@ std::vector<L1TkMuMantraDF::muon_df> L1TkMuonProducer::product_to_muvec(const EM
   std::vector<L1TkMuMantraDF::muon_df> result(l1mus.size());
   for (uint imu = 0; imu < l1mus.size(); ++imu) {
     auto& mu = l1mus[imu];
+    
+    // dropping the emtf tracks with certain quality...
+    int emtfQual = (mu.Mode() == 11 || mu.Mode() == 13 || 
+		    mu.Mode() == 14 || mu.Mode() == 15 );
+    if (applyQuality_ && !emtfQual) continue;
+
     result[imu].pt = mu.Pt();
     result[imu].eta = mu.Eta();
     result[imu].theta = L1TkMuMantra::to_mpio2_pio2(L1TkMuMantra::eta_to_theta(mu.Eta()));
@@ -664,12 +694,30 @@ void L1TkMuonProducer::build_tkMuons_from_idxs(TkMuonCollection& tkMuons,
     edm::Ptr<L1TTTrackType> l1tkPtr(l1tksH, match_trk_idx);
     auto l1muRef = muonH.isValid() ? edm::Ref<RegionalMuonCandBxCollection>(muonH, imatch)
                                    : edm::Ref<RegionalMuonCandBxCollection>();
-
+        
     float trkisol = -999;
     TkMuon l1tkmu(l1tkp4, l1muRef, l1tkPtr, trkisol);
     l1tkmu.setTrackCurvature(matchTk.rInv());
     l1tkmu.setTrkzVtx((float)tkv3.z());
     l1tkmu.setMuonDetector(detector);
+
+    // apply region cleaning (probably this is not the best way, but since this is going to 
+    // be a patch and temporary, it is OK) 
+    if (detector == barrel_MTF_region ) {
+      if (std::abs(l1tkp4.eta()) > etaBO_) continue;
+    }
+    else if (detector == overlap_MTF_region) {
+      if (std::abs(l1tkp4.eta()) < etaBO_) continue;
+      if (std::abs(l1tkp4.eta()) > etaOE_) continue;
+      if (applyQuality_ && l1tkmu.quality() < 12) continue;
+    }
+    else if (detector == endcap_MTF_region) {
+      if (std::abs(l1tkp4.eta()) < etaOE_) continue;
+//      int emtfQual = (l1tkmu.muRef()->Mode() == 11 || l1tkmu.muRef()->Mode() == 13 || 
+//		      l1tkmu.muRef()->Mode() == 14 || l1tkmu.muRef()->Mode() == 15 );
+//      if (applyQuality_ && !emtfQual) continue;
+    }
+      
     tkMuons.push_back(l1tkmu);
   }
   return;
