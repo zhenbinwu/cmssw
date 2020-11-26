@@ -484,8 +484,6 @@ void L1TkMuonProducer::runOnMTFCollection_v1(const edm::Handle<RegionalMuonCandB
             continue;
           if (std::abs(l1tkp4.eta()) > etaOE_)
             continue;
-          if (applyQuality_ && l1tkmu.quality() < 12)
-            continue;
         } else if (detector == endcap_MTF_region) {
           if (std::abs(l1tkp4.eta()) < etaOE_)
             continue;
@@ -715,14 +713,9 @@ void L1TkMuonProducer::build_tkMuons_from_idxs(TkMuonCollection& tkMuons,
         continue;
       if (std::abs(l1tkp4.eta()) > etaOE_)
         continue;
-      if (applyQuality_ && l1tkmu.quality() < 12)
-        continue;
     } else if (detector == endcap_MTF_region) {
       if (std::abs(l1tkp4.eta()) < etaOE_)
         continue;
-      //      int emtfQual = (l1tkmu.muRef()->Mode() == 11 || l1tkmu.muRef()->Mode() == 13 ||
-      //		      l1tkmu.muRef()->Mode() == 14 || l1tkmu.muRef()->Mode() == 15 );
-      //      if (applyQuality_ && !emtfQual) continue;
     }
 
     tkMuons.push_back(l1tkmu);

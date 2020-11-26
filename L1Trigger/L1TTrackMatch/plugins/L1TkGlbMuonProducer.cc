@@ -89,8 +89,6 @@ private:
 L1TkGlbMuonProducer::L1TkGlbMuonProducer(const edm::ParameterSet& iConfig)
     : etaMin_((float)iConfig.getParameter<double>("ETAMIN")),
       etaMax_((float)iConfig.getParameter<double>("ETAMAX")),
-      etaBO_((float)iConfig.getParameter<double>("ETABARRELOVERLAP")),
-      etaOE_((float)iConfig.getParameter<double>("ETAOVERLAPENDCAP")),
       zMax_((float)iConfig.getParameter<double>("ZMAX")),
       chi2Max_((float)iConfig.getParameter<double>("CHI2MAX")),
       pTMinTra_((float)iConfig.getParameter<double>("PTMINTRA")),
@@ -134,8 +132,8 @@ void L1TkGlbMuonProducer::runOnMuonCollection_v1(const edm::Handle<MuonBxCollect
   const MuonBxCollection& l1mus = (*muonH.product());
 
   int imu = 0;
-  for (auto l1mu = l1mus.begin(0); l1mu != l1mus.end(0); ++l1mu) {  // considering BX = only
 
+  for (auto l1mu = l1mus.begin(0); l1mu != l1mus.end(0); ++l1mu) {  // considering BX = only
     edm::Ref<MuonBxCollection> l1muRef(muonH, imu);
     imu++;
 
