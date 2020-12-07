@@ -18,10 +18,10 @@ TkMuon::TkMuon(const LorentzVector& p4,
 }
 
 TkMuon::TkMuon(const LorentzVector& p4,
-               const edm::Ref<EMTFTrackCollection>& muRef,
+               const edm::Ref<EMTFTrackCollection>& emtfRef,
                const edm::Ptr<L1TTTrackType>& trackPtr,
                float tkisol)
-    : L1Candidate(p4), emtfTrk_(muRef), trkPtr_(trackPtr), theIsolation(tkisol), TrkzVtx_(999), quality_(999) {
+  : L1Candidate(p4), emtfTrk_(emtfRef), trkPtr_(trackPtr), theIsolation(tkisol), TrkzVtx_(999), quality_(999) {
   if (trkPtr_.isNonnull()) {
     setTrkzVtx(trkPtr()->POCA().z());
   }

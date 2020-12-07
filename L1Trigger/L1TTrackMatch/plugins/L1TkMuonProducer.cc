@@ -204,7 +204,7 @@ L1TkMuonProducer::L1TkMuonProducer(const edm::ParameterSet& iConfig)
 
   use5ParameterFit_ = iConfig.getParameter<bool>("use5ParameterFit");
   useTPMatchWindows_ = iConfig.getParameter<bool>("useTPMatchWindows");
-  applyQuality_ = iConfig.exists("applyQualityCuts") ? iConfig.getParameter<bool>("applyQualityCuts") : true;
+  applyQuality_ = iConfig.exists("applyQualityCuts") ? iConfig.getParameter<bool>("applyQualityCuts") : false;
 
   produces<TkMuonCollection>();
 
@@ -361,7 +361,7 @@ void L1TkMuonProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   else if (emtfMatchAlgoVersion_ == kMantra) {
     const auto& muons = product_to_muvec(*l1emtfTCH.product());
     const auto& match_idx = mantracorr_endc_->find_match(mantradf_tracks, muons);
-    //for the TkMu that were built from a EMTFCollection - do not produce a valid muon ref
+    //for the TkMu that were built from a EMTFCollection - pass the emtf track as ref
     build_tkMuons_from_idxs(oc_emtf_tkmuon, match_idx, l1tksH, l1emtfTCH, endcap_MTF_region);
   } else
     throw cms::Exception("TkMuAlgoConfig") << "endcap : trying to run an invalid algorithm version "
@@ -668,9 +668,9 @@ std::vector<L1TkMuMantraDF::muon_df> L1TkMuonProducer::product_to_muvec(const EM
     auto& mu = l1mus[imu];
 
     // dropping the emtf tracks with certain quality...
-    //    int emtfQual = (mu.Mode() == 11 || mu.Mode() == 13 || mu.Mode() == 14 || mu.Mode() == 15);
-    //    if (applyQuality_ && !emtfQual)
-    //      continue;
+    int emtfQual = (mu.Mode() == 11 || mu.Mode() == 13 || mu.Mode() == 14 || mu.Mode() == 15);
+    if (applyQuality_ && !emtfQual)
+      continue;
 
     result[imu].pt = mu.Pt();
     result[imu].eta = mu.Eta();
@@ -752,7 +752,7 @@ void L1TkMuonProducer::build_tkMuons_from_idxs(TkMuonCollection& tkMuons,
     auto l1emtfTrk = emtfTksH.isValid() ? edm::Ref<EMTFTrackCollection>(emtfTksH, imatch)
       : edm::Ref<EMTFTrackCollection>();
     
-    int emtfQual = (l1emtfTrk->Mode() == 11 || l1emtfTrk->Mode() == 13 || l1emtfTrk->Mode() == 14 || l1emtfTrk->Mode() == 15);
+    int emtfQual = (l1emtfTrk->Mode() == 11 || l1emtfTrk->Mode() == 13 || l1emtfTrk->Mode() == 14 || l1emtfTrk->Mode() == 15) ? 1 : 0;
 
     float trkisol = -999;
     TkMuon l1tkmu(l1tkp4, l1emtfTrk, l1tkPtr, trkisol);
