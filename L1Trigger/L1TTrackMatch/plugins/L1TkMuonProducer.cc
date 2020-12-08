@@ -750,15 +750,12 @@ void L1TkMuonProducer::build_tkMuons_from_idxs(TkMuonCollection& tkMuons,
     auto l1emtfTrk =
         emtfTksH.isValid() ? edm::Ref<EMTFTrackCollection>(emtfTksH, imatch) : edm::Ref<EMTFTrackCollection>();
 
-    int emtfQual =
-        (l1emtfTrk->Mode() == 11 || l1emtfTrk->Mode() == 13 || l1emtfTrk->Mode() == 14 || l1emtfTrk->Mode() == 15) ? 1
-                                                                                                                   : 0;
     float trkisol = -999;
     TkMuon l1tkmu(l1tkp4, l1emtfTrk, l1tkPtr, trkisol);
     l1tkmu.setTrackCurvature(matchTk.rInv());
     l1tkmu.setTrkzVtx((float)tkv3.z());
     l1tkmu.setMuonDetector(detector);
-    l1tkmu.setQuality(emtfQual);
+    l1tkmu.setQuality(l1emtfTrk->Mode());
 
     if (std::abs(l1tkmu.eta()) < etaOE_)
       continue;
