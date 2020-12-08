@@ -499,6 +499,7 @@ void L1TkMuonProducer::runOnMTFCollection_v1(const edm::Handle<RegionalMuonCandB
         l1tkmu.setdR(drmin);
         l1tkmu.setNTracksMatched(nTracksMatch);
         l1tkmu.setMuonDetector(detector);
+	l1tkmu.setQuality(l1muRef->hwQual());
         tkMuons.push_back(l1tkmu);
       }
     }
@@ -707,6 +708,7 @@ void L1TkMuonProducer::build_tkMuons_from_idxs(TkMuonCollection& tkMuons,
     l1tkmu.setTrackCurvature(matchTk.rInv());
     l1tkmu.setTrkzVtx((float)tkv3.z());
     l1tkmu.setMuonDetector(detector);
+    l1tkmu.setQuality(l1muRef->hwQual());
 
     // apply region cleaning (probably this is not the best way, but since this is going to
     // be a patch and temporary, it is OK)
