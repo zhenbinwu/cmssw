@@ -31,6 +31,7 @@ for i in range(0,(1<<(BITSTTTANL))):
     etaINT = int(eta*(1<<BITSETA)/math.pi)
     if abs(eta<math.pi):
         etaLUT.append(str(etaINT))
+#        etaLUT.append('ap_uint<BITSETA-1>({val})'.format(val=etaINT))
 
 
 print("ap_uint<BITSETA-1> etaLUT[{address}]={{".format(address=(1<<BITSTTTANL))+','.join(etaLUT)+'};')

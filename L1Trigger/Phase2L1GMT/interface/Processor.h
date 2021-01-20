@@ -27,7 +27,7 @@ namespace Phase2L1GMT {
     std::vector<l1t::TkMuon>  process(const std::vector<edm::Ptr< l1t::TkMuon::L1TTTrackType > >& tracks) {
       std::vector<ConvertedTTTrack>  convertedTracks =     tt_track_converter_->convertTracks(tracks);
       for (const auto& track  : convertedTracks)
-	std::cout << track <<std::endl;
+	track.print();
  
       std::vector<l1t::TkMuon> out;
       return out;

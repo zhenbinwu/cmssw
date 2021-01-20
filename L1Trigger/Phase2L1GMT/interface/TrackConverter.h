@@ -35,6 +35,7 @@ namespace Phase2L1GMT {
       ap_int<BITSTTTANL>  tanLambda   = track->tanL()*(1<<(BITSTTTANL-1))/maxTanl_;
       ap_int<BITSTTZ0>    z0          = track->z0()*(1<<(BITSTTZ0-1))/maxZ0_;
       ap_int<BITSTTZ0>    d0          = track->d0()*(1<<(BITSTTD0-1))/maxD0_;
+      ap_int<BITSD0>      reducedD0   = ap_int<BITSD0>(d0/2);
       //calculate pt
       ap_uint<BITSTTCURV-1> absCurv  = curvature>0 ? ap_uint<BITSTTCURV-1>(curvature) : ap_uint<BITSTTCURV-1>(-curvature);
       ap_uint<BITSPT> pt = ptLUT[absCurv>>3];
@@ -43,7 +44,7 @@ namespace Phase2L1GMT {
       ap_uint<BITSETA-1> absEta = etaLUT[absTanL>>4];
       ap_int<BITSETA> eta = tanLambda >0 ?  ap_int<BITSETA>(absEta) : ap_int<BITSETA>(-absEta);
 
-      ConvertedTTTrack convertedTrack(charge,curvature,pt,eta,phi,z0,d0,quality);
+      ConvertedTTTrack convertedTrack(charge,curvature,pt,eta,phi,z0,reducedD0,quality);
       return convertedTrack;
     }
   };

@@ -54,15 +54,8 @@ namespace Phase2L1GMT {
       return quality_;
     }
 
-    std::ostream& operator<<(std::ostream& os) {
-      return (os << " charge:" << charge_ 
-	      << " curvature:" << curvature_
-	      << " pt:"        << pt_
-	      << " eta:"       << eta_
-	      << " phi:"       << phi_
-	      << " z0:"        << z0_
-	      << " d0:"        << d0_
-	      << " quality:"   << quality_);
+    void print() const {
+      printf("converted track charge=%d curvature=%d pt=%d eta=%d phi=%d z0=%d d0=%d quality=%d\n",charge_.to_int(),curvature_.to_int(),pt_.to_int(),eta_.to_int(),phi_.to_int(),z0_.to_int(),d0_.to_int(),quality_.to_int());
     }
 
 
@@ -70,7 +63,7 @@ namespace Phase2L1GMT {
 
   private:
     ap_uint<1>                charge_;
-    ap_uint<BITSCURV>         curvature_;
+    ap_int<BITSCURV>         curvature_;
     ap_uint<BITSPT>           pt_;
     ap_int<BITSETA>           eta_;
     ap_int<BITSPHI>           phi_;
