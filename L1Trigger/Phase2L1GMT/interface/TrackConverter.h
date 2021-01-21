@@ -45,6 +45,7 @@ namespace Phase2L1GMT {
       ap_int<BITSETA> eta = tanLambda >0 ?  ap_int<BITSETA>(absEta) : ap_int<BITSETA>(-absEta);
 
       ConvertedTTTrack convertedTrack(charge,curvature,pt,eta,phi,z0,reducedD0,quality);
+      convertedTrack.setOfflineQuantities(track->momentum().transverse(),track->eta(),track->phi());
       return convertedTrack;
     }
   };

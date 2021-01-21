@@ -53,9 +53,25 @@ namespace Phase2L1GMT {
     const ap_uint<BITSQUALITY> quality() const {
       return quality_;
     }
+    const float offline_pt() const {
+      return offline_pt_;
+    }
+    const float offline_eta() const {
+      return offline_eta_;
+    }
+    const float offline_phi() const {
+      return offline_phi_;
+    }
+
+
+    void setOfflineQuantities(float pt,float eta, float phi) {
+      offline_pt_=pt;
+      offline_eta_=eta;
+      offline_phi_=phi;
+    }
 
     void print() const {
-      printf("converted track charge=%d curvature=%d pt=%d eta=%d phi=%d z0=%d d0=%d quality=%d\n",charge_.to_int(),curvature_.to_int(),pt_.to_int(),eta_.to_int(),phi_.to_int(),z0_.to_int(),d0_.to_int(),quality_.to_int());
+      printf("converted track charge=%d curvature=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",charge_.to_int(),curvature_.to_int(),offline_pt_,pt_.to_int(),offline_eta_,eta_.to_int(),offline_phi_,phi_.to_int(),z0_.to_int(),d0_.to_int(),quality_.to_int());
     }
 
 
@@ -63,13 +79,16 @@ namespace Phase2L1GMT {
 
   private:
     ap_uint<1>                charge_;
-    ap_int<BITSCURV>         curvature_;
+    ap_int<BITSCURV>          curvature_;
     ap_uint<BITSPT>           pt_;
     ap_int<BITSETA>           eta_;
     ap_int<BITSPHI>           phi_;
     ap_int<BITSZ0>            z0_;
     ap_int<BITSD0>            d0_;
     ap_uint<BITSQUALITY>      quality_;
+    float                     offline_pt_;
+    float                     offline_eta_;
+    float                     offline_phi_;
 
   };
 }

@@ -39,7 +39,7 @@ class L1TPhase2GMTEndcapStubProcessor {
   double eta2LSB_;
   double etaMatch_;
   double phiMatch_;
-
+  bool verbose_;
 
 
 };
