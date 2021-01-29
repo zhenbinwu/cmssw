@@ -54,9 +54,10 @@ L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& detid,const CS
 
   int wheel=0;
   int sign = endcap==1 ? -1 : 1;
-
+  
   if (ring==3)
     wheel = sign*3;
+  
   if (ring==2)
     wheel = sign*4;
   if (ring==1)
@@ -68,10 +69,21 @@ L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& detid,const CS
   int quality=1;
 
   uint tfLayer=0;
+  if ((ring==3||ring==2) && station==1) //ME1/3
+    tfLayer=4;
+  else if (ring==1 && station==1) //ME1/3
+    tfLayer=0;
+  else if (station==2) //ME2/2
+    tfLayer=2;
+  else if (station==3) //ME3/2
+    tfLayer=1;
+  else if (station==4) //ME4/2
+    tfLayer=3;
+
 
 
   L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi,0,0,
-			bx,quality,eta1,0,1,0); 
+			bx,quality,eta1,0,2,0); 
 
   stub.setOfflineQuantities(gp.phi().value(),0.0,gp.eta(),0.0);
   return stub;
@@ -95,12 +107,30 @@ L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& detid,const RP
   int station=detid.station();
   bool tag = detid.trIndex();
   int bx=digi.bx();
-  int quality=2;
+  int quality=0;
+
+  int ring = detid.ring();
+
+
+
   uint tfLayer=0;
 
-  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,0,phi2,tag,
-			bx,quality,0,eta2,2,0); 
-  stub.setOfflineQuantities(0.0,gp.phi().value(),0.0,gp.eta());
+  if ((ring==3||ring==2) && station==1) //ME1/3
+    tfLayer=4;
+  //  else if (ring==1 && station==1) //ME1/3
+  //    tfLayer=0;
+  else if (station==2) //ME2/2
+    tfLayer=2;
+  else if (station==3) //ME3/2
+    tfLayer=1;
+  else if (station==4) //ME4/2
+    tfLayer=3;
+
+
+
+  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi2,phi2,tag,
+			bx,quality,eta2,eta2,1,0); 
+  stub.setOfflineQuantities(gp.phi().value(),gp.phi().value(),gp.eta(),gp.eta());
   return stub;
 
   }
@@ -119,7 +149,7 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
     int phi=0;
     int eta=0;
     for (const auto & rpc : rpcStubs) {
-      if (csc.etaRegion()!=rpc.etaRegion() || csc.depthRegion()!=rpc.depthRegion())
+      if (csc.depthRegion()!=rpc.depthRegion())
 	continue;
       if (fabs(deltaPhi(csc.offline_coord1(),rpc.offline_coord2()))<phiMatch_ &&
 	  fabs(csc.offline_eta1()-rpc.offline_eta2())<etaMatch_ && csc.bxNum()==rpc.bxNum()) {
@@ -147,8 +177,8 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
 
 
     //make the fancy stub
-    L1TPhase2GMTStub stub(csc.etaRegion(),csc.phiRegion(),csc.depthRegion(),0,csc.coord1(),finalRPCPhi,0,
-			  csc.bxNum(),nRPC|(1<<3),csc.eta1(),finalRPCEta,2,0); 
+    L1TPhase2GMTStub stub(csc.etaRegion(),csc.phiRegion(),csc.depthRegion(),csc.tfLayer(),csc.coord1(),finalRPCPhi,0,
+			  csc.bxNum(),2,csc.eta1(),finalRPCEta,3,0); 
     stub.setOfflineQuantities(csc.offline_coord1(),offline_finalRPCPhi,csc.offline_eta1(),offline_finalRPCEta);
     out.push_back(stub);
   }
@@ -177,8 +207,7 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
     int eta=cleanedRPC[0].eta2();
 
     for (unsigned i=1;i<cleanedRPC.size();++i) {
-      if (fabs(deltaPhi(cleanedRPC[0].offline_coord2(),cleanedRPC[i].offline_coord2()))<phiMatch_ &&
-	  cleanedRPC[0].etaRegion()==cleanedRPC[i].etaRegion() && cleanedRPC[0].depthRegion()==cleanedRPC[i].depthRegion() &&
+      if (fabs(deltaPhi(cleanedRPC[0].offline_coord2(),cleanedRPC[i].offline_coord2()))<phiMatch_ && cleanedRPC[0].depthRegion()==cleanedRPC[i].depthRegion() &&
 	  fabs(cleanedRPC[0].offline_eta2()-cleanedRPC[i].offline_eta2())<etaMatch_ &&cleanedRPC[0].bxNum()==cleanedRPC[i].bxNum()) {
 	  phiF+=cleanedRPC[i].offline_coord2();
 	  etaF+=cleanedRPC[i].offline_eta2();
@@ -190,9 +219,9 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
 	freeRPC.push_back(cleanedRPC[i]);
       }
     }
-    L1TPhase2GMTStub stub(cleanedRPC[0].etaRegion(),cleanedRPC[0].phiRegion(),cleanedRPC[0].depthRegion(),0,0,phi/nRPC,0,
-			  cleanedRPC[0].bxNum(),nRPC,0,eta/nRPC,2,0); 
-    stub.setOfflineQuantities(0.0,phiF/nRPC,0.0,etaF/nRPC);
+    L1TPhase2GMTStub stub(cleanedRPC[0].etaRegion(),cleanedRPC[0].phiRegion(),cleanedRPC[0].depthRegion(),cleanedRPC[0].tfLayer(),phi/nRPC,phi/nRPC,0,
+			  cleanedRPC[0].bxNum(),1,eta/nRPC,eta/nRPC,1,0); 
+    stub.setOfflineQuantities(phiF/nRPC,phiF/nRPC,etaF/nRPC,etaF/nRPC);
     out.push_back(stub);
     cleanedRPC=freeRPC;
   };
@@ -246,15 +275,15 @@ L1TPhase2GMTEndcapStubProcessor::makeStubs(const MuonDigiCollection<CSCDetId,CSC
    if (verbose_) {
      printf("CSC Stubs\n");
      for (const auto& stub : cscStubs) 
-       printf("CSC Stub bx=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
-	      stub.bxNum(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
+       printf("CSC Stub bx=%d TF=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
+	      stub.bxNum(),stub.tfLayer(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
      printf("RPC Stubs\n");
      for (const auto& stub : rpcStubs) 
-       printf("RPC Stub bx=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
-	      stub.bxNum(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
+       printf("RPC Stub bx=%d TF=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
+	      stub.bxNum(),stub.tfLayer(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
      for (const auto& stub : combinedStubs) 
-       printf("Combined Stub bx=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
-	      stub.bxNum(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
+       printf("Combined Stub bx=%d TF=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
+	      stub.bxNum(),stub.tfLayer(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
 
    }
   

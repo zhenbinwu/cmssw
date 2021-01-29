@@ -9,6 +9,7 @@
 #include "FWCore/Utilities/interface/StreamID.h"
 
 #include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTEndcapStubProcessor.h"
+#include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTBarrelStubProcessor.h"
 
 
 
@@ -32,12 +33,13 @@ class Phase2L1TGMTStubProducer : public edm::stream::EDProducer<> {
       void endStream() override;
 
   edm::EDGetTokenT<MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi> > srcCSC_;
-  //  edm::EDGetTokenT<L1MuDTChambPhContainer> srcDT_;
-  //  edm::EDGetTokenT<L1MuDTChambThContainer> srcDTTheta_;
+  edm::EDGetTokenT<L1Phase2MuDTPhContainer> srcDT_;
+  edm::EDGetTokenT<L1MuDTChambThContainer> srcDTTheta_;
   edm::EDGetTokenT<RPCDigiCollection> srcRPC_;
 
 
   L1TPhase2GMTEndcapStubProcessor* procEndcap_;
+  L1TPhase2GMTBarrelStubProcessor* procBarrel_;
   L1TMuon::GeometryTranslator * translator_;
   int verbose_;
 };
@@ -56,8 +58,11 @@ class Phase2L1TGMTStubProducer : public edm::stream::EDProducer<> {
 //
 Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iConfig):
   srcCSC_(consumes<MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi> > (iConfig.getParameter<edm::InputTag>("srcCSC"))),
+  srcDT_(consumes<L1Phase2MuDTPhContainer> (iConfig.getParameter<edm::InputTag>("srcDT"))),
+  srcDTTheta_(consumes<L1MuDTChambThContainer> (iConfig.getParameter<edm::InputTag>("srcDTTheta"))),
   srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
   procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet> ("Endcap"))),
+  procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet> ("Barrel"))),
   translator_(new L1TMuon::GeometryTranslator),
   verbose_(iConfig.getParameter<int>("verbose"))
 {
@@ -72,6 +77,8 @@ Phase2L1TGMTStubProducer::~Phase2L1TGMTStubProducer()
    // (e.g. close files, deallocate resources etc.)
   if (procEndcap_!=nullptr)
     delete procEndcap_;
+  if (procBarrel_!=nullptr)
+    delete procBarrel_;
   if (translator_!=nullptr)
     delete translator_;
 
@@ -99,26 +106,18 @@ Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
    iEvent.getByToken(srcRPC_,rpcDigis);
 
 
-   //   Handle<L1MuDTChambPhContainer> dtDigis;
-   //iEvent.getByToken(srcDT_,dtDigis);
+   Handle<L1Phase2MuDTPhContainer> dtDigis;
+   iEvent.getByToken(srcDT_,dtDigis);
 
-   //Handle<L1MuDTChambThContainer> dtThetaDigis;
-   //iEvent.getByToken(srcDTTheta_,dtThetaDigis);
+   Handle<L1MuDTChambThContainer> dtThetaDigis;
+   iEvent.getByToken(srcDTTheta_,dtThetaDigis);
 
-
-   //   RPCtoDTTranslator translator(*rpcDigis);
-   // translator.run(iSetup);
-
-
-
-
-   //Get parameters
 
 
    L1TPhase2GMTStubCollection stubs= procEndcap_->makeStubs(*cscDigis,*rpcDigis,translator_,iSetup);
 
-   //   L1TPhase2GMTStubCollection stubsDT = procDT_->makeStubs(dtDigis.product(),dtThetaDigis.product(),bmtfParams);
-   // std::copy (stubsDT.begin(), stubsDT.end(), std::back_inserter(stubs));
+   L1TPhase2GMTStubCollection stubsBarrel = procBarrel_->makeStubs(dtDigis.product(),dtThetaDigis.product());
+   std::copy (stubsBarrel.begin(), stubsBarrel.end(), std::back_inserter(stubs));
    iEvent.put(std::make_unique<L1TPhase2GMTStubCollection>(stubs));
 }
 

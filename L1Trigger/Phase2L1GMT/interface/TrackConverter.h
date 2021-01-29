@@ -31,7 +31,7 @@ namespace Phase2L1GMT {
     ConvertedTTTrack convert(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& track) {
       ap_uint<1>          charge      = (track->rInv()<0) ? 1 : 0;
       ap_int<BITSTTCURV>  curvature   = track->rInv()*(1<<(BITSTTCURV-1))/maxCurv_;
-      ap_int<BITSTTPHI>   phi         = track->phi()*(1<<(BITSTTPHI-1))/maxPhi_;
+      ap_int<BITSPHI>     phi         = track->phi()*(1<<(BITSPHI-1))/(M_PI);
       ap_int<BITSTTTANL>  tanLambda   = track->tanL()*(1<<(BITSTTTANL-1))/maxTanl_;
       ap_int<BITSTTZ0>    z0          = track->z0()*(1<<(BITSTTZ0-1))/maxZ0_;
       ap_int<BITSTTZ0>    d0          = track->d0()*(1<<(BITSTTD0-1))/maxD0_;

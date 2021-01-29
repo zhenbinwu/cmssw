@@ -26,8 +26,8 @@ L1TPhase2GMTBarrelStubProcessor::L1TPhase2GMTBarrelStubProcessor(const edm::Para
   coarseEta3_(iConfig.getParameter<std::vector<int> >("coarseEta_3")),
   coarseEta4_(iConfig.getParameter<std::vector<int> >("coarseEta_4")),
   verbose_(iConfig.getParameter<int>("verbose")),
-  phiLSB_(iConfig.getParameter<double>("phiLSB"))
-
+  phiLSB_(iConfig.getParameter<double>("phiLSB")),
+  etaLSB_(iConfig.getParameter<double>("etaLSB"))
 {
 
 } 
@@ -50,10 +50,10 @@ L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const 
 
 
   //Now full eta
-  int qeta1=0;
-  int qeta2=0;
-  int eta1=255;
-  int eta2=255; 
+  int qeta1=-255;
+  int qeta2=-255;
+  int eta1=-255;
+  int eta2=-255; 
 
 
   bool hasEta=false;
@@ -80,10 +80,14 @@ L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const 
 
 
   if (qeta2>0) {//both stubs->average
-    stub.setEta(eta1,eta2,qeta1+qeta2);
+    stub.setEta(eta1,eta2,(qeta1 | (qeta2<<2)));
+    stub.setOfflineQuantities(stub.offline_coord1(),stub.offline_coord2(),eta1*etaLSB_,eta2*etaLSB_);
+
   }
   else if (qeta1>0) {//Good single stub
     stub.setEta(eta1,0,qeta1);
+    stub.setOfflineQuantities(stub.offline_coord1(),stub.offline_coord2(),eta1*etaLSB_,0.0);
+
   }
  
 
@@ -103,7 +107,7 @@ L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) 
   int sign  = wheel>0 ? 1: -1;
   int sector = phiS.scNum();
   int station = phiS.stNum();
-  double globalPhi = (sector*30)+phiS.phi()*30./2048.;
+  double globalPhi = (sector*30)+phiS.phi()*30./65535.;
   if (globalPhi<-180)
     globalPhi+=360;
   if (globalPhi>180)
@@ -112,9 +116,9 @@ L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) 
   int phi  = int(globalPhi/phiLSB_);
   int phiB = phiS.phiBend();
   uint tag = phiS.index();
-  int bx=phiS.bxNum();
+  int bx=phiS.bxNum()-20;
   int quality=phiS.quality();
-  uint tfLayer=0;
+  uint tfLayer=phiS.stNum()-1;
   int eta=-255;
   if (station==1) {
     eta=-coarseEta1_[abswheel];
@@ -131,12 +135,16 @@ L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) 
   else {
     eta=-255;
   }
+
+  //override!!!
+  eta=abswheel;
+
   //Now full eta
 
   eta=eta*sign;
   L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi,phiB,tag,
-			bx,quality,eta,0,0,0);
-  stub.setOfflineQuantities(globalPhi,float(phiB),0.0,0.0);
+			bx,quality,eta,0,0,1);
+  stub.setOfflineQuantities(globalPhi,float(phiB),eta*etaLSB_,0.0);
   return stub;
 }
 
@@ -159,7 +167,7 @@ L1TPhase2GMTBarrelStubProcessor::makeStubs(const L1Phase2MuDTPhContainer* phiCon
 	    hasEta=true;
 	  }
 	  for (const auto& phiDigi : *phiContainer->getContainer()) {
-	    if (phiDigi.bxNum()!= bx ||phiDigi.whNum()!=wheel || phiDigi.scNum()!=sector || phiDigi.stNum()!=station)
+	    if (phiDigi.bxNum()!= (bx-20) ||phiDigi.whNum()!=wheel || phiDigi.scNum()!=sector || phiDigi.stNum()!=station)
 	      continue;
 	    if (hasEta) {
 	      out.push_back(buildStub(phiDigi,tseta));
@@ -172,6 +180,16 @@ L1TPhase2GMTBarrelStubProcessor::makeStubs(const L1Phase2MuDTPhContainer* phiCon
       }
     }
   }
+
+
+   if (verbose_) {
+     printf("Barrel Stubs\n");
+     for (const auto& stub : out) 
+       printf("Barrel Stub bx=%d TF=%d etaRegion=%d phiRegion=%d depthRegion=%d  coord1=%f,%d coord2=%f,%d eta1=%f,%d eta2=%f,%d quality=%d etaQuality=%d\n",
+	      stub.bxNum(),stub.tfLayer(),stub.etaRegion(),stub.phiRegion(),stub.depthRegion(),stub.offline_coord1(),stub.coord1(),stub.offline_coord2(),stub.coord2(),stub.offline_eta1(),stub.eta1(),stub.offline_eta2(),stub.eta2(),stub.quality(),stub.etaQuality());
+   }
+
+
 
   return out;
 }
@@ -194,12 +212,12 @@ int L1TPhase2GMTBarrelStubProcessor::calculateEta(uint i, int wheel,uint sector,
   }
 
 
-  if (station==1)
-    eta=-eta1_[eta+17];
-  else if (station==2)
-    eta=-eta2_[eta+17];
-  else 
-    eta=-eta3_[eta+17];
+  //  if (station==1)
+  //  eta=-eta1_[eta+17];
+  //else if (station==2)
+  //  eta=-eta2_[eta+17];
+  //else 
+  //  eta=-eta3_[eta+17];
 
   return eta;
 

@@ -78,10 +78,8 @@ class L1TPhase2GMTStub {
     inline int type() const { return type_; }
 
 
-    inline bool isDT()  const { return (type_==0); }
-    inline bool isRPCBarrel() const { return (type_==1); }
-    inline bool isCSC() const { return (type_==2); }
-    inline bool isRPCEndcap() const { return (type_==3); }
+    inline bool isBarrel()  const { return (type_==1); }
+    inline bool isEndcap() const { return (type_==0); }
 
     inline double offline_coord1() const {return offline_coord1_;}
     inline double offline_coord2() const {return offline_coord2_;}

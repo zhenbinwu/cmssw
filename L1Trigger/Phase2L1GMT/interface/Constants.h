@@ -7,7 +7,7 @@ namespace Phase2L1GMT {
 
   const int BITSCURV             = 15; 
   const int BITSPT               = 13; 
-  const int BITSPHI              = 13;
+  const int BITSPHI              = 14;
   const int BITSETA              = 13;
   const int BITSZ0               = 10;
   const int BITSD0               = 12;
@@ -23,6 +23,11 @@ namespace Phase2L1GMT {
   const int BITSTTMASK           = 7;
   const int BITSTTTRACKMVA       = 3;
   const int BITSTTOTHERMVA       = 6;
+
+
+
+  const int BITSMUONQUALITY          = 4; 
+
 
   const float maxCurv_ = 0.00855;  // 2 GeV pT Rinv is in cm
   const float maxPhi_ = 1.026;     // relative to the center of the sector

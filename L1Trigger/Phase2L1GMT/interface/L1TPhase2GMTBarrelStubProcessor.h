@@ -10,9 +10,6 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonBarrelParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonBarrelParamsRcd.h"
 
-
-
-
 class L1TPhase2GMTBarrelStubProcessor {
  public:
   L1TPhase2GMTBarrelStubProcessor();
@@ -40,6 +37,7 @@ class L1TPhase2GMTBarrelStubProcessor {
   std::vector<int> coarseEta4_;
   int verbose_;
   double phiLSB_;
+  double etaLSB_;
 
 };
 
