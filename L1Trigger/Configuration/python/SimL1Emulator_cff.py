@@ -101,7 +101,7 @@ L1TowerCalibration = L1TowerCalibrationProducer.clone(
 # ----    Produce the L1CaloJets
 from L1Trigger.L1CaloTrigger.L1CaloJetProducer_cfi import *
 L1CaloJet = L1CaloJetProducer.clone (
-    l1CaloTowers = cms.InputTag("L1TowerCalibrationProducer","L1CaloTowerCalibratedCollection",""),
+    l1CaloTowers = cms.InputTag("L1TowerCalibration","L1CaloTowerCalibratedCollection",""),
     L1CrystalClustersInputTag = cms.InputTag("L1EGammaClusterEmuProducer", "","")
 )
 # ----    Produce the CaloJet HTT Sums
