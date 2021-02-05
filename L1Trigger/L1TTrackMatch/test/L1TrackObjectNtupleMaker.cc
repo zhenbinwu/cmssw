@@ -66,7 +66,7 @@
 #include "DataFormats/L1TCorrelator/interface/TkEtMissFwd.h"
 #include "DataFormats/L1TCorrelator/interface/TkHTMiss.h"
 #include "DataFormats/L1TCorrelator/interface/TkHTMissFwd.h"
-#include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+#include "DataFormats/L1Trigger/interface/Vertex.h"
 
 
 
@@ -172,7 +172,7 @@ private:
 
   edm::EDGetTokenT<std::vector<reco::GenJet> > GenJetToken_;
   edm::EDGetTokenT<std::vector<reco::GenParticle> > GenParticleToken_;
-  edm::EDGetTokenT<l1t::TkPrimaryVertexCollection> L1VertexToken_;
+  edm::EDGetTokenT<l1t::VertexCollection> L1VertexToken_;
 
 
   edm::EDGetTokenT<std::vector<l1t::TkJet> > TrackFastJetsToken_;
@@ -473,7 +473,7 @@ L1TrackObjectNtupleMaker::L1TrackObjectNtupleMaker(edm::ParameterSet const& iCon
   TrackingVertexToken_ = consumes<std::vector<TrackingVertex> >(TrackingVertexInputTag);
   GenJetToken_ = consumes<std::vector<reco::GenJet> >(GenJetInputTag);
   GenParticleToken_=consumes< std::vector< reco::GenParticle> >(GenParticleInputTag);
-  L1VertexToken_=consumes<l1t::TkPrimaryVertexCollection>(RecoVertexInputTag);
+  L1VertexToken_=consumes<l1t::VertexCollection>(RecoVertexInputTag);
 }
 
 /////////////
@@ -1174,9 +1174,9 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     iEvent.getByToken(GenParticleToken_,GenParticleHandle);
 
     //Vertex
-    edm::Handle< l1t::TkPrimaryVertexCollection >L1TkPrimaryVertexHandle;
+    edm::Handle< l1t::VertexCollection >L1TkPrimaryVertexHandle;
     iEvent.getByToken(L1VertexToken_, L1TkPrimaryVertexHandle);
-    std::vector< l1t::TkPrimaryVertex >::const_iterator vtxIter;
+    std::vector< l1t::Vertex >::const_iterator vtxIter;
 
     // Track jets
     edm::Handle< std::vector<l1t::TkJet> > TrackFastJetsHandle;
@@ -2302,8 +2302,8 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       if (L1TkPrimaryVertexHandle.isValid()) {
          for (vtxIter = L1TkPrimaryVertexHandle->begin(); vtxIter != L1TkPrimaryVertexHandle->end(); ++vtxIter) {
-            m_pv_L1reco->push_back(vtxIter->zvertex());
-            m_pv_L1reco_sum->push_back(vtxIter->sum());
+            m_pv_L1reco->push_back(vtxIter->z0());
+            m_pv_L1reco_sum->push_back(vtxIter->pt());
          }
       }
       else {
