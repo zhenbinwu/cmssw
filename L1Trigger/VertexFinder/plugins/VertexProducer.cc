@@ -113,7 +113,7 @@ void VertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
     lVtxTracks.reserve(vtx.tracks().size());
     for (const auto& t : vtx.tracks())
       lVtxTracks.push_back(t->getTTTrackPtr());
-    lProduct->emplace_back(l1t::Vertex(vtx.z0(), lVtxTracks));
+    lProduct->emplace_back(l1t::Vertex(vtx.pt(), vtx.z0(), lVtxTracks));
   }
   iEvent.put(std::move(lProduct), outputCollectionName_);
 }
