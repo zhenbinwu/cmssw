@@ -24,6 +24,8 @@ namespace l1tVertexFinder {
 
   class InputData {
   public:
+    /// Constructor and destructor
+    InputData();
     InputData(const edm::Event& iEvent,
               const edm::EventSetup& iSetup,
               const AnalysisSettings& settings,
@@ -33,6 +35,7 @@ namespace l1tVertexFinder {
               const edm::EDGetTokenT<DetSetVec> stubToken,
               const edm::EDGetTokenT<TTStubAssMap> stubTruthToken,
               const edm::EDGetTokenT<TTClusterAssMap> clusterTruthToken);
+    ~InputData();
 
     // Sort Tracking Particles by vertex z position
     struct SortVertexByPt {
