@@ -50,13 +50,11 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
   produces<l1t::VertexCollection>(outputCollectionName_);
 }
 
-void VertexProducer::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {}
-
-void VertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::EventSetup& iSetup) const {
   edm::Handle<TTTrackCollectionView> l1TracksHandle;
   iEvent.getByToken(l1TracksToken_, l1TracksHandle);
 
-  l1Tracks.clear();
+  std::vector<l1tVertexFinder::L1Track> l1Tracks;
   l1Tracks.reserve(l1TracksHandle->size());
   for (const auto& track : l1TracksHandle->ptrs()) {
     auto l1track = L1Track(track);
@@ -117,7 +115,5 @@ void VertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   }
   iEvent.put(std::move(lProduct), outputCollectionName_);
 }
-
-void VertexProducer::endJob() {}
 
 DEFINE_FWK_MODULE(VertexProducer);

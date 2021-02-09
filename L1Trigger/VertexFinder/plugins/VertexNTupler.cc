@@ -1,5 +1,6 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
@@ -159,6 +160,8 @@ namespace l1tVertexFinder {
     const edm::EDGetTokenT<std::vector<PileupSummaryInfo>> pileupSummaryToken_;
     const edm::EDGetTokenT<edm::View<reco::GenParticle>> genParticlesToken_;
     const edm::EDGetTokenT<std::vector<reco::GenJet>> genJetsToken_;
+    const edm::EDGetTokenT<std::vector<l1tVertexFinder::TP>> allMatchedTPsToken_;
+    const edm::EDGetTokenT<edm::ValueMap<l1tVertexFinder::TP>> vTPsToken_;
     std::map<std::string, edm::EDGetTokenT<TTTrackCollectionView>> l1TracksTokenMap_;
     std::map<std::string, edm::EDGetTokenT<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>>> l1TracksMapTokenMap_;
     std::map<std::string, edm::EDGetTokenT<std::vector<l1t::Vertex>>> l1VerticesTokenMap_;
@@ -204,6 +207,10 @@ namespace l1tVertexFinder {
         genParticlesToken_(
             consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genParticleInputTag"))),
         genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJetsInputTag"))),
+        allMatchedTPsToken_(
+            consumes<std::vector<l1tVertexFinder::TP>>(iConfig.getParameter<edm::InputTag>("l1TracksTPInputTags"))),
+        vTPsToken_(consumes<edm::ValueMap<l1tVertexFinder::TP>>(
+            iConfig.getParameter<edm::InputTag>("l1TracksTPValueMapInputTags"))),
         outputTree_(fs_->make<TTree>("l1VertexReco", "L1 vertex-related info")),
         printResults_(iConfig.getParameter<bool>("printResults")),
         settings_(iConfig) {
@@ -384,18 +391,13 @@ namespace l1tVertexFinder {
     iEvent.getByToken(inputDataToken_, inputDataHandle);
     InputData inputData = *inputDataHandle;
 
-    // Get the tracker geometry info needed to unpack the stub info.
-    /*
-    edm::ESHandle<TrackerGeometry> trackerGeometryHandle;
-    iSetup.get<TrackerDigiGeometryRecord>().get(trackerGeometryHandle);
-    edm::ESHandle<TrackerTopology> trackerTopologyHandle;
-    iSetup.get<TrackerTopologyRcd>().get(trackerTopologyHandle);
-    */
+    edm::Handle<edm::ValueMap<TP>> tpValueMapHandle;
+    iEvent.getByToken(vTPsToken_, tpValueMapHandle);
+    edm::ValueMap<TP> tpValueMap = *tpValueMapHandle;
 
     // Create collections to hold the desired objects
     std::map<std::string, std::vector<L1TrackTruthMatched>> l1TrackCollections;
     std::map<std::string, edm::Handle<TTTrackAssMap>> truthAssocMapHandles;
-    std::set<edm::Ptr<TrackingParticle>> allMatchedTPs;
 
     // Create iterators for the maps
     auto tokenMapEntry = l1TracksTokenMap_.begin(), tokenMapEntryEnd = l1TracksTokenMap_.end();
@@ -412,11 +414,7 @@ namespace l1tVertexFinder {
       std::vector<L1TrackTruthMatched>& l1Tracks = l1TrackCollections[tokenMapEntry->first];
       l1Tracks.reserve(l1TracksHandle->size());
       for (const auto& track : l1TracksHandle->ptrs()) {
-        l1Tracks.push_back(L1TrackTruthMatched(track, inputData.getTPTranslationMap(), mcTruthTTTrackHandle));
-      }
-
-      for (auto& entry : mcTruthTTTrackHandle->getTTTrackToTrackingParticleMap()) {
-        allMatchedTPs.insert(entry.second);
+        l1Tracks.push_back(L1TrackTruthMatched(track, inputData.getTPPtrToRefMap(), tpValueMap, mcTruthTTTrackHandle));
       }
     }
 
@@ -451,25 +449,20 @@ namespace l1tVertexFinder {
 
     // True track info
     trueTracksBranchData_.clear();
+    edm::Handle<std::vector<l1tVertexFinder::TP>> allMatchedTPsHandle;
+    iEvent.getByToken(allMatchedTPsToken_, allMatchedTPsHandle);
 
-    TPTranslationMap edmTPMap(inputData.getTPTranslationMap());
-    for (const auto& tpPtr : allMatchedTPs) {
-      if (edmTPMap.count(tpPtr) == 0)
-        edmTPMap[tpPtr] = new TP(tpPtr.get(), settings_);
-    }
-
-    //for (const TP& track : tpVec) {
-    for (const auto& [edmPtr, track] : edmTPMap) {
-      trueTracksBranchData_.pt.push_back((*track)->pt());
-      trueTracksBranchData_.eta.push_back((*track)->eta());
-      trueTracksBranchData_.phi.push_back((*track)->phi());
-      trueTracksBranchData_.z0.push_back((*track)->z0());
-      trueTracksBranchData_.pdgId.push_back((*track)->pdgId());
-      trueTracksBranchData_.physCollision.push_back(track->physicsCollision() ? 1.0 : 0.0);
-      trueTracksBranchData_.use.push_back(track->use() ? 1.0 : 0.0);
-      trueTracksBranchData_.useForEff.push_back(track->useForEff() ? 1.0 : 0.0);
-      trueTracksBranchData_.useForAlgEff.push_back(track->useForAlgEff() ? 1.0 : 0.0);
-      trueTracksBranchData_.useForVertexReco.push_back(track->useForVertexReco() ? 1.0 : 0.0);
+    for (const auto& tp : *allMatchedTPsHandle) {
+      trueTracksBranchData_.pt.push_back(tp->pt());
+      trueTracksBranchData_.eta.push_back(tp->eta());
+      trueTracksBranchData_.phi.push_back(tp->phi());
+      trueTracksBranchData_.z0.push_back(tp->z0());
+      trueTracksBranchData_.pdgId.push_back(tp->pdgId());
+      trueTracksBranchData_.physCollision.push_back(tp.physicsCollision() ? 1.0 : 0.0);
+      trueTracksBranchData_.use.push_back(tp.use() ? 1.0 : 0.0);
+      trueTracksBranchData_.useForEff.push_back(tp.useForEff() ? 1.0 : 0.0);
+      trueTracksBranchData_.useForAlgEff.push_back(tp.useForAlgEff() ? 1.0 : 0.0);
+      trueTracksBranchData_.useForVertexReco.push_back(tp.useForVertexReco() ? 1.0 : 0.0);
     }
 
     // True pile-up vertex info
@@ -520,24 +513,17 @@ namespace l1tVertexFinder {
         branchData.z0.push_back(track.z0());
         branchData.numStubs.push_back(track.getNumStubs());
         branchData.chi2dof.push_back(track.chi2dof());
-        if (track.getMatchedTP() != nullptr) {
-          bool lFound = (track.getMatchedTP() >= &*inputData.getTPs().begin()) &&
-                        (track.getMatchedTP() < &*inputData.getTPs().end());
-          if (lFound) {
-            const size_t lIdx = track.getMatchedTP() - &*inputData.getTPs().begin();
-            branchData.trueMatchIdx.push_back(lIdx);
-          }
-          assert(lFound);
-        } else
-          branchData.trueMatchIdx.push_back(-1);
+        branchData.trueMatchIdx.push_back(track.getMatchedTPidx());
 
         edm::Ptr<TrackingParticle> matchedTP = truthAssocMap.findTrackingParticlePtr(track.getTTTrackPtr());
         if (matchedTP.isNull())
           branchData.truthMapMatchIdx.push_back(-1);
         else {
-          auto edmTPMap_iterator = edmTPMap.find(matchedTP);
-          assert(edmTPMap_iterator != edmTPMap.end());
-          branchData.truthMapMatchIdx.push_back(std::distance(edmTPMap.begin(), edmTPMap_iterator));
+          auto it = std::find_if(allMatchedTPsHandle->begin(),
+                                 allMatchedTPsHandle->end(),
+                                 [&matchedTP](auto const& tp) { return tp.getTrackingParticle() == matchedTP; });
+          assert(it != allMatchedTPsHandle->end());
+          branchData.truthMapMatchIdx.push_back(std::distance(allMatchedTPsHandle->begin(), it));
         }
         branchData.truthMapIsGenuine.push_back(truthAssocMap.isGenuine(track.getTTTrackPtr()) ? 1.0 : 0.0);
         branchData.truthMapIsLooselyGenuine.push_back(truthAssocMap.isLooselyGenuine(track.getTTTrackPtr()) ? 1.0
