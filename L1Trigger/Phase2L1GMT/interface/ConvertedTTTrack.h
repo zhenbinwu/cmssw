@@ -7,16 +7,18 @@ namespace Phase2L1GMT {
   class ConvertedTTTrack {
 
   public:
-  ConvertedTTTrack(const ap_uint<1>& charge,
-		   const ap_int<BITSCURV>& curvature,
-		   const ap_uint<BITSPT>& pt,
-		   const ap_int<BITSETA>& eta,
-		   const ap_int<BITSPHI>& phi,
-		   const ap_int<BITSZ0>& z0,
-		   const ap_int<BITSD0>& d0,
-		   const ap_uint<BITSQUALITY>& quality): 
+  ConvertedTTTrack(const uint& charge,
+		   const int& curvature,
+		   const uint& abseta,
+		   const uint & pt,
+		   const int& eta,
+		   const int& phi,
+		   const int& z0,
+		   const int& d0,
+		   const int& quality): 
     charge_(charge),
     curvature_(curvature),  
+    abseta_(abseta),  
     pt_(pt),
     eta_(eta),
     phi_(phi),  
@@ -26,34 +28,37 @@ namespace Phase2L1GMT {
     {
     }
 
-    const ap_uint<1> charge() const {
+    const uint charge() const {
       return charge_;
     }
 
-    const ap_int<BITSCURV> curvature() const {
+    const int curvature() const {
       return curvature_;
     }
+    const uint abseta() const {
+      return abseta_;
+    }
 
-    const ap_uint<BITSPT> pt() const {
+    const uint pt() const {
       return pt_;
     }
 
-    const ap_int<BITSETA> eta() const {
+    const int eta() const {
       return eta_;
     }
-    const ap_int<BITSPHI> phi() const {
+    const int phi() const {
       return phi_;
     }
-    const ap_int<BITSZ0> z0() const {
+    const int z0() const {
       return z0_;
     }
-    const ap_int<BITSD0> d0() const {
+    const int d0() const {
       return d0_;
     }
-    const ap_uint<BITSQUALITY> quality() const {
+    const int quality() const {
       return quality_;
     }
-    const float offline_pt() const {
+    const int offline_pt() const {
       return offline_pt_;
     }
     const float offline_eta() const {
@@ -71,24 +76,25 @@ namespace Phase2L1GMT {
     }
 
     void print() const {
-      printf("converted track charge=%d curvature=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",charge_.to_int(),curvature_.to_int(),offline_pt_,pt_.to_int(),offline_eta_,eta_.to_int(),offline_phi_,phi_.to_int(),z0_.to_int(),d0_.to_int(),quality_.to_int());
+      printf("converted track charge=%d curvature=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",charge_,curvature_,offline_pt_,pt_,offline_eta_,eta_,offline_phi_,phi_,z0_,d0_,quality_);
     }
 
 
 
 
   private:
-    ap_uint<1>                charge_;
-    ap_int<BITSCURV>          curvature_;
-    ap_uint<BITSPT>           pt_;
-    ap_int<BITSETA>           eta_;
-    ap_int<BITSPHI>           phi_;
-    ap_int<BITSZ0>            z0_;
-    ap_int<BITSD0>            d0_;
-    ap_uint<BITSQUALITY>      quality_;
-    float                     offline_pt_;
-    float                     offline_eta_;
-    float                     offline_phi_;
+    uint          charge_;
+    int           curvature_;
+    uint          abseta_;
+    uint          pt_;
+    int           eta_;
+    int           phi_;
+    int           z0_;
+    int           d0_;
+    uint          quality_;
+    float         offline_pt_;
+    float         offline_eta_;
+    float         offline_phi_;
 
   };
 }

@@ -113,11 +113,67 @@ Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
    iEvent.getByToken(srcDTTheta_,dtThetaDigis);
 
 
+   //Generate a unique stub ID
+   L1TPhase2GMTStubCollection stubs;
+   
+   uint count0=0;
+   uint count1=0;
+   uint count2=0;
+   uint count3=0;
+   uint count4=0;
 
-   L1TPhase2GMTStubCollection stubs= procEndcap_->makeStubs(*cscDigis,*rpcDigis,translator_,iSetup);
 
+   L1TPhase2GMTStubCollection stubsEndcap= procEndcap_->makeStubs(*cscDigis,*rpcDigis,translator_,iSetup);
+   for (auto& stub :stubsEndcap) {
+     if (stub.tfLayer()==0) {
+       stub.setID(count0);
+       count0++;
+     }
+     else if (stub.tfLayer()==1) {
+       stub.setID(count1);
+       count1++;
+     }
+     else if (stub.tfLayer()==2) {
+       stub.setID(count2);
+       count2++;
+     }
+     else if (stub.tfLayer()==3) {
+       stub.setID(count3);
+       count3++;
+     }
+     else  {
+       stub.setID(count4);
+       count4++;
+     }
+     stubs.push_back(stub);
+   }
    L1TPhase2GMTStubCollection stubsBarrel = procBarrel_->makeStubs(dtDigis.product(),dtThetaDigis.product());
-   std::copy (stubsBarrel.begin(), stubsBarrel.end(), std::back_inserter(stubs));
+   for (auto& stub :stubsBarrel) {
+     if (stub.tfLayer()==0) {
+       stub.setID(count0);
+       count0++;
+     }
+     else if (stub.tfLayer()==1) {
+       stub.setID(count1);
+       count1++;
+     }
+     else if (stub.tfLayer()==2) {
+       stub.setID(count2);
+       count2++;
+     }
+     else if (stub.tfLayer()==3) {
+       stub.setID(count3);
+       count3++;
+     }
+     else  {
+       stub.setID(count4);
+       count4++;
+     }
+     stubs.push_back(stub);
+   }
+   
+
+
    iEvent.put(std::make_unique<L1TPhase2GMTStubCollection>(stubs));
 }
 

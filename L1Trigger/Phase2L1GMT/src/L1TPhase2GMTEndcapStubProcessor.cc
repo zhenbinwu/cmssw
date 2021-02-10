@@ -83,7 +83,7 @@ L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& detid,const CS
 
 
   L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi,0,0,
-			bx,quality,eta1,0,2,0); 
+			bx,quality,eta1,0,1,0); 
 
   stub.setOfflineQuantities(gp.phi().value(),0.0,gp.eta(),0.0);
   return stub;
@@ -107,7 +107,7 @@ L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& detid,const RP
   int station=detid.station();
   bool tag = detid.trIndex();
   int bx=digi.bx();
-  int quality=0;
+  int quality=2;
 
   int ring = detid.ring();
 
@@ -128,8 +128,8 @@ L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& detid,const RP
 
 
 
-  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi2,phi2,tag,
-			bx,quality,eta2,eta2,1,0); 
+  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,0,phi2,tag,
+			bx,quality,0,eta2,2,0); 
   stub.setOfflineQuantities(gp.phi().value(),gp.phi().value(),gp.eta(),gp.eta());
   return stub;
 
@@ -172,15 +172,15 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
       finalRPCEta=eta/nRPC;
       offline_finalRPCPhi=phiF/nRPC;
       offline_finalRPCEta=etaF/nRPC;
-      
+      L1TPhase2GMTStub stub(csc.etaRegion(),csc.phiRegion(),csc.depthRegion(),csc.tfLayer(),csc.coord1(),finalRPCPhi,0,
+			    csc.bxNum(),3,csc.eta1(),finalRPCEta,3,0); 
+      stub.setOfflineQuantities(csc.offline_coord1(),offline_finalRPCPhi,csc.offline_eta1(),offline_finalRPCEta);
+      out.push_back(stub);
+    }
+    else {
+      out.push_back(csc);
     }
 
-
-    //make the fancy stub
-    L1TPhase2GMTStub stub(csc.etaRegion(),csc.phiRegion(),csc.depthRegion(),csc.tfLayer(),csc.coord1(),finalRPCPhi,0,
-			  csc.bxNum(),2,csc.eta1(),finalRPCEta,3,0); 
-    stub.setOfflineQuantities(csc.offline_coord1(),offline_finalRPCPhi,csc.offline_eta1(),offline_finalRPCEta);
-    out.push_back(stub);
   }
 
     //clean the RPC from the used ones
@@ -219,8 +219,8 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
 	freeRPC.push_back(cleanedRPC[i]);
       }
     }
-    L1TPhase2GMTStub stub(cleanedRPC[0].etaRegion(),cleanedRPC[0].phiRegion(),cleanedRPC[0].depthRegion(),cleanedRPC[0].tfLayer(),phi/nRPC,phi/nRPC,0,
-			  cleanedRPC[0].bxNum(),1,eta/nRPC,eta/nRPC,1,0); 
+    L1TPhase2GMTStub stub(cleanedRPC[0].etaRegion(),cleanedRPC[0].phiRegion(),cleanedRPC[0].depthRegion(),cleanedRPC[0].tfLayer(),0,phi/nRPC,0,
+			  cleanedRPC[0].bxNum(),2,0,eta/nRPC,2,0); 
     stub.setOfflineQuantities(phiF/nRPC,phiF/nRPC,etaF/nRPC,etaF/nRPC);
     out.push_back(stub);
     cleanedRPC=freeRPC;

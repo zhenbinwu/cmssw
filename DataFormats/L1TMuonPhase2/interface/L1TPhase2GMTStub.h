@@ -99,6 +99,9 @@ class L1TPhase2GMTStub {
       etaQuality_ = etaQ;
     }
 
+    void setID(int id) {
+      id_ = id;
+    }
     /// equal operator
     bool operator==(const L1TPhase2GMTStub&) const;
     /// unequal operator

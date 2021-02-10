@@ -8,12 +8,15 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/StreamID.h"
 #include "DataFormats/L1TCorrelator/interface/TkMuon.h"
-#include "L1Trigger/Phase2L1GMT/interface/Processor.h"
+#include "L1Trigger/Phase2L1GMT/interface/Node.h"
+
+
 
 //
 // class declaration
 //
 using namespace Phase2L1GMT;
+using namespace l1t;
 
 
 class Phase2L1TGMTProducer : public edm::stream::EDProducer<> {
@@ -27,8 +30,12 @@ class Phase2L1TGMTProducer : public edm::stream::EDProducer<> {
       void beginStream(edm::StreamID) override;
       void produce(edm::Event&, const edm::EventSetup&) override;
       void endStream() override;
-      std::unique_ptr<Processor> processor_;
+      std::unique_ptr<Node> node_;
       edm::EDGetTokenT<l1t::TkMuon::L1TTTrackCollection> srcTracks_;
+      edm::EDGetTokenT<std::vector<L1TPhase2GMTStub> > srcStubs_;
+      edm::EDGetTokenT<BXVector<RegionalMuonCand> > bmtfTracks_;
+      edm::EDGetTokenT<BXVector<RegionalMuonCand> > emtfTracks_;
+      edm::EDGetTokenT<BXVector<RegionalMuonCand> > omtfTracks_;
 
   
   
@@ -36,10 +43,14 @@ class Phase2L1TGMTProducer : public edm::stream::EDProducer<> {
 
 };
 Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig):
-  processor_(new Processor(iConfig)),
-  srcTracks_(consumes<l1t::TkMuon::L1TTTrackCollection>(iConfig.getParameter<edm::InputTag>("srcTracks")))
+  node_(new Node(iConfig)),
+  srcTracks_(consumes<l1t::TkMuon::L1TTTrackCollection>(iConfig.getParameter<edm::InputTag>("srcTracks"))),
+  srcStubs_(consumes<std::vector<L1TPhase2GMTStub> >(iConfig.getParameter<edm::InputTag>("srcStubs"))),
+  bmtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcBMTF"))),
+  emtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcEMTF"))),
+  omtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcOMTF")))  
 {
-  produces <std::vector<l1t::TkMuon> >();
+produces <std::vector<l1t::TkMuon> >();
 }
 
 
@@ -72,7 +83,67 @@ Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      tracks.push_back(track);
    }
 
-   std::vector<l1t::TkMuon> out = processor_->process(tracks);
+
+
+   Handle<std::vector<L1TPhase2GMTStub> > stubHandle;
+   iEvent.getByToken(srcStubs_,stubHandle);
+   L1TPhase2GMTStubRefVector stubs;
+   for (uint i=0;i<stubHandle->size();++i) {
+     L1TPhase2GMTStubRef stub(stubHandle, i);
+     stubs.push_back(stub);
+   }
+
+   
+   ObjectRefBxCollection<RegionalMuonCand> muonTracks;
+   //   BXVector<RegionalMuonCand> muonTracks;
+
+
+
+
+
+   Handle<BXVector<RegionalMuonCand> > bmtfHandle;
+   iEvent.getByToken(bmtfTracks_,bmtfHandle);
+   if (bmtfHandle->size()>0) {
+     for (int bx = bmtfHandle->getFirstBX(); bx<=bmtfHandle->getLastBX();++bx) {
+       for (BXVector<RegionalMuonCand>::const_iterator iter =bmtfHandle->begin(bx); iter!=bmtfHandle->end(bx);++iter) { 
+	 RegionalMuonCandRef muon(bmtfHandle, bmtfHandle->key(iter));
+	 muonTracks.push_back(bx,muon);
+       }
+     }
+   }
+
+
+
+   // Handle<BXVector<RegionalMuonCand> > emtfHandle;
+   // iEvent.getByToken(emtfTracks_,emtfHandle);
+   // if (emtfHandle->size()>0) {
+   //   for (int bx = emtfHandle->getFirstBX(); bx<=emtfHandle->getLastBX();++bx) {
+   //     for (BXVector<RegionalMuonCand>::const_iterator iter =emtfHandle->begin(bx); iter!=emtfHandle->end(bx);++iter) { 
+   // 	 RegionalMuonCandRef muon(emtfHandle, emtfHandle->key(iter));
+   // 	 muonTracks.push_back(bx,muon);
+   //     }
+   //   }
+   // }
+
+
+
+
+
+
+
+   Handle<BXVector<RegionalMuonCand> > omtfHandle;
+   iEvent.getByToken(omtfTracks_,omtfHandle);
+   if (omtfHandle->size()>0) {
+     for (int bx = omtfHandle->getFirstBX(); bx<=omtfHandle->getLastBX();++bx) {
+       for (BXVector<RegionalMuonCand>::const_iterator iter =omtfHandle->begin(bx); iter!=omtfHandle->end(bx);++iter) { 
+	 RegionalMuonCandRef muon(omtfHandle, omtfHandle->key(iter));
+	 muonTracks.push_back(bx,muon);
+       }
+     }
+   }
+
+
+   std::vector<l1t::TkMuon> out = node_->processEvent(tracks,muonTracks,stubs);
    std::unique_ptr<std::vector<l1t::TkMuon> > out1 = std::make_unique<std::vector<l1t::TkMuon> >(out); 
    iEvent.put(std::move(out1));
 

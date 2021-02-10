@@ -25,6 +25,8 @@ L1TPhase2GMTBarrelStubProcessor::L1TPhase2GMTBarrelStubProcessor(const edm::Para
   coarseEta2_(iConfig.getParameter<std::vector<int> >("coarseEta_2")),
   coarseEta3_(iConfig.getParameter<std::vector<int> >("coarseEta_3")),
   coarseEta4_(iConfig.getParameter<std::vector<int> >("coarseEta_4")),
+  phiOffset_(iConfig.getParameter<std::vector<int> >("phiOffset")),
+  phiBFactor_(iConfig.getParameter<int>("phiBDivider")),
   verbose_(iConfig.getParameter<int>("verbose")),
   phiLSB_(iConfig.getParameter<double>("phiLSB")),
   etaLSB_(iConfig.getParameter<double>("etaLSB"))
@@ -50,10 +52,10 @@ L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const 
 
 
   //Now full eta
-  int qeta1=-255;
-  int qeta2=-255;
-  int eta1=-255;
-  int eta2=-255; 
+  int qeta1=-16384;
+  int qeta2=-16384;
+  int eta1=-16384;
+  int eta2=-16384; 
 
 
   bool hasEta=false;
@@ -63,6 +65,7 @@ L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const 
     if (!hasEta) {
       hasEta=true;
       eta1=calculateEta(i,etaS->whNum(),etaS->scNum(),etaS->stNum());
+
       if (etaS->quality(i)==1)
 	qeta1=2;
       else
@@ -80,16 +83,17 @@ L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const 
 
 
   if (qeta2>0) {//both stubs->average
-    stub.setEta(eta1,eta2,(qeta1 | (qeta2<<2)));
+    stub.setEta(eta1,eta2,3);
     stub.setOfflineQuantities(stub.offline_coord1(),stub.offline_coord2(),eta1*etaLSB_,eta2*etaLSB_);
 
   }
   else if (qeta1>0) {//Good single stub
-    stub.setEta(eta1,0,qeta1);
+    stub.setEta(eta1,0,1);
     stub.setOfflineQuantities(stub.offline_coord1(),stub.offline_coord2(),eta1*etaLSB_,0.0);
 
   }
  
+
 
 
   return stub;
@@ -113,31 +117,28 @@ L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) 
   if (globalPhi>180)
     globalPhi-=360;
   globalPhi = globalPhi*M_PI/180.;
-  int phi  = int(globalPhi/phiLSB_);
-  int phiB = phiS.phiBend();
+  int phi  = int(globalPhi/phiLSB_)+phiOffset_[station-1];
+  int phiB = phiS.phiBend()/phiBFactor_;
   uint tag = phiS.index();
   int bx=phiS.bxNum()-20;
-  int quality=phiS.quality();
+  int quality=3;
   uint tfLayer=phiS.stNum()-1;
-  int eta=-255;
+  int eta=-16384;
   if (station==1) {
-    eta=-coarseEta1_[abswheel];
+    eta=coarseEta1_[abswheel];
   }
   else if (station==2) {
-    eta=-coarseEta2_[abswheel];
+    eta=coarseEta2_[abswheel];
   }
   else if (station==3) {
-    eta=-coarseEta3_[abswheel];
+    eta=coarseEta3_[abswheel];
   }
   else if (station==4) {
-    eta=-coarseEta4_[abswheel];
-  }
-  else {
-    eta=-255;
+    eta=coarseEta4_[abswheel];
   }
 
   //override!!!
-  eta=abswheel;
+  //  eta=abswheel;
 
   //Now full eta
 
@@ -162,12 +163,13 @@ L1TPhase2GMTBarrelStubProcessor::makeStubs(const L1Phase2MuDTPhContainer* phiCon
 	for (int station=1;station<5;station++) {
 
 	  bool hasEta=false;
-	  L1MuDTChambThDigi const*  tseta   = etaContainer->chThetaSegm(wheel,station,sector,bx);
-	  if (tseta) {
-	    hasEta=true;
-	  }
+	  const L1MuDTChambThDigi *tseta   = etaContainer->chThetaSegm(wheel,station,sector,bx);
+	    if (tseta!=0) {
+	      hasEta=true;
+	    }
+
 	  for (const auto& phiDigi : *phiContainer->getContainer()) {
-	    if (phiDigi.bxNum()!= (bx-20) ||phiDigi.whNum()!=wheel || phiDigi.scNum()!=sector || phiDigi.stNum()!=station)
+	    if ((phiDigi.bxNum()-20)!= bx ||phiDigi.whNum()!=wheel || phiDigi.scNum()!=sector || phiDigi.stNum()!=station)
 	      continue;
 	    if (hasEta) {
 	      out.push_back(buildStub(phiDigi,tseta));
@@ -212,16 +214,14 @@ int L1TPhase2GMTBarrelStubProcessor::calculateEta(uint i, int wheel,uint sector,
   }
 
 
-  //  if (station==1)
-  //  eta=-eta1_[eta+17];
-  //else if (station==2)
-  //  eta=-eta2_[eta+17];
-  //else 
-  //  eta=-eta3_[eta+17];
+  if (station==1)
+    eta=eta1_[eta+17];
+  else if (station==2)
+    eta=eta2_[eta+17];
+  else 
+    eta=eta3_[eta+17];
 
   return eta;
-
-
 
 }
 
