@@ -116,6 +116,10 @@ _phase2_siml1emulator.add(L1CaloJetHTT)
 # Phase-2 L1T - TrackTrigger dependent modules
 # ########################################################################
 
+from L1Trigger.VertexFinder.VertexProducer_cff import *
+L1VertexFinder = VertexProducer.clone()
+_phase2_siml1emulator.add(L1VertexFinder)
+
 # Tk + StandaloneObj, including L1TkPrimaryVertex
 # ########################################################################
 from L1Trigger.L1TTrackMatch.L1TkObjectProducers_cff import *
