@@ -5,7 +5,7 @@
 #include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThDigi.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
-#include "DataFormats/L1TMuonPhase2/interface/L1TPhase2GMTStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonBarrelParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonBarrelParamsRcd.h"
@@ -18,11 +18,11 @@ class L1TPhase2GMTBarrelStubProcessor {
   ~L1TPhase2GMTBarrelStubProcessor();
 
 
-  L1TPhase2GMTStubCollection makeStubs(const L1Phase2MuDTPhContainer*,const L1MuDTChambThContainer*);
+  l1t::MuonStubCollection makeStubs(const L1Phase2MuDTPhContainer*,const L1MuDTChambThContainer*);
   
  private:
-  L1TPhase2GMTStub buildStub(const L1Phase2MuDTPhDigi&,const L1MuDTChambThDigi*);
-  L1TPhase2GMTStub buildStubNoEta(const L1Phase2MuDTPhDigi&);
+  l1t::MuonStub buildStub(const L1Phase2MuDTPhDigi&,const L1MuDTChambThDigi*);
+  l1t::MuonStub buildStubNoEta(const L1Phase2MuDTPhDigi&);
 
   int calculateEta(uint, int,uint,uint);  
   int minPhiQuality_;

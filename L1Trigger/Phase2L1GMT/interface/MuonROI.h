@@ -2,7 +2,7 @@
 #define PHASE2GMT_MUONROI
 #include <iosfwd>
 #include "L1Trigger/Phase2L1GMT/interface/Constants.h"
-#include "DataFormats/L1TMuonPhase2/interface/L1TPhase2GMTStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/L1Trigger/interface/L1TObjComparison.h"
@@ -49,11 +49,11 @@ namespace Phase2L1GMT {
       offline_pt_=pt;
     }
 
-    void addStub(const L1TPhase2GMTStubRef& stub){
+    void addStub(const l1t::MuonStubRef& stub){
       stubs_.push_back(stub);
     }
 
-    void setMuonReference(const l1t::RegionalMuonCandRef& ref){
+    void setMuonRef(const l1t::RegionalMuonCandRef& ref){
       muRef_=ref;
     }
 
@@ -73,7 +73,7 @@ namespace Phase2L1GMT {
       return s;
     }
 
-    const L1TPhase2GMTStubRefVector& stubs() const {
+    const l1t::MuonStubRefVector& stubs() const {
       return stubs_;
     } 
   private:
@@ -82,7 +82,7 @@ namespace Phase2L1GMT {
     uint                      pt_;
     uint                      quality_;
     float                     offline_pt_;
-    L1TPhase2GMTStubRefVector stubs_;
+    l1t::MuonStubRefVector stubs_;
     l1t::RegionalMuonCandRef muRef_;
 
   };

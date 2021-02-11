@@ -2,7 +2,7 @@
 #ifndef L1TPHASE2GMTENDCAPSTUBPROCESSOR
 #define L1TPHASE2GMTENDCAPSTUBPROCESSOR
 
-#include "DataFormats/L1TMuonPhase2/interface/L1TPhase2GMTStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
 #include "DataFormats/MuonData/interface/MuonDigiCollection.h"
@@ -23,12 +23,12 @@ class L1TPhase2GMTEndcapStubProcessor {
 
 
 
-    L1TPhase2GMTStubCollection makeStubs(const MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>& csc,const MuonDigiCollection<RPCDetId,RPCDigi>& rpc,const L1TMuon::GeometryTranslator *t,const edm::EventSetup& iSetup);
+    l1t::MuonStubCollection makeStubs(const MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>& csc,const MuonDigiCollection<RPCDetId,RPCDigi>& rpc,const L1TMuon::GeometryTranslator *t,const edm::EventSetup& iSetup);
 
  private:
-    L1TPhase2GMTStub buildCSCOnlyStub(const CSCDetId& , const CSCCorrelatedLCTDigi&,const L1TMuon::GeometryTranslator*);
-    L1TPhase2GMTStub buildRPCOnlyStub(const RPCDetId& , const RPCDigi&,const L1TMuon::GeometryTranslator*);
-    L1TPhase2GMTStubCollection combineStubs(const L1TPhase2GMTStubCollection&,const L1TPhase2GMTStubCollection&);
+    l1t::MuonStub buildCSCOnlyStub(const CSCDetId& , const CSCCorrelatedLCTDigi&,const L1TMuon::GeometryTranslator*);
+    l1t::MuonStub buildRPCOnlyStub(const RPCDetId& , const RPCDigi&,const L1TMuon::GeometryTranslator*);
+    l1t::MuonStubCollection combineStubs(const l1t::MuonStubCollection&,const l1t::MuonStubCollection&);
     
 
   int minBX_;

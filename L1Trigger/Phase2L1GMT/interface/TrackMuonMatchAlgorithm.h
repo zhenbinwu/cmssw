@@ -4,7 +4,8 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
-#include "DataFormats/L1TMuonPhase2/interface/L1TPhase2GMTStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/L1Trigger/interface/L1TObjComparison.h"
@@ -44,6 +45,8 @@ namespace Phase2L1GMT {
     ap_uint<BITSMATCHQUALITY> quality;
     ap_uint<BITSSTUBID> id;
     ap_uint<1> valid;
+    l1t::RegionalMuonCandRef muRef;
+    l1t::MuonStubRef stubRef;
   } match_t;
 
   class TrackMuonMatchAlgorithm {
@@ -74,6 +77,92 @@ namespace Phase2L1GMT {
     return cleanedMuons;
 
   }
+
+  std::vector<PreTrackMatchedMuon> cleanNeighbor(const std::vector<PreTrackMatchedMuon>&  muons,const std::vector<PreTrackMatchedMuon>&  muonsPrevious,const std::vector<PreTrackMatchedMuon>&  muonsNext, bool equality) {
+    std::vector<PreTrackMatchedMuon> out;
+    if (muons.size()==0)
+      return out;
+
+    if (verbose_==1) {
+      printf("-----Cleaning Up Muons in the neighbours\n");
+      printf("Before:\n");
+    }
+
+
+    for (uint i=0;i<muons.size();++i) {
+      if (verbose_==1)
+	muons[i].print();
+
+      bool keep=true;
+      for (uint j=0;j<muonsPrevious.size();++j) {
+	bool overlap=false;
+	if (muons[i].stubID0()==muons[j].stubID0() && muons[i].stubID0()!=511)
+	  overlap=true;
+	if (muons[i].stubID1()==muons[j].stubID1() && muons[i].stubID1()!=511)
+	  overlap=true;
+	if (muons[i].stubID2()==muons[j].stubID2() && muons[i].stubID2()!=511)
+	  overlap=true;
+	if (muons[i].stubID3()==muons[j].stubID3() && muons[i].stubID3()!=511)
+	  overlap=true;
+	if (muons[i].stubID4()==muons[j].stubID4() && muons[i].stubID4()!=511)
+	  overlap=true;
+
+	if ((overlap && muons[i].quality()<muons[j].quality() && !equality)||(overlap && muons[i].quality()<=muons[j].quality() &&equality))
+	  keep=false;
+      }
+      for (uint j=0;j<muonsNext.size();++j) {
+	bool overlap=false;
+	if (muons[i].stubID0()==muons[j].stubID0() && muons[i].stubID0()!=511)
+	  overlap=true;
+	if (muons[i].stubID1()==muons[j].stubID1() && muons[i].stubID1()!=511)
+	  overlap=true;
+	if (muons[i].stubID2()==muons[j].stubID2() && muons[i].stubID2()!=511)
+	  overlap=true;
+	if (muons[i].stubID3()==muons[j].stubID3() && muons[i].stubID3()!=511)
+	  overlap=true;
+	if (muons[i].stubID4()==muons[j].stubID4() && muons[i].stubID4()!=511)
+	  overlap=true;
+
+	if ((overlap && muons[i].quality()<muons[j].quality() && !equality)||(overlap && muons[i].quality()<=muons[j].quality() &&equality))
+	  keep=false;
+      }
+
+
+
+      if (keep) {
+	if (verbose_==1)
+	  printf("kept\n");
+	out.push_back(muons[i]);
+      }
+      else {
+	if (verbose_==1)
+	  printf("discarded\n");
+
+
+      }
+    }
+    return out;
+  }
+
+
+  std::vector<l1t::TrackerMuon> convert(std::vector<PreTrackMatchedMuon>&  muons,uint maximum) {
+    std::vector<l1t::TrackerMuon> out;
+    for (const auto& mu : muons)  {
+      if (out.size()==maximum)
+	break;
+      l1t::TrackerMuon muon(mu.trkPtr(),mu.charge(),mu.pt(),mu.eta(),mu.phi(),mu.z0(),mu.d0(),mu.quality());			    
+      muon.setMuonRef(mu.muonRef());
+      for (const auto& stub: mu.stubs())
+	muon.addStub(stub);
+      out.push_back(muon);
+      if(verbose_==1) {
+	printf("Final Muon:");
+	muon.print();
+      }
+    }
+    return out;
+  }    
+
 
   private:
 
@@ -201,10 +290,12 @@ namespace Phase2L1GMT {
     return out;
   }
 
-  match_t match(const propagation_t prop,const L1TPhase2GMTStubRef& stub) {
+  match_t match(const propagation_t prop,const l1t::MuonStubRef& stub) {
 
-    if (verbose_==1)
-      std::cout<<"Matching To "<<*stub<<std::endl;
+    if (verbose_==1) {
+      printf("Matching to ");
+      stub->print();
+    }
   
 
     //Matching of Coord1 
@@ -334,12 +425,12 @@ namespace Phase2L1GMT {
     }
     if (verbose_==1)
       printf("GlobalMatchQuality = %d\n",out.quality.to_int());
-
+    out.stubRef = stub;
     return out;
   }
 
 
-  match_t propagateAndMatch(const ConvertedTTTrack& track,const L1TPhase2GMTStubRef& stub) {
+  match_t propagateAndMatch(const ConvertedTTTrack& track,const l1t::MuonStubRef& stub) {
     propagation_t prop = propagate(track,stub->tfLayer());
     return match(prop,stub);
   }
@@ -363,8 +454,8 @@ namespace Phase2L1GMT {
     std::vector<match_t> matchInfo3;
     std::vector<match_t> matchInfo4;
 
-    uint isGlobal = 0;
-    if (verbose_==1) {
+
+    if (verbose_==1 && rois.size()>0) {
       printf("-----------processing new track----------");
       track.print();
     }	     
@@ -387,50 +478,58 @@ namespace Phase2L1GMT {
 	    matchInfo4.push_back(m);
 	  
 	  if (roi.muonRef().isNonnull())
-	    isGlobal=1;
+	    m.muRef = roi.muonRef();
 	}
       }
     }
     
     uint quality=0;
-    int best0=511;
-    int best1=511;
-    int best2=511;
-    int best3=511;
-    int best4=511;
+    PreTrackMatchedMuon muon(track.charge(),track.pt(),track.eta(),track.phi(),track.z0(),track.d0());
+    
 
     if (matchInfo0.size()>0) {
       match_t b = getBest(matchInfo0);
       if (b.valid) {
-	best0 = b.id;
+	muon.addStub(b.stubRef);
+	if(!muon.muonRef().isNonnull())
+	  muon.setMuonRef(b.muRef);
 	quality+=b.quality;
       }
     }
     if (matchInfo1.size()>0) {
       match_t b = getBest(matchInfo1);
       if (b.valid) {
-	best1 = b.id;
+	muon.addStub(b.stubRef);
+	if(!muon.muonRef().isNonnull())
+	  muon.setMuonRef(b.muRef);
 	quality+=b.quality;
       }
     }
     if (matchInfo2.size()>0) {
       match_t b = getBest(matchInfo2);
       if (b.valid) {
-	best2 = b.id;
+	muon.addStub(b.stubRef);
+	if(!muon.muonRef().isNonnull())
+	  muon.setMuonRef(b.muRef);
 	quality+=b.quality;
       }
     }
     if (matchInfo3.size()>0) {
       match_t b = getBest(matchInfo3);
       if (b.valid) {
-	best3 = b.id;
+	muon.addStub(b.stubRef);
+	if(!muon.muonRef().isNonnull())
+	  muon.setMuonRef(b.muRef);
 	quality+=b.quality;
       }
     }
     if (matchInfo4.size()>0) {
+
       match_t b = getBest(matchInfo4);
       if (b.valid) {
-	best4 = b.id;
+	muon.addStub(b.stubRef);
+	if(!muon.muonRef().isNonnull())
+	  muon.setMuonRef(b.muRef);
 	quality+=b.quality;
       }
     }
@@ -438,7 +537,8 @@ namespace Phase2L1GMT {
       
 
     
-    PreTrackMatchedMuon muon(track.charge(),track.pt(),track.eta(),track.phi(),track.z0(),track.d0(),quality,isGlobal,best0,best1,best2,best3,best4);
+    muon.setTrkPtr(track.trkPtr());
+    muon.setQuality(quality);
     muon.setOfflineQuantities(track.offline_pt(),track.offline_eta(),track.offline_phi());
     return muon;
   }
@@ -446,8 +546,19 @@ namespace Phase2L1GMT {
 
   std::vector<PreTrackMatchedMuon> clean(std::vector<PreTrackMatchedMuon>&  muons) {
     std::vector<PreTrackMatchedMuon> out;
+    if (muons.size()==0)
+      return out;
+    if (verbose_==1) {
+      printf("-----Cleaning Up Muons in the same Nonant\n");
+      printf("Before:\n");
+    }
     for (uint i=0;i<muons.size();++i) {
-      bool keep=false;
+      if (verbose_==1)
+	muons[i].print();
+
+
+
+      bool keep=true;
       for (uint j=0;j<muons.size();++j) {
 	if (i==j)
 	  continue;
@@ -466,39 +577,21 @@ namespace Phase2L1GMT {
 	if (overlap && muons[i].quality()<muons[j].quality())
 	  keep=false;
       }
-      if (keep)
+      if (keep) {
+	if (verbose_==1)
+	  printf("kept\n");
 	out.push_back(muons[i]);
-
-    }
-    return out;
-  }
-
-  std::vector<PreTrackMatchedMuon> cleanNeighbor(const std::vector<PreTrackMatchedMuon>&  muons,const std::vector<PreTrackMatchedMuon>&  muonsOther) {
-    std::vector<PreTrackMatchedMuon> out;
-    for (uint i=0;i<muons.size();++i) {
-      bool keep=false;
-      for (uint j=0;j<muonsOther.size();++j) {
-	bool overlap=false;
-	if (muons[i].stubID0()==muons[j].stubID0() && muons[i].stubID0()!=511)
-	  overlap=true;
-	if (muons[i].stubID1()==muons[j].stubID1() && muons[i].stubID1()!=511)
-	  overlap=true;
-	if (muons[i].stubID2()==muons[j].stubID2() && muons[i].stubID2()!=511)
-	  overlap=true;
-	if (muons[i].stubID3()==muons[j].stubID3() && muons[i].stubID3()!=511)
-	  overlap=true;
-	if (muons[i].stubID4()==muons[j].stubID4() && muons[i].stubID4()!=511)
-	  overlap=true;
-
-	if (overlap && muons[i].quality()<muons[j].quality())
-	  keep=false;
       }
-      if (keep)
-	out.push_back(muons[i]);
-
+      else {
+	if (verbose_==1)
+	  printf("discarded\n");
+      }
     }
     return out;
   }
+
+
+
 
 
   };

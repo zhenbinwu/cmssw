@@ -1,6 +1,7 @@
 #ifndef PHASE2GMT_CONEVRTEDTTRACK
 #define PHASE2GMT_CONEVRTEDTTRACK
 #include "L1Trigger/Phase2L1GMT/interface/Constants.h"
+#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 namespace Phase2L1GMT {
 
@@ -79,8 +80,13 @@ namespace Phase2L1GMT {
       printf("converted track charge=%d curvature=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",charge_,curvature_,offline_pt_,pt_,offline_eta_,eta_,offline_phi_,phi_,z0_,d0_,quality_);
     }
 
-
-
+    void setTrkPtr(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& trkPtr) {
+      trkPtr_=trkPtr;
+    }
+    
+    const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr() const {
+      return trkPtr_;
+    }
 
   private:
     uint          charge_;
@@ -95,6 +101,8 @@ namespace Phase2L1GMT {
     float         offline_pt_;
     float         offline_eta_;
     float         offline_phi_;
+
+    edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;
 
   };
 }

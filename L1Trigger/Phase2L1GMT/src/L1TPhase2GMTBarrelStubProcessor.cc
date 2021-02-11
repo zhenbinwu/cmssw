@@ -45,10 +45,10 @@ L1TPhase2GMTBarrelStubProcessor::~L1TPhase2GMTBarrelStubProcessor() {}
 
 
 
-L1TPhase2GMTStub 
+l1t::MuonStub 
 L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const L1MuDTChambThDigi* etaS) {
   
-  L1TPhase2GMTStub stub = buildStubNoEta(phiS);
+  l1t::MuonStub stub = buildStubNoEta(phiS);
 
 
   //Now full eta
@@ -104,7 +104,7 @@ L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDigi& phiS,const 
 
 
 
-L1TPhase2GMTStub
+l1t::MuonStub
 L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) {
   int wheel = phiS.whNum();
   int abswheel = fabs(phiS.whNum());
@@ -143,7 +143,7 @@ L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) 
   //Now full eta
 
   eta=eta*sign;
-  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi,phiB,tag,
+  l1t::MuonStub stub(wheel,sector,station,tfLayer,phi,phiB,tag,
 			bx,quality,eta,0,0,1);
   stub.setOfflineQuantities(globalPhi,float(phiB),eta*etaLSB_,0.0);
   return stub;
@@ -153,10 +153,10 @@ L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) 
 
 
 
-L1TPhase2GMTStubCollection 
+l1t::MuonStubCollection 
 L1TPhase2GMTBarrelStubProcessor::makeStubs(const L1Phase2MuDTPhContainer* phiContainer,const L1MuDTChambThContainer* etaContainer) {
 
-  L1TPhase2GMTStubCollection out;
+  l1t::MuonStubCollection out;
   for (int bx=minBX_;bx<=maxBX_;bx++) {
     for (int wheel=-2;wheel<=2;wheel++) {
       for (int sector=0;sector<12;sector++) {

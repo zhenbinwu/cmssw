@@ -66,7 +66,7 @@ Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iCon
   translator_(new L1TMuon::GeometryTranslator),
   verbose_(iConfig.getParameter<int>("verbose"))
 {
-  produces <L1TPhase2GMTStubCollection>();
+  produces <l1t::MuonStubCollection>();
 }
 
 
@@ -114,7 +114,7 @@ Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
 
    //Generate a unique stub ID
-   L1TPhase2GMTStubCollection stubs;
+   l1t::MuonStubCollection stubs;
    
    uint count0=0;
    uint count1=0;
@@ -123,7 +123,7 @@ Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
    uint count4=0;
 
 
-   L1TPhase2GMTStubCollection stubsEndcap= procEndcap_->makeStubs(*cscDigis,*rpcDigis,translator_,iSetup);
+   l1t::MuonStubCollection stubsEndcap= procEndcap_->makeStubs(*cscDigis,*rpcDigis,translator_,iSetup);
    for (auto& stub :stubsEndcap) {
      if (stub.tfLayer()==0) {
        stub.setID(count0);
@@ -147,7 +147,7 @@ Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
      }
      stubs.push_back(stub);
    }
-   L1TPhase2GMTStubCollection stubsBarrel = procBarrel_->makeStubs(dtDigis.product(),dtThetaDigis.product());
+   l1t::MuonStubCollection stubsBarrel = procBarrel_->makeStubs(dtDigis.product(),dtThetaDigis.product());
    for (auto& stub :stubsBarrel) {
      if (stub.tfLayer()==0) {
        stub.setID(count0);
@@ -174,7 +174,7 @@ Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
    
 
 
-   iEvent.put(std::make_unique<L1TPhase2GMTStubCollection>(stubs));
+   iEvent.put(std::make_unique<l1t::MuonStubCollection>(stubs));
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

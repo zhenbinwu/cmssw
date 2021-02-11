@@ -1,6 +1,6 @@
 //-------------------------------------------------
 //
-/**  \class L1TPhase2GMTStub
+/**  \class MuonStub
  *
  *  Class that creates a super-primitive for all chambers
  *
@@ -34,22 +34,25 @@
 //              -- Class Interface --
 //              ---------------------
 
-class L1TPhase2GMTStub;
 
-typedef std::vector<L1TPhase2GMTStub> L1TPhase2GMTStubCollection;
-typedef edm::Ref<L1TPhase2GMTStubCollection > L1TPhase2GMTStubRef;
-typedef std::vector<edm::Ref<L1TPhase2GMTStubCollection> > L1TPhase2GMTStubRefVector;
+namespace l1t {
 
-class L1TPhase2GMTStub {
+class MuonStub;
+
+typedef std::vector<MuonStub> MuonStubCollection;
+typedef edm::Ref<MuonStubCollection > MuonStubRef;
+typedef std::vector<edm::Ref<MuonStubCollection> > MuonStubRefVector;
+
+class MuonStub {
 
   public:
 
     /// default constructor
-    L1TPhase2GMTStub();
+    MuonStub();
 
     /// constructor
-    L1TPhase2GMTStub(int etaRegion,int phiRegion,int depthRegion,uint tfLayer,int coord1,int coord2,int id,int bx,int quality,int eta1=0,int eta2=0,int etaQuality=-1,int type=0);
-    ~L1TPhase2GMTStub();
+    MuonStub(int etaRegion,int phiRegion,int depthRegion,uint tfLayer,int coord1,int coord2,int id,int bx,int quality,int eta1=0,int eta2=0,int etaQuality=-1,int type=0);
+    ~MuonStub();
     /// return wheel
     inline int etaRegion() const { return etaRegion_; }
     /// return sector
@@ -103,12 +106,11 @@ class L1TPhase2GMTStub {
       id_ = id;
     }
     /// equal operator
-    bool operator==(const L1TPhase2GMTStub&) const;
+    bool operator==(const MuonStub&) const;
     /// unequal operator
-    bool operator!=(const L1TPhase2GMTStub&) const;
+    bool operator!=(const MuonStub&) const;
 
-    /// overload output stream operator for phi track segments
-    friend std::ostream& operator<<(std::ostream&, const L1TPhase2GMTStub&);
+    void print() const;
 
   private:
 
@@ -132,4 +134,5 @@ class L1TPhase2GMTStub {
     double            offline_eta2_;        //offline eta2
 };
 
+}
 #endif

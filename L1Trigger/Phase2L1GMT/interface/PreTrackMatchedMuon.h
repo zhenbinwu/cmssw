@@ -13,14 +13,7 @@ namespace Phase2L1GMT {
 		      const int& eta,
 		      const int& phi,
 		      const int& z0,
-		      const int& d0,
-		      const int& quality,
-		      const uint& isGlobal,
-		      const int& stubID0,   
-		      const int& stubID1,   
-		      const int& stubID2,   
-		      const int& stubID3,   
-		      const int& stubID4   
+		      const int& d0
 ): 
     charge_(charge),
       pt_(pt),
@@ -28,13 +21,13 @@ namespace Phase2L1GMT {
       phi_(phi),  
       z0_(z0),
       d0_(d0),
-      quality_(quality),
-      isGlobal_(isGlobal),
-      stubID0_(stubID0),
-      stubID1_(stubID1),
-      stubID2_(stubID2),
-      stubID3_(stubID3),
-      stubID4_(stubID4)
+      quality_(0),
+
+      stubID0_(511),
+      stubID1_(511),
+      stubID2_(511),
+      stubID3_(511),
+      stubID4_(511)
     {
     }
 
@@ -84,6 +77,9 @@ namespace Phase2L1GMT {
     const int stubID4() const {
       return stubID4_;
     }
+    void setQuality(uint quality) {
+      quality_ = quality;
+    }
 
     void setOfflineQuantities(float pt,float eta, float phi) {
       offline_pt_=pt;
@@ -91,7 +87,7 @@ namespace Phase2L1GMT {
       offline_phi_=phi;
     }
 
-    void setMuonReference(const l1t::RegionalMuonCandRef& ref){
+    void setMuonRef(const l1t::RegionalMuonCandRef& ref){
       muRef_=ref;
     }
 
@@ -99,16 +95,38 @@ namespace Phase2L1GMT {
     const l1t::RegionalMuonCandRef& muonRef() const {
       return muRef_;
     }
-    void addStub(const L1TPhase2GMTStubRef& stub){
+    void addStub(const l1t::MuonStubRef& stub){
       stubs_.push_back(stub);
+      if (stub->tfLayer()==0)
+	stubID0_ = stub->id();
+      if (stub->tfLayer()==1)
+	stubID1_ = stub->id();
+      if (stub->tfLayer()==2)
+	stubID2_ = stub->id();
+      if (stub->tfLayer()==3)
+	stubID3_ = stub->id();
+      if (stub->tfLayer()==4)
+	stubID4_ = stub->id();
+
     }
 
-    const L1TPhase2GMTStubRefVector& stubs() const {
+    const l1t::MuonStubRefVector& stubs() const {
       return stubs_;
     } 
 
+
+
+    void setTrkPtr(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& trkPtr) {
+      trkPtr_=trkPtr;
+    }
+    
+    const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr() const {
+      return trkPtr_;
+    }
+
+
     void print() const {
-      printf("converted track charge=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",charge_,offline_pt_,pt_,offline_eta_,eta_,offline_phi_,phi_,z0_,d0_,quality_);
+      printf("preconstructed muon  charge=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d isGlobal=%d stubs: %d %d %d %d %d \n",charge_,offline_pt_,pt_,offline_eta_,eta_,offline_phi_,phi_,z0_,d0_,quality_,muRef_.isNonnull(),stubID0_,stubID1_,stubID2_,stubID3_,stubID4_);
     }
 
 
@@ -122,7 +140,6 @@ namespace Phase2L1GMT {
     int           z0_;
     int           d0_;
     uint          quality_;
-    uint          isGlobal_;
     float         offline_pt_;
     float         offline_eta_;
     float         offline_phi_;
@@ -131,8 +148,9 @@ namespace Phase2L1GMT {
     int           stubID2_;
     int           stubID3_;
     int           stubID4_;
-    L1TPhase2GMTStubRefVector stubs_;
+    l1t::MuonStubRefVector stubs_;
     l1t::RegionalMuonCandRef muRef_;
+    edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;
 
   };
 }

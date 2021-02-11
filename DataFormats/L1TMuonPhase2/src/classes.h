@@ -1,4 +1,5 @@
 #include "DataFormats/Common/interface/Wrapper.h"
 #include "DataFormats/Common/interface/RefToBase.h"
-#include "DataFormats/L1TMuonPhase2/interface/L1TPhase2GMTStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
 #include <vector>

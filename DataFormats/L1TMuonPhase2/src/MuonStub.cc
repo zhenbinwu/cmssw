@@ -1,15 +1,16 @@
-#include "DataFormats/L1TMuonPhase2/interface/L1TPhase2GMTStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
 
 #include <iostream>
 #include <iomanip>
 #include <cmath>
 
 using namespace std;
-L1TPhase2GMTStub::L1TPhase2GMTStub() :
+using namespace l1t;
+MuonStub::MuonStub() :
   etaRegion_(0),phiRegion_(0),depthRegion_(0),coord1_(0), coord2_(0),id_(0), quality_(-1), bxNum_(17),
   eta1_(0),eta2_(0),etaQuality_(-1),type_(0) {}
 
-L1TPhase2GMTStub::L1TPhase2GMTStub(int etaRegion,int phiRegion,int depthRegion,uint tfLayer,int coord1,int coord2,int id,int bx,int quality,int eta1,int eta2,int etaQuality,int type):
+MuonStub::MuonStub(int etaRegion,int phiRegion,int depthRegion,uint tfLayer,int coord1,int coord2,int id,int bx,int quality,int eta1,int eta2,int etaQuality,int type):
   etaRegion_(etaRegion),
   phiRegion_(phiRegion),
   depthRegion_(depthRegion),
@@ -27,10 +28,10 @@ L1TPhase2GMTStub::L1TPhase2GMTStub(int etaRegion,int phiRegion,int depthRegion,u
 
 }
 
-L1TPhase2GMTStub::~L1TPhase2GMTStub() {}
+MuonStub::~MuonStub() {}
 
 
-bool L1TPhase2GMTStub::operator==(const L1TPhase2GMTStub& id) const {
+bool MuonStub::operator==(const MuonStub& id) const {
 
   if ( etaRegion_             != id.etaRegion_ )               return false;
   if ( phiRegion_             != id.phiRegion_ )               return false;
@@ -50,21 +51,7 @@ bool L1TPhase2GMTStub::operator==(const L1TPhase2GMTStub& id) const {
 //
 // output stream operator for phi track segments
 //
-ostream& operator<<(ostream& s, const L1TPhase2GMTStub& id) {
 
-  s.setf(ios::right,ios::adjustfield);
-  s << "BX: "              << setw(5) << id.bxNum_  << " "
-  << "etaregion:"          << setw(5) << id.etaRegion_  << " "
-  << "phiRegion: "         << setw(5) << id.phiRegion_  << " "
-  << "depthRegion: "       << setw(5) << id.depthRegion_  << " "
-  << "stub ID: "           << setw(5) << id.id_  << " "
-  << "coord1: "            << setw(5) << id.coord1_  << " "
-  << "coord2: "            << setw(4) << id.coord2_ << " "
-  << "quality: "           << setw(4) << id.quality_ << " "
-  << "eta1:"               << setw(4) << id.eta1_ << " "
-  << "eta2:"               << setw(4) << id.eta2_ << " "
-  << "qeta:"               << setw(4) << id.etaQuality_ << " "
-  << "type:"               << setw(4) <<id.type_;
-  return s;
-
+void MuonStub::print() const {
+  printf("BX=%d etaRegion=%d phiRegion=%d depth=%d ID=%d coord1=%d coord2=%d quality=%d eta1=%d eta2=%d etaQuality=%d type=%d\n",bxNum_,etaRegion_,phiRegion_,depthRegion_,id_,coord1_,coord2_,quality_,eta1_,eta2_,etaQuality_,type_); 
 }

@@ -12,7 +12,7 @@ namespace Phase2L1GMT {
     TrackConverter(const edm::ParameterSet& iConfig)  {}
     ~TrackConverter() {}
 
-    std::vector<ConvertedTTTrack> convertTracks(const std::vector<edm::Ptr< l1t::TkMuon::L1TTTrackType > >& tracks) {
+    std::vector<ConvertedTTTrack> convertTracks(const std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > >& tracks) {
       std::vector<ConvertedTTTrack> out;
       for (const auto& t :  tracks)
 	out.push_back(convert(t));
@@ -42,6 +42,7 @@ namespace Phase2L1GMT {
 
       ConvertedTTTrack convertedTrack(charge,curvature,absEta,pt,eta,phi,z0,reducedD0,quality);
       convertedTrack.setOfflineQuantities(track->momentum().transverse(),track->eta(),track->phi());
+      convertedTrack.setTrkPtr(track);
       return convertedTrack;
     }
   };

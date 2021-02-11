@@ -35,7 +35,7 @@ L1TPhase2GMTEndcapStubProcessor::~L1TPhase2GMTEndcapStubProcessor() {}
 
 
 
-L1TPhase2GMTStub
+l1t::MuonStub
 L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& detid,const CSCCorrelatedLCTDigi& digi, const L1TMuon::GeometryTranslator *translator) {
 
   int endcap = detid.endcap();
@@ -82,7 +82,7 @@ L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& detid,const CS
 
 
 
-  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,phi,0,0,
+  l1t::MuonStub stub(wheel,sector,station,tfLayer,phi,0,0,
 			bx,quality,eta1,0,1,0); 
 
   stub.setOfflineQuantities(gp.phi().value(),0.0,gp.eta(),0.0);
@@ -91,7 +91,7 @@ L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& detid,const CS
   }
 
 
-L1TPhase2GMTStub
+l1t::MuonStub
 L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& detid,const RPCDigi& digi, const L1TMuon::GeometryTranslator *translator) {
 
 
@@ -128,7 +128,7 @@ L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& detid,const RP
 
 
 
-  L1TPhase2GMTStub stub(wheel,sector,station,tfLayer,0,phi2,tag,
+  l1t::MuonStub stub(wheel,sector,station,tfLayer,0,phi2,tag,
 			bx,quality,0,eta2,2,0); 
   stub.setOfflineQuantities(gp.phi().value(),gp.phi().value(),gp.eta(),gp.eta());
   return stub;
@@ -136,11 +136,11 @@ L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& detid,const RP
   }
 
 
-L1TPhase2GMTStubCollection 
-L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& cscStubs,const L1TPhase2GMTStubCollection& rpcStubs) {
-  L1TPhase2GMTStubCollection out;
-  L1TPhase2GMTStubCollection usedRPC;
-  L1TPhase2GMTStubCollection cleanedRPC;
+l1t::MuonStubCollection 
+L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t::MuonStubCollection& cscStubs,const l1t::MuonStubCollection& rpcStubs) {
+  l1t::MuonStubCollection out;
+  l1t::MuonStubCollection usedRPC;
+  l1t::MuonStubCollection cleanedRPC;
 
   for (const auto & csc : cscStubs) {
     int nRPC=0;
@@ -172,7 +172,7 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
       finalRPCEta=eta/nRPC;
       offline_finalRPCPhi=phiF/nRPC;
       offline_finalRPCEta=etaF/nRPC;
-      L1TPhase2GMTStub stub(csc.etaRegion(),csc.phiRegion(),csc.depthRegion(),csc.tfLayer(),csc.coord1(),finalRPCPhi,0,
+      l1t::MuonStub stub(csc.etaRegion(),csc.phiRegion(),csc.depthRegion(),csc.tfLayer(),csc.coord1(),finalRPCPhi,0,
 			    csc.bxNum(),3,csc.eta1(),finalRPCEta,3,0); 
       stub.setOfflineQuantities(csc.offline_coord1(),offline_finalRPCPhi,csc.offline_eta1(),offline_finalRPCEta);
       out.push_back(stub);
@@ -198,7 +198,7 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
   }
 
   while(cleanedRPC.size()>0) {
-    L1TPhase2GMTStubCollection freeRPC;
+    l1t::MuonStubCollection freeRPC;
 
     int nRPC=1;
     float phiF=cleanedRPC[0].offline_coord2();
@@ -219,7 +219,7 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
 	freeRPC.push_back(cleanedRPC[i]);
       }
     }
-    L1TPhase2GMTStub stub(cleanedRPC[0].etaRegion(),cleanedRPC[0].phiRegion(),cleanedRPC[0].depthRegion(),cleanedRPC[0].tfLayer(),0,phi/nRPC,0,
+    l1t::MuonStub stub(cleanedRPC[0].etaRegion(),cleanedRPC[0].phiRegion(),cleanedRPC[0].depthRegion(),cleanedRPC[0].tfLayer(),0,phi/nRPC,0,
 			  cleanedRPC[0].bxNum(),2,0,eta/nRPC,2,0); 
     stub.setOfflineQuantities(phiF/nRPC,phiF/nRPC,etaF/nRPC,etaF/nRPC);
     out.push_back(stub);
@@ -231,16 +231,16 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const L1TPhase2GMTStubCollection& 
 
 
 
-L1TPhase2GMTStubCollection 
+l1t::MuonStubCollection 
 L1TPhase2GMTEndcapStubProcessor::makeStubs(const MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>& csc,const MuonDigiCollection<RPCDetId,RPCDigi>& cleaned,const L1TMuon::GeometryTranslator *t,const edm::EventSetup& iSetup) {
-  L1TPhase2GMTStubCollection cscStubs;
+  l1t::MuonStubCollection cscStubs;
    auto chamber = csc.begin();
    auto chend  = csc.end();
    for( ; chamber != chend; ++chamber ) {
      auto digi = (*chamber).second.first;
      auto dend = (*chamber).second.second;    
      for( ; digi != dend; ++digi ) {
-       L1TPhase2GMTStub stub = buildCSCOnlyStub((*chamber).first,*digi,t);
+       l1t::MuonStub stub = buildCSCOnlyStub((*chamber).first,*digi,t);
        if (stub.bxNum()>=minBX_&&stub.bxNum()<=maxBX_)
 	 cscStubs.push_back(stub);
      }
@@ -248,7 +248,7 @@ L1TPhase2GMTEndcapStubProcessor::makeStubs(const MuonDigiCollection<CSCDetId,CSC
 
 
 
-  L1TPhase2GMTStubCollection rpcStubs;
+  l1t::MuonStubCollection rpcStubs;
 
   //  RPCHitCleaner cleaner(rpc);
   //cleaner.run(iSetup);    
@@ -262,14 +262,14 @@ L1TPhase2GMTEndcapStubProcessor::makeStubs(const MuonDigiCollection<CSCDetId,CSC
      auto digi = (*rpcchamber).second.first;
      auto dend = (*rpcchamber).second.second;    
      for( ; digi != dend; ++digi ) {
-       L1TPhase2GMTStub stub = buildRPCOnlyStub((*rpcchamber).first,*digi,t);
+       l1t::MuonStub stub = buildRPCOnlyStub((*rpcchamber).first,*digi,t);
        if (stub.bxNum()>=minBX_&&stub.bxNum()<=maxBX_)
 	 rpcStubs.push_back(stub);
      }
    }
 
 
-  L1TPhase2GMTStubCollection combinedStubs =combineStubs(cscStubs,rpcStubs);
+  l1t::MuonStubCollection combinedStubs =combineStubs(cscStubs,rpcStubs);
 
 
    if (verbose_) {
