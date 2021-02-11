@@ -257,12 +257,12 @@ namespace Phase2L1GMT {
 
     propagation_t out;
     ap_int<BITSPHI> c1= track.phi()-prop_coord1*track.curvature()/1024;
-    out.coord1 = c1/32;
+    out.coord1 = c1/16;
     ap_int<BITSPHI> c2= prop_coord2*track.curvature()/1024;
     if (is_barrel==1)
-      out.coord2 = -c2/32;
+      out.coord2 = -c2/16;
     else
-      out.coord2 = (track.phi()-c2)/32;
+      out.coord2 = (track.phi()-c2)/16;
     
     out.eta = track.eta()/(32);//to be updated with low pt data    
     out.valid=valid;
