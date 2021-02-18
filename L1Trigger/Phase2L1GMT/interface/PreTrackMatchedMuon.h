@@ -13,7 +13,8 @@ namespace Phase2L1GMT {
 		      const int& eta,
 		      const int& phi,
 		      const int& z0,
-		      const int& d0
+		      const int& d0,
+		      const uint& beta =15
 ): 
     charge_(charge),
       pt_(pt),
@@ -21,8 +22,9 @@ namespace Phase2L1GMT {
       phi_(phi),  
       z0_(z0),
       d0_(d0),
-      quality_(0),
-
+      beta_(beta),
+      isGlobal_(0),
+      quality_(0),      
       stubID0_(511),
       stubID1_(511),
       stubID2_(511),
@@ -49,6 +51,13 @@ namespace Phase2L1GMT {
     const int d0() const {
       return d0_;
     }
+    const uint beta() const {
+      return beta_;
+    }
+
+    bool isGlobalMuon() const {
+      return isGlobal_;
+    }
     const int quality() const {
       return quality_;
     }
@@ -62,19 +71,19 @@ namespace Phase2L1GMT {
       return offline_phi_;
     }
 
-    const int stubID0() const {
+    const uint stubID0() const {
       return stubID0_;
     }
-    const int stubID1() const {
+    const uint stubID1() const {
       return stubID1_;
     }
-    const int stubID2() const {
+    const uint stubID2() const {
       return stubID2_;
     }
-    const int stubID3() const {
+    const uint stubID3() const {
       return stubID3_;
     }
-    const int stubID4() const {
+    const uint stubID4() const {
       return stubID4_;
     }
     void setQuality(uint quality) {
@@ -89,6 +98,7 @@ namespace Phase2L1GMT {
 
     void setMuonRef(const l1t::RegionalMuonCandRef& ref){
       muRef_=ref;
+      isGlobal_=true;
     }
 
 
@@ -129,8 +139,32 @@ namespace Phase2L1GMT {
       printf("preconstructed muon  charge=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d isGlobal=%d stubs: %d %d %d %d %d \n",charge_,offline_pt_,pt_,offline_eta_,eta_,offline_phi_,phi_,z0_,d0_,quality_,muRef_.isNonnull(),stubID0_,stubID1_,stubID2_,stubID3_,stubID4_);
     }
 
+    ap_uint<128> word() const{
+      ap_uint<128> w=charge_&0x1;
+      w = w |(twos_complement(pt_,BITSPT)<<1);
+      w = w |(twos_complement(phi_,BITSPHI)<<(BITSPT+1));
+      w = w |(twos_complement(eta_,BITSETA)<<(BITSPHI+BITSPT+1));
+      w = w |(twos_complement(z0_,BITSZ0)<<(BITSETA+BITSPHI+BITSPT+1));
+      w = w |(twos_complement(d0_,BITSD0)<<(BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w = w |(twos_complement(stubID0_,BITSSTUBID)<<(BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w = w |(twos_complement(stubID1_,BITSSTUBID)<<(BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w = w |(twos_complement(stubID2_,BITSSTUBID)<<(2*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w = w |(twos_complement(stubID3_,BITSSTUBID)<<(3*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w = w |(twos_complement(stubID4_,BITSSTUBID)<<(4*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w=  w |((isGlobal_ & 0x1)<<(5*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+1));
+      w=  w |(twos_complement(beta_,BITSMUONBETA)<<(5*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+2)); 
+      w=  w |(twos_complement(quality_,BITSMATCHQUALITY)<<(BITSMUONBETA+5*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+2)); 
+      w=  w |(0x1<<(BITSMATCHQUALITY+BITSMUONBETA+5*BITSSTUBID+BITSD0+BITSZ0+BITSETA+BITSPHI+BITSPT+2));
+      return w;
+    }
 
+    void printWord() const {
+      ap_uint<128> w=word();
+      ap_uint<128> wMSB = (w>>64);
+      printf("%016llx%016llx",(long long unsigned int) ((wMSB&0xffffffffffffffff).to_uint64()),(long long unsigned int)((w&0xffffffffffffffff).to_uint64()));
+  }
 
+    
 
   private:
     uint          charge_;
@@ -139,15 +173,17 @@ namespace Phase2L1GMT {
     int           phi_;
     int           z0_;
     int           d0_;
+    uint          beta_;
+    bool          isGlobal_;
     uint          quality_;
     float         offline_pt_;
     float         offline_eta_;
     float         offline_phi_;
-    int           stubID0_;
-    int           stubID1_;
-    int           stubID2_;
-    int           stubID3_;
-    int           stubID4_;
+    uint           stubID0_;
+    uint           stubID1_;
+    uint           stubID2_;
+    uint           stubID3_;
+    uint           stubID4_;
     l1t::MuonStubRefVector stubs_;
     l1t::RegionalMuonCandRef muRef_;
     edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;

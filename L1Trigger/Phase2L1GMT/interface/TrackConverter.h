@@ -40,7 +40,15 @@ namespace Phase2L1GMT {
       uint absEta = etaLUT[absTanL>>4];
       int eta = tanLambda >0 ?  (absEta) : (-absEta);
 
-      ConvertedTTTrack convertedTrack(charge,curvature,absEta,pt,eta,phi,z0,reducedD0,quality);
+      ap_uint<96> word = twos_complement(curvature,BITSTTCURV);
+      ap_int<BITSPHI> phiSec = ap_int<BITSPHI>(phi)-ap_int<BITSPHI>((track->phiSector()*40*M_PI/180.)*(1<<(BITSPHI-1))/(M_PI));
+      word = word |(twos_complement(phiSec,BITSTTPHI)<<BITSTTCURV);
+      word = word |(twos_complement(tanLambda,BITSTTTANL)<<(BITSTTCURV+BITSTTPHI));
+      word = word |(twos_complement(z0,BITSTTZ0)<<(BITSTTCURV+BITSTTPHI+BITSTTTANL));
+      word = word |(twos_complement(d0,BITSTTD0)<<(BITSTTCURV+BITSTTPHI+BITSTTTANL+BITSTTZ0));
+      word=  word |(twos_complement(uint(track->chi2()),4)<<(BITSTTCURV+BITSTTPHI+BITSTTTANL+BITSTTZ0+BITSTTD0)); 
+ 
+      ConvertedTTTrack convertedTrack(charge,curvature,absEta,pt,eta,phi,z0,reducedD0,quality,word);
       convertedTrack.setOfflineQuantities(track->momentum().transverse(),track->eta(),track->phi());
       convertedTrack.setTrkPtr(track);
       return convertedTrack;

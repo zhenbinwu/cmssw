@@ -16,7 +16,8 @@ namespace Phase2L1GMT {
 		   const int& phi,
 		   const int& z0,
 		   const int& d0,
-		   const int& quality): 
+		   const int& quality,
+		   const ap_uint<96>& word): 
     charge_(charge),
     curvature_(curvature),  
     abseta_(abseta),  
@@ -25,7 +26,8 @@ namespace Phase2L1GMT {
     phi_(phi),  
     z0_(z0),
     d0_(d0),
-    quality_(quality)  
+    quality_(quality),
+    word_(word)
     {
     }
 
@@ -69,7 +71,9 @@ namespace Phase2L1GMT {
       return offline_phi_;
     }
 
-
+    const ap_uint<96>& word() const {
+      return word_;
+    }
     void setOfflineQuantities(float pt,float eta, float phi) {
       offline_pt_=pt;
       offline_eta_=eta;
@@ -80,6 +84,11 @@ namespace Phase2L1GMT {
       printf("converted track charge=%d curvature=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",charge_,curvature_,offline_pt_,pt_,offline_eta_,eta_,offline_phi_,phi_,z0_,d0_,quality_);
     }
 
+
+    void printWord() const {
+      printf(" %08llx%016llx",(long long unsigned int) ((word_>>64).to_uint64()),(long long unsigned int)((word_&0xffffffffffffffff).to_uint64()));
+  }
+
     void setTrkPtr(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& trkPtr) {
       trkPtr_=trkPtr;
     }
@@ -88,7 +97,10 @@ namespace Phase2L1GMT {
       return trkPtr_;
     }
 
+
+
   private:
+
     uint          charge_;
     int           curvature_;
     uint          abseta_;
@@ -101,6 +113,7 @@ namespace Phase2L1GMT {
     float         offline_pt_;
     float         offline_eta_;
     float         offline_phi_;
+    ap_uint<96>   word_;
 
     edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;
 

@@ -15,34 +15,27 @@
 #include "L1Trigger/Phase2L1GMT/interface/Constants.h"
 
 namespace Phase2L1GMT {
-  
-  const int BITSPROP_C1 = 10;
-  const int BITSPROP_C2 = 10;
-  const int BITSPROP_SIGMAC1_A = 10;
-  const int BITSPROP_SIGMAC1_B = 10;
-  const int BITSPROP_SIGMAC2_A = 10;
-  const int BITSPROP_SIGMAC2_B = 10;
-  const int BITSPROP_SIGMAETA1_A = 10;
-  const int BITSPROP_SIGMAETA_B = 10;
-  const int BITSPROP_SIGMAETA2_A = 10;
 
+
+  const unsigned int PHIDIVIDER=1<<(BITSPHI-BITSSTUBCOORD);
+  const unsigned int ETADIVIDER=1<<(BITSETA-BITSSTUBETA);  
 
 
 
   typedef struct {
-    ap_int<BITSSTUBCOORD1> coord1;
-    ap_uint<BITSSTUBCOORD1-1> sigma_coord1;
-    ap_int<BITSSTUBCOORD2> coord2;
-    ap_uint<BITSSTUBCOORD2-1> sigma_coord2;
+    ap_int<BITSSTUBCOORD> coord1;
+    ap_uint<BITSSIGMACOORD> sigma_coord1;
+    ap_int<BITSSTUBCOORD> coord2;
+    ap_uint<BITSSIGMACOORD> sigma_coord2;
     ap_int<BITSSTUBETA> eta;
-    ap_uint<BITSSTUBETA-1> sigma_eta1;
-    ap_uint<BITSSTUBETA-1> sigma_eta2;
+    ap_uint<BITSSIGMAETA> sigma_eta1;
+    ap_uint<BITSSIGMAETA> sigma_eta2;
     ap_uint<1> valid;
     ap_uint<1> is_barrel;
   } propagation_t;
 
   typedef struct {
-    ap_uint<BITSMATCHQUALITY> quality;
+    ap_uint<BITSMATCHQUALITY-3> quality;
     ap_uint<BITSSTUBID> id;
     ap_uint<1> valid;
     l1t::RegionalMuonCandRef muRef;
@@ -70,7 +63,7 @@ namespace Phase2L1GMT {
     std::vector<PreTrackMatchedMuon> preMuons;
     for (const auto& track : convertedTracks) {
       PreTrackMatchedMuon mu = processTrack(track,rois);
-      if (mu.quality()>0 && preMuons.size()<32)
+      if (mu.quality()>31 && preMuons.size()<16)
 	preMuons.push_back(mu);
     }
     std::vector<PreTrackMatchedMuon> cleanedMuons  = clean(preMuons);
@@ -145,6 +138,11 @@ namespace Phase2L1GMT {
   }
 
 
+
+
+
+
+
   std::vector<l1t::TrackerMuon> convert(std::vector<PreTrackMatchedMuon>&  muons,uint maximum) {
     std::vector<l1t::TrackerMuon> out;
     for (const auto& mu : muons)  {
@@ -169,17 +167,16 @@ namespace Phase2L1GMT {
   int verbose_;
 
   propagation_t propagate(const ConvertedTTTrack& track, uint layer) {
-    ap_uint<BITSPROP_C1>          prop_coord1 = ap_uint<BITSPROP_C1>(0);
-    ap_uint<BITSPROP_C2>          prop_coord2 = 0;
-    ap_uint<BITSPROP_SIGMAC1_A>   res0_coord1 = 0;
-    ap_uint<BITSPROP_SIGMAC1_B>   res1_coord1= 0;
-    ap_uint<BITSPROP_SIGMAC2_A>   res0_coord2 = 0;
-    ap_uint<BITSPROP_SIGMAC2_B>   res1_coord2 = 0;
-    ap_uint<BITSPROP_SIGMAETA1_A> res0_eta1 = 0;
-    ap_uint<BITSPROP_SIGMAETA_B>  res1_eta = 0;
-    ap_uint<BITSPROP_SIGMAETA2_A> res0_eta2 = 0;
-    ap_uint<1>                    valid = ap_uint<1>(0);
-    ap_uint<1>                    is_barrel = 0;
+    ap_uint<BITSPROPCOORD>          prop_coord1 = 0;
+    ap_uint<BITSPROPCOORD>          prop_coord2 = 0;
+    ap_uint<BITSPROPSIGMACOORD_A>   res0_coord1 = 0;
+    ap_uint<BITSPROPSIGMACOORD_B>   res1_coord1= 0;
+    ap_uint<BITSPROPSIGMACOORD_A>   res0_coord2 = 0;
+    ap_uint<BITSPROPSIGMACOORD_B>   res1_coord2 = 0;
+    ap_uint<BITSPROPSIGMAETA_A>     res0_eta1 = 0;
+    ap_uint<BITSPROPSIGMAETA_B>     res1_eta = 0;
+    ap_uint<BITSPROPSIGMAETA_A>     res0_eta2 = 0;
+    ap_uint<1>                      is_barrel = 0;
 
     uint reducedAbsEta = track.abseta()/32;
 
@@ -193,7 +190,6 @@ namespace Phase2L1GMT {
       res0_eta1          =      lt_res0_eta1_0[reducedAbsEta];
       res1_eta           =      lt_res1_eta_0[reducedAbsEta];
       res0_eta2          =      lt_res0_eta2_0[reducedAbsEta];
-      valid              =      lt_prop_coord1_0_valid[reducedAbsEta];
       is_barrel          =      reducedAbsEta<barrelLimit0_ ? 1:0;
     } 
     else if (layer ==1 ) {
@@ -206,7 +202,6 @@ namespace Phase2L1GMT {
       res0_eta1          =      lt_res0_eta1_1[reducedAbsEta];
       res1_eta           =      lt_res1_eta_1[reducedAbsEta];
       res0_eta2          =      lt_res0_eta2_1[reducedAbsEta];
-      valid              =      lt_prop_coord1_1_valid[reducedAbsEta];
       is_barrel          =      reducedAbsEta<barrelLimit1_ ? 1:0;
 
     }
@@ -220,7 +215,6 @@ namespace Phase2L1GMT {
       res0_eta1          =      lt_res0_eta1_2[reducedAbsEta];
       res1_eta           =      lt_res1_eta_2[reducedAbsEta];
       res0_eta2          =      lt_res0_eta2_2[reducedAbsEta];
-      valid              =      lt_prop_coord1_2_valid[reducedAbsEta];
       is_barrel          =      reducedAbsEta<barrelLimit2_ ? 1:0;
 
 
@@ -235,7 +229,6 @@ namespace Phase2L1GMT {
       res0_eta1          =      lt_res0_eta1_3[reducedAbsEta];
       res1_eta           =      lt_res1_eta_3[reducedAbsEta];
       res0_eta2          =      lt_res0_eta2_3[reducedAbsEta];
-      valid              =      lt_prop_coord1_3_valid[reducedAbsEta];
       is_barrel          =      reducedAbsEta<barrelLimit3_ ? 1 :0;
 
 
@@ -250,45 +243,69 @@ namespace Phase2L1GMT {
       res0_eta1          =      lt_res0_eta1_4[reducedAbsEta];
       res1_eta           =      lt_res1_eta_4[reducedAbsEta];
       res0_eta2          =      lt_res0_eta2_4[reducedAbsEta];
-      valid              =      lt_prop_coord1_4_valid[reducedAbsEta];
       is_barrel          =      0;
 
     }
 
     propagation_t out;
-    ap_int<BITSPHI> c1= track.phi()-prop_coord1*track.curvature()/1024;
-    out.coord1 = c1/16;
-    ap_int<BITSPHI> c2= prop_coord2*track.curvature()/1024;
-    if (is_barrel==1)
-      out.coord2 = -c2/16;
+    ap_int<BITSTTCURV> curvature = track.curvature();
+    ap_int<BITSPHI> phi = track.phi();
+    ap_int<BITSPROPCOORD+BITSTTCURV> c1kFull = prop_coord1*curvature;
+    ap_int<BITSPROPCOORD+BITSTTCURV-10> c1k = (c1kFull)/1024;
+    ap_int<BITSPHI> coord1 = phi -c1k;
+    out.coord1=coord1/PHIDIVIDER;
+
+    ap_int<BITSPROPCOORD+BITSTTCURV> c2kFull = prop_coord2*curvature;
+
+    ap_int<BITSPROPCOORD+BITSTTCURV-10> c2k = (c2kFull)/1024;
+    if (is_barrel)
+      out.coord2=-c2k/PHIDIVIDER;
     else
-      out.coord2 = (track.phi()-c2)/16;
-    
-    out.eta = track.eta()/(32);//to be updated with low pt data    
-    out.valid=valid;
-    
-    ap_uint<BITSSTUBCOORD1-1> curvature2  = (track.curvature()*track.curvature())/(1<<19);
-    out.sigma_coord1 = res0_coord1+res1_coord1*curvature2;
-    if (out.sigma_coord1>128)
-      out.sigma_coord1=128;
-    out.sigma_coord2 = res0_coord2+res1_coord2*curvature2;
-    if (out.sigma_coord2>128)
-      out.sigma_coord2=128;
+      out.coord2=(phi-c2k)/PHIDIVIDER;
 
-    out.sigma_eta1   = res0_eta1+res1_eta*curvature2;
-    if (out.sigma_eta1>32)
-      out.sigma_eta1=32;
+    ap_int<BITSETA> eta = track.eta();
+    out.eta = eta/ETADIVIDER;
 
-    out.sigma_eta2   = res0_eta2+res1_eta*curvature2;
-    if (out.sigma_eta2>32)
-      out.sigma_eta2=32;
-    out.is_barrel = is_barrel;
+    ap_uint<2*BITSTTCURV-2> curvature2All=curvature*curvature;
+    ap_uint<BITSTTCURV2> curvature2= curvature2All>>(19);
+
+    ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1+res1_coord1*curvature2;
+    out.sigma_coord1 = ap_uint<BITSSIGMACOORD>(sigma_coord1);
+    ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2+res1_coord2*curvature2;
+    out.sigma_coord2 = ap_uint<BITSSIGMACOORD>(sigma_coord2);
+
+    
+    ap_uint<BITSPROPSIGMAETA_B+2*BITSTTCURV-19> resetak = res1_eta*curvature2;
+    ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta1 = res0_eta1+resetak;
+    out.sigma_eta1 = ap_uint<BITSSIGMAETA>(sigma_eta1);
+    ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta2 = res0_eta2+resetak;
+    out.sigma_eta2 = ap_uint<BITSSIGMAETA>(sigma_eta2);
+    out.valid     = 1;
+    out.is_barrel = is_barrel; 
 
     if(verbose_==1)
-      printf("Propagating to layer %d:is barrel=%d valid=%d coords=%d+-%d , %d +-%d etas = %d +- %d +-%d\n",int(layer),out.is_barrel.to_int(),valid.to_int(),out.coord1.to_int(),out.sigma_coord1.to_int(),out.coord2.to_int(),out.sigma_coord2.to_int(),out.eta.to_int(),out.sigma_eta1.to_int(),out.sigma_eta2.to_int());
+      printf("Propagating to layer %d:is barrel=%d  coords=%d+-%d , %d +-%d etas = %d +- %d +-%d\n",int(layer),out.is_barrel.to_int(),out.coord1.to_int(),out.sigma_coord1.to_int(),out.coord2.to_int(),out.sigma_coord2.to_int(),out.eta.to_int(),out.sigma_eta1.to_int(),out.sigma_eta2.to_int());
 
     return out;
   }
+
+  ap_uint<BITSSIGMAETA+1> deltaEta(const ap_int<BITSSTUBETA>& eta1,const ap_int<BITSSTUBETA>& eta2) {
+    ap_fixed<BITSSIGMAETA+2,BITSSIGMAETA+2,AP_TRN_ZERO, AP_SAT_SYM> dEta = eta1-eta2;
+    if (dEta<0)
+      return ap_uint<BITSSIGMAETA+1>(-dEta);
+    else
+      return ap_uint<BITSSIGMAETA+1>(dEta);
+    
+  }
+
+  ap_uint<BITSSIGMACOORD+1>  deltaCoord(const ap_int<BITSSTUBCOORD>& phi1,const ap_int<BITSSTUBCOORD>& phi2) {
+    ap_fixed<BITSSIGMACOORD+2,BITSSIGMACOORD+2,AP_TRN_ZERO, AP_SAT_SYM> dPhi = phi1-phi2;
+    if (dPhi<0)
+      return ap_uint<BITSSIGMAETA+1>(-dPhi);
+    else
+      return ap_uint<BITSSIGMAETA+1>(dPhi);
+  }
+
 
   match_t match(const propagation_t prop,const l1t::MuonStubRef& stub) {
 
@@ -296,19 +313,10 @@ namespace Phase2L1GMT {
       printf("Matching to ");
       stub->print();
     }
-  
-
     //Matching of Coord1 
     ap_uint<1> coord1Matched;
-    ap_int<BITSSTUBCOORD1+1> deltaCoord1 = prop.coord1-stub->coord1();
-    ap_uint<BITSSTUBCOORD1> absDeltaCoord1=0;
-    if (deltaCoord1.sign())
-      absDeltaCoord1=ap_uint<BITSSTUBCOORD1>(-deltaCoord1);
-    else
-      absDeltaCoord1=ap_uint<BITSSTUBCOORD1>(deltaCoord1);
-
-    ap_int<BITSSTUBCOORD1+1> marginCoord1 = absDeltaCoord1-prop.sigma_coord1; 
-    if (marginCoord1<=0 && (stub->quality() & 0x1) ) {
+    ap_uint<BITSSIGMACOORD+1> deltaCoord1 = deltaCoord(prop.coord1,stub->coord1());
+    if (deltaCoord1<prop.sigma_coord1 && (stub->quality() & 0x1) ) {
       coord1Matched=1;
     }
     else {
@@ -316,20 +324,12 @@ namespace Phase2L1GMT {
     }
 
     if (verbose_==1)
-      printf("Coord1 matched=%d delta=%d res=%d margin=%d\n",coord1Matched.to_int(),deltaCoord1.to_int(),prop.sigma_coord1.to_int(),marginCoord1.to_int());
+      printf("Coord1 matched=%d delta=%d res=%d\n",coord1Matched.to_int(),deltaCoord1.to_int(),prop.sigma_coord1.to_int());
 
     //Matching of Coord2 
-
     ap_uint<1> coord2Matched;
-    ap_int<BITSSTUBCOORD2+1> deltaCoord2 = prop.coord2-stub->coord2();
-    ap_uint<BITSSTUBCOORD2> absDeltaCoord2=0;
-    if (deltaCoord2.sign())
-      absDeltaCoord2=ap_uint<BITSSTUBCOORD2>(-deltaCoord2);
-    else
-      absDeltaCoord2=ap_uint<BITSSTUBCOORD2>(deltaCoord2);
-
-    ap_int<BITSSTUBCOORD2+1> marginCoord2 = absDeltaCoord2-prop.sigma_coord2; 
-    if (marginCoord2<=0 && (stub->quality() & 0x2) ) {
+    ap_uint<BITSSIGMACOORD+1> deltaCoord2 = deltaCoord(prop.coord2,stub->coord2());
+    if (deltaCoord2<prop.sigma_coord2 && (stub->quality() & 0x2) ) {
       coord2Matched=1;
     }
     else {
@@ -337,7 +337,7 @@ namespace Phase2L1GMT {
     }
 
     if (verbose_==1)
-      printf("Coord2 matched=%d delta=%d res=%d margin=%d\n",coord2Matched.to_int(),deltaCoord2.to_int(),prop.sigma_coord2.to_int(),marginCoord2.to_int());
+      printf("Coord2 matched=%d delta=%d res=%d\n",coord2Matched.to_int(),deltaCoord2.to_int(),prop.sigma_coord2.to_int());
 
 
     //Matching of Eta1
@@ -346,27 +346,26 @@ namespace Phase2L1GMT {
 
     ap_uint<1> eta1Matched;
 
+
     //if we have really bad quality[Barrel no eta]
     //increase the resolution
-    ap_uint<BITSSTUBETA-1> prop_sigma_eta1 = stub->etaQuality()==0 ? ap_uint<BITSSTUBETA-1>(prop.sigma_eta1+200) : ap_uint<BITSSTUBETA-1>(prop_sigma_eta1);
-    
-
-    ap_int<BITSSTUBETA+1> deltaEta1 = prop.eta-stub->eta1();
-    ap_uint<BITSSTUBETA> absDeltaEta1=0;
-    if (deltaEta1.sign())
-      absDeltaEta1=ap_uint<BITSSTUBETA>(-deltaEta1);
+    ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> prop_sigma_eta1;
+    if (stub->etaQuality()==0)
+      prop_sigma_eta1 = prop.sigma_eta1+6;
     else
-      absDeltaEta1=ap_uint<BITSSTUBETA>(deltaEta1);
+      prop_sigma_eta1 = prop.sigma_eta1;
 
-    ap_int<BITSSTUBETA+1> marginEta1 = absDeltaEta1-prop.sigma_eta1; 
-    if (marginEta1<=0)
+
+    
+    ap_int<BITSSIGMAETA+1> deltaEta1 = deltaEta(prop.eta,stub->eta1());
+    if (deltaEta1<prop.sigma_eta1)
       eta1Matched=1;
     else
       eta1Matched=0;
     
 
     if (verbose_==1)
-      printf("eta1 matched=%d delta=%d res=%d margin=%d\n",eta1Matched.to_int(),deltaEta1.to_int(),prop_sigma_eta1.to_int(),marginEta1.to_int());
+      printf("eta1 matched=%d delta=%d res=%d\n",eta1Matched.to_int(),deltaEta1.to_int(),prop_sigma_eta1.to_int());
 
 
 
@@ -375,25 +374,17 @@ namespace Phase2L1GMT {
 
     ap_uint<1> eta2Matched;
 
-    ap_int<BITSSTUBETA+1> deltaEta2 = prop.eta-stub->eta2();
-    ap_uint<BITSSTUBETA> absDeltaEta2=0;
-    if (deltaEta2.sign())
-      absDeltaEta2=ap_uint<BITSSTUBETA>(-deltaEta2);
-    else
-      absDeltaEta2=ap_uint<BITSSTUBETA>(deltaEta2);
-
-    ap_int<BITSSTUBETA+1> marginEta2 = absDeltaEta2-prop.sigma_eta2; 
-    if (marginEta2<=0 && (stub->etaQuality() & 0x2))
+    ap_int<BITSSIGMAETA+1> deltaEta2 = deltaEta(prop.eta,stub->eta2());
+    if (deltaEta2<prop.sigma_eta2 && (stub->etaQuality() & 0x2))
       eta2Matched=1;
     else
-      eta2Matched=0;
-    
+      eta2Matched=0;    
     match_t out;
     out.id=stub->id();
 
 
     if (verbose_==1)
-      printf("eta2 matched=%d delta=%d res=%d margin=%d\n",eta2Matched.to_int(),deltaEta2.to_int(),prop.sigma_eta2.to_int(),marginEta2.to_int());
+      printf("eta2 matched=%d delta=%d res=%d\n",eta2Matched.to_int(),deltaEta2.to_int(),prop.sigma_eta2.to_int());
 
       
     //if barrel, coord1 has to always be matched, coord2 maybe and eta1 is needed if etaQ=0 or then the one that depends on eta quality 
@@ -403,9 +394,9 @@ namespace Phase2L1GMT {
 	out.quality=0;
       }
       else {
-	out.quality = 64-deltaCoord1/2;
+	out.quality = 24-deltaCoord1/2;
 	if (coord2Matched==1)
-	  out.quality=out.quality+64-deltaCoord2/2;
+	  out.quality+=24-deltaCoord2/2;
       }
     }
     //if endcap each coordinate is independent
@@ -416,9 +407,9 @@ namespace Phase2L1GMT {
       else {
 	out.quality=0;
 	if (coord1Matched==1)
-	  out.quality+=64-deltaCoord1/2;
+	  out.quality+=24-deltaCoord1/2;
 	if (coord2Matched==1)
-	  out.quality+=64-deltaCoord2/2;
+	  out.quality+=24-deltaCoord2/2;
       } 
 
 	
@@ -458,6 +449,7 @@ namespace Phase2L1GMT {
     if (verbose_==1 && rois.size()>0) {
       printf("-----------processing new track----------");
       track.print();
+
     }	     
     for (const auto& roi : rois)  {
       if (verbose_==1) {
@@ -483,7 +475,7 @@ namespace Phase2L1GMT {
       }
     }
     
-    uint quality=0;
+    ap_uint<BITSMATCHQUALITY> quality=0;
     PreTrackMatchedMuon muon(track.charge(),track.pt(),track.eta(),track.phi(),track.z0(),track.d0());
     
 
@@ -534,12 +526,36 @@ namespace Phase2L1GMT {
       }
     }
 
-      
-
     
     muon.setTrkPtr(track.trkPtr());
     muon.setQuality(quality);
     muon.setOfflineQuantities(track.offline_pt(),track.offline_eta(),track.offline_phi());
+
+
+
+    if (verbose_==1 && rois.size()>0){ //patterns for HLS 
+
+      printf("TPS %d",track.trkPtr()->phiSector());
+      track.printWord();
+      
+      for (uint i=0;i<16;++i) {
+	if (rois.size()>i) {
+	  rois[i].printROILine();
+	}
+	else {
+	  printf ("%08x",0);
+	  printf ("%016lx",0x1ff000000000000);
+	  printf ("%016lx",0x1ff000000000000);
+	  printf ("%016lx",0x1ff000000000000);
+	  printf ("%016lx",0x1ff000000000000);
+	  printf ("%016lx",0x1ff000000000000);
+
+
+	}
+      }
+      muon.printWord();
+      printf("\n");
+    }
     return muon;
   }
 

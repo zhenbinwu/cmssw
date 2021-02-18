@@ -71,7 +71,7 @@ namespace Phase2L1GMT {
 		usedStubs.push_back(selectedStubs[bestStubINT]);
 	      }
 	    }
-	    if (out.size()<32 &&roi.stubs().size()>0)
+	    if (out.size()<16 &&roi.stubs().size()>0)
 	      out.push_back(roi);
 	  }
 	}
@@ -95,7 +95,7 @@ namespace Phase2L1GMT {
 	    }
 	  }
 	  if (roi.stubs().size()>0) 
-	    if (out.size()<32)
+	    if (out.size()<16)
 	      out.push_back(roi);
 	  cleanedStubs = clean(cleanedStubs,usedStubs);
 	}
