@@ -36,8 +36,9 @@ class Phase2L1TGMTProducer : public edm::stream::EDProducer<> {
       edm::EDGetTokenT<BXVector<RegionalMuonCand> > bmtfTracks_;
       edm::EDGetTokenT<BXVector<RegionalMuonCand> > emtfTracks_;
       edm::EDGetTokenT<BXVector<RegionalMuonCand> > omtfTracks_;
-
-  
+      int bxMin_;
+      int bxMax_;
+ 
 };
 
 
@@ -48,7 +49,10 @@ Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig):
   srcStubs_(consumes<std::vector<l1t::MuonStub> >(iConfig.getParameter<edm::InputTag>("srcStubs"))),
   bmtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcBMTF"))),
   emtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcEMTF"))),
-  omtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcOMTF")))  
+  omtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcOMTF"))),
+  bxMin_(iConfig.getParameter<int>("muonBXMin")),
+  bxMax_(iConfig.getParameter<int>("muonBXMax"))
+  
 {
 produces <std::vector<l1t::TrackerMuon> >();
 }
@@ -90,7 +94,8 @@ Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    l1t::MuonStubRefVector stubs;
    for (uint i=0;i<stubHandle->size();++i) {
      l1t::MuonStubRef stub(stubHandle, i);
-     stubs.push_back(stub);
+     if (stub->bxNum()>=bxMin_ && stub->bxNum()<=bxMax_)
+       stubs.push_back(stub);
    }
 
    
@@ -103,45 +108,30 @@ Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    Handle<BXVector<RegionalMuonCand> > bmtfHandle;
    iEvent.getByToken(bmtfTracks_,bmtfHandle);
-   if (bmtfHandle->size()>0) {
-     for (int bx = bmtfHandle->getFirstBX(); bx<=bmtfHandle->getLastBX();++bx) {
-       for (BXVector<RegionalMuonCand>::const_iterator iter =bmtfHandle->begin(bx); iter!=bmtfHandle->end(bx);++iter) { 
-	 RegionalMuonCandRef muon(bmtfHandle, bmtfHandle->key(iter));
-	 muonTracks.push_back(bx,muon);
-       }
-     }
-   }
-
-
-
-    Handle<BXVector<RegionalMuonCand> > emtfHandle;
-    iEvent.getByToken(emtfTracks_,emtfHandle);
-    if (emtfHandle->size()>0) {
-      for (int bx = emtfHandle->getFirstBX(); bx<=emtfHandle->getLastBX();++bx) {
-        for (BXVector<RegionalMuonCand>::const_iterator iter =emtfHandle->begin(bx); iter!=emtfHandle->end(bx);++iter) { 
-	  RegionalMuonCandRef muon(emtfHandle, emtfHandle->key(iter));
-	  muonTracks.push_back(bx,muon);
-        }
-      }
-    }
-
-
-
-
-
-
-
+   Handle<BXVector<RegionalMuonCand> > emtfHandle;
+   iEvent.getByToken(emtfTracks_,emtfHandle);
    Handle<BXVector<RegionalMuonCand> > omtfHandle;
    iEvent.getByToken(omtfTracks_,omtfHandle);
-   if (omtfHandle->size()>0) {
-     for (int bx = omtfHandle->getFirstBX(); bx<=omtfHandle->getLastBX();++bx) {
-       for (BXVector<RegionalMuonCand>::const_iterator iter =omtfHandle->begin(bx); iter!=omtfHandle->end(bx);++iter) { 
-	 RegionalMuonCandRef muon(omtfHandle, omtfHandle->key(iter));
+
+
+   for (int bx =bxMin_;bx<=bxMax_;++bx) { 
+
+     if (bx>=bmtfHandle->getFirstBX()&&bx<=bmtfHandle->getLastBX())
+       for (size_t i=0;i<bmtfHandle->size(bx);++i) {
+	 RegionalMuonCandRef muon(bmtfHandle,i);
 	 muonTracks.push_back(bx,muon);
        }
-     }
+     if (bx>=omtfHandle->getFirstBX()&&bx<=omtfHandle->getLastBX())
+       for (size_t i=0;i<omtfHandle->size(bx);++i) {
+	 RegionalMuonCandRef muon(omtfHandle,i);
+	 muonTracks.push_back(bx,muon);
+       }
+     if (bx>=emtfHandle->getFirstBX()&&bx<=emtfHandle->getLastBX())
+       for (size_t i=0;i<emtfHandle->size(bx);++i) {
+	 RegionalMuonCandRef muon(emtfHandle,i);
+	 muonTracks.push_back(bx,muon);
+       }
    }
-
 
    std::vector<l1t::TrackerMuon> out = node_->processEvent(tracks,muonTracks,stubs);
    std::unique_ptr<std::vector<l1t::TrackerMuon> > out1 = std::make_unique<std::vector<l1t::TrackerMuon> >(out); 
