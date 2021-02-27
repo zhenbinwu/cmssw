@@ -209,9 +209,14 @@ process.prod = cms.EDProducer('Phase2L1TGMTProducer',
                               srcEMTF   = cms.InputTag('simEmtfDigis','EMTF'),
                               srcOMTF   = cms.InputTag('simOmtfDigis','OMTF'),
                               muonBXMin = cms.int32(0),
-                              muonBXMax = cms.int32(0)
-
-)
+                              muonBXMax = cms.int32(0),
+                              IsoThreshold1 = cms.int32(0),
+                              IsoThreshold2 = cms.int32(0),
+                              IsoThreshold3 = cms.int32(0),
+                              IsoThreshold4 = cms.int32(0),
+                              verbose       = cms.int32(0),
+                              IsodumpForHLS = cms.int32(0)
+                             )
 process.testpath=cms.Path(process.CalibratedDigis*process.dtTriggerPhase2PrimitiveDigis*process.stubs*process.prod)
 #process.testpath=cms.Path(process.CalibratedDigis*process.dtTriggerPhase2PrimitiveDigis)
 process.schedule = cms.Schedule(process.L1TrackTrigger_step,process.testpath,process.endjob_step,process.e)
