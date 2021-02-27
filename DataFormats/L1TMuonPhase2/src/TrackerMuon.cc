@@ -4,7 +4,7 @@
 using namespace l1t;
 
 TrackerMuon::TrackerMuon():
-  word_(0) { }
+  hwZ0_(0), hwD0_(0), word_(0) { }
 
 
 TrackerMuon::TrackerMuon(const edm::Ptr<L1TTTrackType>& trk,
