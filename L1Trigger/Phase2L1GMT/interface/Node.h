@@ -12,9 +12,9 @@ namespace Phase2L1GMT {
 
   public:
   Node(const edm::ParameterSet& iConfig):
-    tt_track_converter_(new TrackConverter(iConfig)),
-    roi_assoc_(new ROITempAssociator(iConfig)),
-    track_mu_match_(new TrackMuonMatchAlgorithm(iConfig)),
+    tt_track_converter_(new TrackConverter(iConfig.getParameter<edm::ParameterSet>("trackConverter"))),
+    roi_assoc_(new ROITempAssociator(iConfig.getParameter<edm::ParameterSet>("roiTrackAssociator"))),
+    track_mu_match_(new TrackMuonMatchAlgorithm(iConfig.getParameter<edm::ParameterSet>("trackMatching"))),
     isolation_(new Isolation(iConfig))
   {
 
