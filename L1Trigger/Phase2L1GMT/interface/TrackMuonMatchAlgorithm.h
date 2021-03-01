@@ -48,7 +48,7 @@ namespace Phase2L1GMT {
 
   public:
   TrackMuonMatchAlgorithm(const edm::ParameterSet& iConfig):
-    verbose_(1)
+    verbose_(iConfig.getParameter<int>("verbose"))
     {
 
     }
@@ -270,15 +270,19 @@ namespace Phase2L1GMT {
     out.eta = eta/ETADIVIDER;
 
     ap_uint<2*BITSTTCURV-2> curvature2All=curvature*curvature;
-    ap_uint<BITSTTCURV2> curvature2= curvature2All>>(19);
-
-    ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1+res1_coord1*curvature2;
+    ap_uint<BITSTTCURV2> curvature2= curvature2All>>(12);
+    
+    //Remember to change emulator with new k2
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>10;
+    ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1+rescoord1k;
     out.sigma_coord1 = ap_uint<BITSSIGMACOORD>(sigma_coord1);
-    ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2+res1_coord2*curvature2;
+
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>10;
+    ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2+rescoord2k;
     out.sigma_coord2 = ap_uint<BITSSIGMACOORD>(sigma_coord2);
 
     
-    ap_uint<BITSPROPSIGMAETA_B+2*BITSTTCURV-19> resetak = res1_eta*curvature2;
+    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>10;
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta1 = res0_eta1+resetak;
     out.sigma_eta1 = ap_uint<BITSSIGMAETA>(sigma_eta1);
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta2 = res0_eta2+resetak;
