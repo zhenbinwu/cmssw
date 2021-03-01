@@ -135,27 +135,35 @@ namespace Phase2L1GMT
   void Isolation::DumpOutputs( std::vector<l1t::TrackerMuon> &trkMus)
   {
     static int nevto =0;
-    nevto++;
     for (unsigned int i = 0; i < trkMus.size(); ++i)
     {
       auto mu = trkMus.at(i);
-      dumpOutput << nevto << " " << i << " " << mu.hwPt() *lsb_pt << " " << mu.hwEta() *lsb_eta<< " " 
-        << mu.hwPhi() *lsb_phi<< " " << mu.hwZ0() *lsb_z0  << " " << mu.hwIso() << endl;
+      if (mu.hwPt() != 0)
+      {
+        double convertphi = mu.hwPhi() *lsb_phi;
+        if (convertphi > M_PI)
+        {
+          convertphi -= 2 * M_PI;
+        }
+        dumpOutput << nevto << " " << i << " " << mu.hwPt() *lsb_pt << " " << mu.hwEta() *lsb_eta<< " " 
+          << convertphi << " " << mu.hwZ0() *lsb_z0  << " " << mu.hwIso() << endl;
+      }
     }
+    nevto++;
   }
 
   void Isolation::isolation_allmu_alltrk( std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack>  &convertedTracks)
   {
-    int iso_;
 
     if(dumpForHLS_)
     {
       DumpInputs(trkMus, convertedTracks);
     }
 
-    for(auto mu : trkMus)
+    for(auto &mu : trkMus)
     {
       int accum = 0;
+      int iso_ = 0;
       for(auto t : convertedTracks)
       {
         accum += compute_trk_iso(mu, t);
