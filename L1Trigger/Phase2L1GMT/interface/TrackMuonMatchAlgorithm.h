@@ -65,7 +65,7 @@ namespace Phase2L1GMT {
     std::vector<PreTrackMatchedMuon> preMuons;
     for (const auto& track : convertedTracks) {
       PreTrackMatchedMuon mu = processTrack(track,rois);
-      if (mu.quality()>31 && preMuons.size()<16)
+      if (mu.valid() && preMuons.size()<16)
 	preMuons.push_back(mu);
     }
     std::vector<PreTrackMatchedMuon> cleanedMuons  = clean(preMuons);
@@ -270,19 +270,19 @@ namespace Phase2L1GMT {
     out.eta = eta/ETADIVIDER;
 
     ap_uint<2*BITSTTCURV-2> curvature2All=curvature*curvature;
-    ap_uint<BITSTTCURV2> curvature2= curvature2All>>(12);
+    ap_uint<BITSTTCURV2> curvature2= curvature2All/2;
     
     //Remember to change emulator with new k2
-    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>10;
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>21;
     ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1+rescoord1k;
     out.sigma_coord1 = ap_uint<BITSSIGMACOORD>(sigma_coord1);
 
-    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>10;
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>21;
     ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2+rescoord2k;
     out.sigma_coord2 = ap_uint<BITSSIGMACOORD>(sigma_coord2);
 
     
-    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>10;
+    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>21;
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta1 = res0_eta1+resetak;
     out.sigma_eta1 = ap_uint<BITSSIGMAETA>(sigma_eta1);
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta2 = res0_eta2+resetak;
@@ -365,7 +365,7 @@ namespace Phase2L1GMT {
 
     
     ap_uint<BITSSIGMAETA+1> deltaEta1 = deltaEta(prop.eta,stub->eta1());
-    if (deltaEta1<=prop_sigma_eta1)
+    if (deltaEta1<=prop_sigma_eta1 && (stub->etaQuality()==0 || (stub->etaQuality() & 0x1)))
       eta1Matched=1;
     else
       eta1Matched=0;
@@ -536,11 +536,17 @@ namespace Phase2L1GMT {
 	quality+=b.quality;
       }
     }
-
-    muon.setValid(quality>31);
-    muon.setTrkPtr(track.trkPtr());
-    muon.setQuality(quality);
     muon.setOfflineQuantities(track.offline_pt(),track.offline_eta(),track.offline_phi());
+    muon.setTrkPtr(track.trkPtr());
+    if (quality>31) {
+      muon.setValid(quality>31);
+      muon.setQuality(quality);
+    }
+    else {
+      muon.setValid(0);
+      muon.setQuality(0);
+      muon.resetGlobal();
+    }
     if (verbose_==1)
       muon.print();
 

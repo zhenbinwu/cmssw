@@ -29,7 +29,7 @@ namespace Phase2L1GMT {
 
 
   const int BITSTTCURV           = 15;
-  const int BITSTTCURV2          = 20;
+  const int BITSTTCURV2          = 27;
   const int BITSTTPHI            = 12;
   const int BITSTTTANL           = 16;
   const int BITSTTZ0             = 12;

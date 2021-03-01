@@ -109,6 +109,9 @@ namespace Phase2L1GMT {
       isGlobal_=true;
     }
 
+    void resetGlobal(){
+      isGlobal_=false;
+    }
 
     const l1t::RegionalMuonCandRef& muonRef() const {
       return muRef_;
