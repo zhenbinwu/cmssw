@@ -4,6 +4,7 @@
 #include "L1Trigger/Phase2L1GMT/interface/TrackConverter.h"
 #include "L1Trigger/Phase2L1GMT/interface/ROITempAssociator.h"
 #include "L1Trigger/Phase2L1GMT/interface/TrackMuonMatchAlgorithm.h"
+#include "L1Trigger/Phase2L1GMT/interface/Isolation.h"
 
 namespace Phase2L1GMT {
 
@@ -13,7 +14,8 @@ namespace Phase2L1GMT {
   Node(const edm::ParameterSet& iConfig):
     tt_track_converter_(new TrackConverter(iConfig.getParameter<edm::ParameterSet>("trackConverter"))),
     roi_assoc_(new ROITempAssociator(iConfig.getParameter<edm::ParameterSet>("roiTrackAssociator"))),
-    track_mu_match_(new TrackMuonMatchAlgorithm(iConfig.getParameter<edm::ParameterSet>("trackMatching")))
+    track_mu_match_(new TrackMuonMatchAlgorithm(iConfig.getParameter<edm::ParameterSet>("trackMatching"))),
+    isolation_(new Isolation(iConfig))
   {
 
   }
@@ -110,6 +112,17 @@ namespace Phase2L1GMT {
     std::vector<l1t::TrackerMuon> trackMatchedMuonsNoIso = track_mu_match_->convert(muCleaned,12);
 
     //Isolation and tau3mu will read those muons and all 9 collections of convertedTracks* 
+    std::vector<ConvertedTTTrack>  convertedTracks = convertedTracks0;
+    std::copy (convertedTracks1.begin(), convertedTracks1.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks2.begin(), convertedTracks2.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks3.begin(), convertedTracks3.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks4.begin(), convertedTracks4.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks5.begin(), convertedTracks5.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks6.begin(), convertedTracks6.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks7.begin(), convertedTracks7.end(), std::back_inserter(convertedTracks));
+    std::copy (convertedTracks8.begin(), convertedTracks8.end(), std::back_inserter(convertedTracks));
+
+    isolation_->isolation_allmu_alltrk(trackMatchedMuonsNoIso, convertedTracks );
 
       
 
@@ -120,6 +133,7 @@ namespace Phase2L1GMT {
     std::unique_ptr<TrackConverter> tt_track_converter_;
     std::unique_ptr<ROITempAssociator> roi_assoc_;
     std::unique_ptr<TrackMuonMatchAlgorithm> track_mu_match_;
+    std::unique_ptr<Isolation> isolation_;
 
 
     std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > associateTracksWithNonant(const std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > >& tracks,uint processor) {
