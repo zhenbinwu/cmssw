@@ -117,38 +117,50 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   double etTot_PU = 0;
   float zVTX = L1VertexHandle->begin()->zvertex();
 
+  int numtracks = 0;
+  int numqualitytracks = 0;
+  int numassoctracks = 0;
+
   for (trackIter = L1TTTrackHandle->begin(); trackIter != L1TTTrackHandle->end(); ++trackIter) {
+    numtracks ++;
     float pt = trackIter->momentum().perp();
     float phi = trackIter->momentum().phi();
     float eta = trackIter->momentum().eta();
     float chi2dof = trackIter->chi2Red();
+    float chi2rhidof = trackIter->chi2XY();
+    float chi2rzdof = trackIter->chi2Z();
     float bendChi2 = trackIter->stubPtConsistency();
     float z0  = trackIter->z0();
+    unsigned int Sector  = trackIter->phiSector();
     std::vector< edm::Ref< edmNew::DetSetVector< TTStub< Ref_Phase2TrackerDigi_ > >, TTStub< Ref_Phase2TrackerDigi_ > > >  theStubs = trackIter -> getStubRefs() ;
     int nstubs = (int) theStubs.size();
 
     if (pt < minPt_) continue;
     if (fabs(z0) > maxZ0_) continue;
     if (fabs(eta) > maxEta_) continue;
-    if (chi2dof > chi2dofMax_) continue;
+    if (chi2rhidof > chi2dofMax_) continue;
+    if (chi2rzdof > chi2dofMax_) continue;
     if (bendChi2 > bendChi2Max_) continue;
 
-    if (maxPt_ > 0 && pt > maxPt_) {
-      if (highPtTracks_ == 0)  continue;	// ignore these very high PT tracks: truncate
-      if (highPtTracks_ == 1)  pt = maxPt_; // saturate
-    }
+    //if (maxPt_ > 0 && pt > maxPt_) {
+    //  if (highPtTracks_ == 0)  continue;	// ignore these very high PT tracks: truncate
+    //  if (highPtTracks_ == 1)  pt = maxPt_; // saturate
+    //}
 
-    int nPS = 0; // number of stubs in PS modules
+    ///int nPS = 0; // number of stubs in PS modules
     // loop over the stubs
-    for (unsigned int istub=0; istub<(unsigned int)theStubs.size(); istub++) {
-      DetId detId( theStubs.at(istub)->getDetId() );
-      if (detId.det() == DetId::Detector::Tracker) {
-        if ( (detId.subdetId() == StripSubdetector::TOB && tTopo->tobLayer(detId) <= 3) || (detId.subdetId() == StripSubdetector::TID && tTopo->tidRing(detId) <= 9) ) nPS++;
-      }
-    }
+    //for (unsigned int istub=0; istub<(unsigned int)theStubs.size(); istub++) {
+    //  DetId detId( theStubs.at(istub)->getDetId() );
+    //  if (detId.det() == DetId::Detector::Tracker) {
+    //    if ( (detId.subdetId() == StripSubdetector::TOB && tTopo->tobLayer(detId) <= 3) || (detId.subdetId() == StripSubdetector::TID && tTopo->tidRing(detId) <= 9) ) nPS++;
+    //  }
+    //}
 
     if (nstubs < nStubsmin_) continue;
-    if (nPS < nPSStubsMin_) continue;
+    //if (nPS < nPSStubsMin_) continue;
+
+    numqualitytracks++;
+    
 
     if (!displaced_){ // if displaced, deltaZ = 3.0 cm, very loose
       // construct deltaZ cut to be based on track eta
@@ -161,6 +173,9 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     }
 
     if ( fabs(z0 - zVTX) <= deltaZ_) {
+      
+      numassoctracks++;
+
       sumPx += pt*cos(phi);
       sumPy += pt*sin(phi);
       etTot += pt;
@@ -173,15 +188,41 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   } // end loop over tracks
 
   float et = sqrt(sumPx*sumPx + sumPy*sumPy);
+  float etphi = atan2(sumPy,sumPx);
   double etmiss_PU = sqrt(sumPx_PU*sumPx_PU + sumPy_PU*sumPy_PU);
 
   math::XYZTLorentzVector missingEt( -sumPx, -sumPy, 0, et);
+
+  etphi = etphi + M_PI;
+  /*
+  std::cout << "====Global Pt====" << std::endl;
+  std::cout << sumPx << "|" << sumPy << std::endl;
+  std::cout << "====MET===" << std::endl;
+  std::cout << et << "|" << etphi << std::endl;
+
+  std::cout << "numTracks: " << numtracks << std::endl;
+  std::cout << "quality Tracks: " << numqualitytracks << std::endl;
+  std::cout << "assoc_tracks: " << numassoctracks << std::endl;
+  std::cout << "========================================================" << std::endl;
+  */
+
+  /*
+  if (etphi < 0)
+    etphi = etphi+2*M_PI;
+  else if ((sumPx < 0) && (sumPy > 0))
+    etphi = 2*M_PI - etphi;
+  else
+    etphi = etphi;
+  */
+
+  
+
   int ibx = 0;
   METCollection->push_back( TkEtMiss( missingEt,
-    TkEtMiss::kMET,
-    etTot,
-    etmiss_PU,
-    etTot_PU,
+    TkEtMiss::hwMET,
+    et,
+    etphi,
+    (unsigned int)numassoctracks,
     ibx )
   );
 

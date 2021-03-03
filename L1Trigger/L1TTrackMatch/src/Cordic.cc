@@ -6,21 +6,33 @@
 
 using namespace L1TkEtMissEmuAlgo;
 
-Cordic::Cordic(iPhi aPhiScale, int aMagnitudeBits, int aSteps) :
-mPhiScale(aPhiScale),mMagnitudeScale(1 << aMagnitudeBits), mMagnitudeBits(aMagnitudeBits), cordic_steps(aSteps){
+Cordic::Cordic(iPhi aPhiScale, int aMagnitudeBits,const int aSteps, bool debug, bool writeLUTs) :
+mPhiScale(aPhiScale),mMagnitudeScale(1 << aMagnitudeBits), mMagnitudeBits(aMagnitudeBits), cordic_steps(aSteps), debug(debug){
 
-    atan_LUT.reserve(cordic_steps);
-    mag_renormalization_LUT.reserve(cordic_steps);
+    atan_LUT.reserve(aSteps);
+    mag_renormalization_LUT.reserve(aSteps);
 
-    for (int i = 0; i< cordic_steps; i++){
+
+    if (debug){ edm::LogVerbatim("L1TkEtMissEmulator") << "=====atan LUT====="; }
+
+    for (int i = 0; i< aSteps; i++){
         atan_LUT.push_back(iPhi(round(mPhiScale*atan(pow(2,-i))/(2*M_PI))));
+        if (debug){ edm::LogVerbatim("L1TkEtMissEmulator") <<  atan_LUT[i] << " | "; }
     }
+    if (debug){ edm::LogVerbatim("L1TkEtMissEmulator") << "\n=====Renormalization LUT====="; }
 
     float val = 1.0;
-    for (int j =0; j<cordic_steps;j++){
+    for (int j =0; j<aSteps;j++){
         val = val / (pow(1 + pow(4,-j),0.5));
         mag_renormalization_LUT.push_back(iEt(round(mMagnitudeScale * val)));
-      }  
+        if (debug){ edm::LogVerbatim("L1TkEtMissEmulator") <<  mag_renormalization_LUT[j] << " | "; }
+      } 
+
+    if (writeLUTs){ 
+        writevectorLUTout<iPhi> (atan_LUT,"cordicatan",",");
+        writevectorLUTout<iEt>  (mag_renormalization_LUT,"cordicrenorm",",");
+    }
+    
   
 }
 
@@ -34,6 +46,8 @@ EtMiss Cordic::to_polar(iEt x,iEt y) const {
     bool sign = false;
 
     EtMiss ret_etmiss;
+
+    if (debug){ edm::LogVerbatim("L1TkEtMissEmulator") << "\n=====Cordic Steps====="; }
 
     if (x >=0 &&  y >= 0){
             phi = 0;
@@ -78,6 +92,10 @@ EtMiss Cordic::to_polar(iEt x,iEt y) const {
             x = new_x;
             y = new_y;
             phi = new_phi;
+
+            if (debug){ edm::LogVerbatim("L1TkEtMissEmulator") << " Cordic x: " << x 
+                                                               << " Cordic y: " << y 
+                                                               << " Cordic phi: " << phi <<"\n"; }
 
         }
         
