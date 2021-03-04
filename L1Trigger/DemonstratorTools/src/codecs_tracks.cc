@@ -25,17 +25,11 @@ namespace l1t::demo::codecs {
   }
 
   // Encodes track collection onto 18 output links (2x9 eta-phi sectors; first 9 negative eta)
-  // NOTE: Not assigning tracks to sectors using correct/official methodology
-  //       (Just using floating-point phi value, and defining 9 bins in phi of equal width)
   std::array<std::vector<l1t::demo::Frame>, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>& tracks) {
     std::array<std::vector<ap_uint<96>>, 18> trackWords;
 
-    for (const auto& track : tracks) {
-      // Determine phi sector -> link (just 9 bins in floating-point - TEMPORARY)
-      const size_t iPhi(4.5 + 4.5 * (track.phi() / M_PI));
-
-      trackWords.at((track.eta() < 0 ? 9 : 0) + iPhi).push_back(encodeTrack(track));
-    }
+    for (const auto& track : tracks)
+      trackWords.at((track.eta() >= 0 ? 9 : 0) + track.phiSector()).push_back(encodeTrack(track));
 
     std::array<std::vector<l1t::demo::Frame>, 18> linkData;
 
