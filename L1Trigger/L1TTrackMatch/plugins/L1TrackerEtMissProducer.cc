@@ -53,6 +53,9 @@ private:
   int highPtTracks_; // saturate or truncate
   bool displaced_; //prompt/displaced tracks
 
+  std::string L1MetCollectionName;
+  std::string L1ExtendedMetCollectionName;
+
   const edm::EDGetTokenT< TkPrimaryVertexCollection > pvToken_;
   const edm::EDGetTokenT<std::vector<TTTrack< Ref_Phase2TrackerDigi_ > > > trackToken_;
 };
@@ -74,8 +77,14 @@ trackToken_(consumes< std::vector<TTTrack< Ref_Phase2TrackerDigi_> > > (iConfig.
   highPtTracks_ = iConfig.getParameter<int>("highPtTracks");
   displaced_ = iConfig.getParameter<bool>("displaced");
 
-  if (displaced_) produces<TkEtMissCollection>("L1TrackerEtMissExtended");
-  else produces<TkEtMissCollection>("L1TrackerEtMiss");
+  L1MetCollectionName = (std::string)iConfig.getParameter<std::string>("L1MetCollectionName");
+  
+
+  if (displaced_) {
+    L1ExtendedMetCollectionName = (std::string)iConfig.getParameter<std::string>("L1MetExtendedCollectionName");
+    produces<TkEtMissCollection>(L1ExtendedMetCollectionName);
+  }
+  else produces<TkEtMissCollection>(L1MetCollectionName);
 }
 
 L1TrackerEtMissProducer::~L1TrackerEtMissProducer() { }
@@ -194,6 +203,7 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   math::XYZTLorentzVector missingEt( -sumPx, -sumPy, 0, et);
 
   etphi = etphi + M_PI;
+  
   /*
   std::cout << "====Global Pt====" << std::endl;
   std::cout << sumPx << "|" << sumPy << std::endl;
@@ -205,6 +215,7 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   std::cout << "assoc_tracks: " << numassoctracks << std::endl;
   std::cout << "========================================================" << std::endl;
   */
+  
 
   /*
   if (etphi < 0)
@@ -226,8 +237,8 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     ibx )
   );
 
-  if (displaced_) iEvent.put( std::move(METCollection), "L1TrackerEtMissExtended");
-  else iEvent.put( std::move(METCollection), "L1TrackerEtMiss");
+  if (displaced_) iEvent.put( std::move(METCollection), L1ExtendedMetCollectionName);
+  else iEvent.put( std::move(METCollection), L1MetCollectionName);
 } // end producer
 
 void L1TrackerEtMissProducer::beginJob() { }

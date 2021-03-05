@@ -4,7 +4,7 @@ namespace L1TkEtMissEmuAlgo{
   //Function to count stubs in hitpattern
   iNstub CountNStub(unsigned int Hitpattern){  
     iNstub Nstub = 0;
-    for (int i = (N_hitpatternbits-1); i >= 0; i--) {
+    for (int i = (N_hitpatternbits_-1); i >= 0; i--) {
       int k = Hitpattern >> i;
         if (k & 1)
           Nstub ++;
@@ -32,26 +32,36 @@ namespace L1TkEtMissEmuAlgo{
          temp_phi = phi - (sector *  (2*M_PI)/9);
       }
     }
-    return digitize_Signed <iPhi> (temp_phi,-maxPhi,maxPhi,N_phiBins);
+    return digitize_Signed <iPhi> (temp_phi,-max_TWord_Phi_,max_TWord_Phi_,N_phiBins_);
   }
 
 
-  void FillCosLUT(iglobPhi cosLUT[cosLUT_bins],float max_LUT_phi){  //Fill cosine LUT with integer values
+  std::vector<iglobPhi> FillCosLUT(unsigned int cosLUT_size){  //Fill cosine LUT with integer values
     float phi = 0;
-    for (int LUT_idx = 0; LUT_idx <= cosLUT_bins; LUT_idx++){
-      cosLUT[LUT_idx] = digitize_Signed <iglobPhi> (cos(phi),0,1,N_globPhiBins);
-      phi += (2*maxPhi)/(N_globPhiBins -1 );
-      //std::cout << phi << "|" << cos(phi) << "|" << LUT_idx << "|"<< cosLUT[LUT_idx] << std::endl;
-      
+    std::vector<iglobPhi> cosLUT;
+    for (unsigned int LUT_idx = 0; LUT_idx <= cosLUT_size; LUT_idx++){
+      cosLUT.push_back(digitize_Signed <iglobPhi> (cos(phi),0,1,N_globPhiBins_));
+      phi += (2*max_TWord_Phi_)/(N_globPhiBins_ -1 );
      }
+    return cosLUT;
+  }
+
+  std::vector<iglobPhi> generate_phi_slice_LUTs(unsigned int N) {
+    float slice_centre= 0.0;
+    std::vector<iglobPhi> phi_LUT;
+    for (unsigned int q=0;q<=N;q++){
+      phi_LUT.push_back((iglobPhi)(slice_centre / (2*max_TWord_Phi_ / (N_globPhiBins_-1))));
+      slice_centre += 2*M_PI/N;
+    }
+    return phi_LUT;
   }
 
   //Converts local int phi to global int phi
-  iglobPhi local_to_global(iPhi local_phi,iglobPhi sector_shift,iglobPhi phi_quadrants[N_quadrants]){ 
-      int PhiShift = N_globPhiBins/2;
-      int PhiMin = phi_quadrants[0];
-      int PhiMax = phi_quadrants[4];
-      int phi_multiplier = N_phiBits - N_globphiBits;
+  iglobPhi local_to_global(iPhi local_phi,iglobPhi sector_shift,std::vector<iglobPhi> phi_quadrants){ 
+      int PhiShift = N_globPhiBins_/2;
+      int PhiMin = phi_quadrants.front();
+      int PhiMax = phi_quadrants.back();
+      int phi_multiplier = N_phiBits_ - N_globphiBits_;
 
       int tempPhi = 0;
       iglobPhi globalPhi = 0;
@@ -68,16 +78,22 @@ namespace L1TkEtMissEmuAlgo{
   }
 
     // Generate Eta LUT for track to vertex association
-  void generate_EtaRegions(const float EtaRegions[N_etaregions+1],iEta LUT[N_etaregions+1]) {
-    for (int q=0;q<=N_etaregions;q++){
-      LUT[q] = (digitize_Signed <iEta> (EtaRegions[q], -maxEta, maxEta, N_etaBins));
+  std::vector<iEta> generate_EtaRegions(const float EtaRegions[],unsigned int Nreg) {
+    std::vector<iEta> LUT;
+    for (unsigned int q=0;q<Nreg;q++){
+      LUT.push_back(digitize_Signed <iEta> (EtaRegions[q], -max_TWord_Eta_, max_TWord_Eta_, N_etaBins_));
     }
+    return LUT;
+    
   }
 
-  void generate_DeltaZBins(const float DeltaZ[N_etaregions],iZ0 LUT[N_etaregions+1]) {
-    for (int q=0;q<N_etaregions;q++){
-      LUT[q] = (digitize_Signed <iZ0> (DeltaZ[q], 0, maxZ0, N_z0Bins/2));  //Only half range otherwise deltaZ values midway through integer representation
-    } 
+  std::vector<iZ0> generate_DeltaZBins(const float DeltaZ[],unsigned int Nbin) {
+    std::vector<iZ0> LUT;
+    for (unsigned int q=0;q<Nbin;q++){
+      LUT.push_back(digitize_Signed <iZ0> (DeltaZ[q], 0, max_TWord_Z0_, N_z0Bins_/2));  //Only half range otherwise deltaZ values midway through integer representation
+    }
+    return LUT;
+    
   }
 
 }
