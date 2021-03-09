@@ -9,8 +9,8 @@
   <class name="edm::Ref<std::vector<l1t::TkPrimaryVertex>,l1t::TkPrimaryVertex,edm::refhelper::FindUsingAdvance<std::vector<l1t::TkPrimaryVertex>,l1t::TkPrimaryVertex> >"/>
   <class name="std::vector<edm::Ref<std::vector<l1t::TkPrimaryVertex>,l1t::TkPrimaryVertex,edm::refhelper::FindUsingAdvance<std::vector<l1t::TkPrimaryVertex>,l1t::TkPrimaryVertex> > >"/>
 
-  <class name="l1t::TkEtMiss" ClassVersion="4">
-   <version ClassVersion="4" checksum="599555447"/>
+  <class name="l1t::TkEtMiss" ClassVersion="5">
+   <version ClassVersion="5" checksum="2694422826"/>
   </class>
   <class name="std::vector<l1t::TkEtMiss>"/>
   <class name="edm::Wrapper<l1t::TkEtMiss>"/>
