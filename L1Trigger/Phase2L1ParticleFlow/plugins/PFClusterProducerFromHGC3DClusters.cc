@@ -19,6 +19,7 @@ namespace l1tpf {
 
   private:
     edm::EDGetTokenT<l1t::HGCalMulticlusterBxCollection> src_;
+    int scenario_;
     bool emOnly_;
     double etCut_;
     StringCutObjectSelector<l1t::HGCalMulticluster> preEmId_;
@@ -34,6 +35,7 @@ namespace l1tpf {
 
 l1tpf::PFClusterProducerFromHGC3DClusters::PFClusterProducerFromHGC3DClusters(const edm::ParameterSet &iConfig)
     : src_(consumes<l1t::HGCalMulticlusterBxCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+      scenario_(iConfig.getParameter<int>("scenario")),
       emOnly_(iConfig.getParameter<bool>("emOnly")),
       etCut_(iConfig.getParameter<double>("etMin")),
       preEmId_(iConfig.getParameter<std::string>("preEmId")),
@@ -102,6 +104,22 @@ void l1tpf::PFClusterProducerFromHGC3DClusters::produce(edm::Event &iEvent, cons
     if (!emVsPionID_.method().empty()) {
       isEM = emVsPionID_.passID(*it, cluster);
       cluster.setIsEM(isEM);
+
+      if (scenario_ == 1){
+	if (isEM){
+	  float pt_tmp  = it->iPt(l1t::HGCalMulticluster::EnergyInterpretation::EM);
+	  float hoe_tmp = 0.;
+	  l1t::PFCluster cluster_tmp(pt_tmp, it->eta(), it->phi(), hoe_tmp, /*isEM=*/isEM);
+	  cluster = cluster_tmp;
+	}
+      }
+      else if (scenario_ == 2){
+	float em_part = pt/(1+hoe);
+	float pt_tmp  = it->iPt(l1t::HGCalMulticluster::EnergyInterpretation::EM) + hoe * em_part;
+	float hoe_tmp = hoe * em_part / it->iPt(l1t::HGCalMulticluster::EnergyInterpretation::EM);
+	l1t::PFCluster cluster_tmp(pt_tmp, it->eta(), it->phi(), hoe_tmp, /*isEM=*/isEM);	
+	cluster = cluster_tmp;
+      }
     }
     if (corrector_.valid())
       corrector_.correctPt(cluster);
