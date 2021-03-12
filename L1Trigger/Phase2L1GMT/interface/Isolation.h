@@ -17,14 +17,13 @@
 #ifndef  PHASE2GMT_ISOLATION
 #define  PHASE2GMT_ISOLATION
 
-#include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
-#include "L1Trigger/Phase2L1GMT/interface/ConvertedTTTrack.h"
+#include "L1Trigger/Phase2L1GMT/interface/TopologicalAlgorithm.h"
 
-#include <fstream>
+
 
 namespace Phase2L1GMT
 {
-  class Isolation
+  class Isolation : public TopoAlgo 
   {
     public:
       Isolation(const edm::ParameterSet& iConfig);
@@ -38,47 +37,36 @@ namespace Phase2L1GMT
 
     private:
       void DumpOutputs( std::vector<l1t::TrackerMuon> &trkMus);
-      void DumpInputs( std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks);
+      int SetAbsIsolationBits(int accum);
+      int SetRelIsolationBits(int accum, int mupt);
 
-      int deltaEta(const int eta1,const int eta2);
-      int deltaZ0(const int Z01,const int Z02);
-      int deltaPhi(int phi1, int phi2);
-
-
-      // Current setting in Luca's code
-      const static int BITMUPT          = 14;
-      const static int BITMUPHI         = 13;
-      const static int BITMUETA         = 13;
-      const static int BITMUZ0          = 12;
-      const static int BITMUD0          = 13;
-      const static int BITMUCHARGE      = 1;
-      const static int BITMUQUALITY     = 4;
-      const static int BITMUISO         = 2;
-
-      const double lsb_pt  = 512./pow(2, BITMUPT);
-      const double lsb_eta = 2.*M_PI/pow(2, BITMUETA);
-      const double lsb_phi = 2.*M_PI/pow(2, BITMUPHI);
-      const double lsb_z0  = 60./pow(2, BITMUZ0);
       const static int c_iso_dangle_max = 260;//@ <  260 x 2pi/2^13 = 0.2 rad
-      const static int c_iso_dz_max     = 68; //@ <  68  x 60/2^12  = 1   cm
-      const static int c_iso_pt_min     = 96; //@ >= , 96  x 1/2^5 = 3 GeV
+      const static int c_iso_dz_max     = 17; //@ <  17 x 60/2^10 = 1   cm
+      const static int c_iso_pt_min     = 120; //@ >= , 120  x 25MeV = 3 GeV
+
+
       // Assuming 4 bits for Muon isolation
-      int iso_threshold_1;
-      int iso_threshold_2;
-      int iso_threshold_3;
-      int iso_threshold_4;
+      int absiso_thrL;
+      int absiso_thrM;
+      int absiso_thrT;
+      double reliso_thrL;
+      double reliso_thrM;
+      double reliso_thrT;
       bool verbose_;
       bool dumpForHLS_;
-      std::ofstream dumpInput;
       std::ofstream dumpOutput;
 
+      typedef ap_ufixed<9, 9, AP_TRN, AP_SAT> iso_accum_t;
+      typedef ap_ufixed<9, 0> reliso_thresh_t;
   };
 
   Isolation::Isolation(const edm::ParameterSet& iConfig):
-    iso_threshold_1(iConfig.getParameter<int>("IsoThreshold1")),
-    iso_threshold_2(iConfig.getParameter<int>("IsoThreshold2")),
-    iso_threshold_3(iConfig.getParameter<int>("IsoThreshold3")),
-    iso_threshold_4(iConfig.getParameter<int>("IsoThreshold4")),
+    absiso_thrL(iConfig.getParameter<int>("AbsIsoThresholdL")),
+    absiso_thrM(iConfig.getParameter<int>("AbsIsoThresholdM")),
+    absiso_thrT(iConfig.getParameter<int>("AbsIsoThresholdT")),
+    reliso_thrL(iConfig.getParameter<double>("RelIsoThresholdL")),
+    reliso_thrM(iConfig.getParameter<double>("RelIsoThresholdM")),
+    reliso_thrT(iConfig.getParameter<double>("RelIsoThresholdT")),
     verbose_(iConfig.getParameter<int>("verbose")),
     dumpForHLS_(iConfig.getParameter<int>("IsodumpForHLS"))
   {
@@ -104,34 +92,6 @@ namespace Phase2L1GMT
   {
   }
 
-
-  void Isolation::DumpInputs( std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack>  &convertedTracks)
-  {
-    static int nevti =0;
-    nevti++;
-    int totalsize =0;
-    int exptotal = 12 + 18 * 100; // N_Muon + N_TRK_LINKS * NTRKperlinks
-    for (unsigned int i = 0; i < trkMus.size(); ++i)
-    {
-      dumpInput <<" " << nevti <<" 0 " << i <<" "<<trkMus.at(i).hwPt() * lsb_pt<<" " <<trkMus.at(i).hwEta() * lsb_eta
-        <<" " << trkMus.at(i).hwPhi() * lsb_phi <<" " << trkMus.at(i).hwZ0() * lsb_z0<< std::endl;
-      totalsize++;
-    }
-    for (unsigned int i = 0; i < convertedTracks.size(); ++i)
-    {
-      dumpInput <<" " << nevti <<" 1 "<< i <<" "<<convertedTracks.at(i).pt() * lsb_pt<<" " <<convertedTracks.at(i).eta() * lsb_eta
-        <<" " << convertedTracks.at(i).phi() * lsb_phi<<" " << convertedTracks.at(i).z0() *lsb_z0<< std::endl;
-      totalsize++;
-    }
-    int ntrks = convertedTracks.size();
-    // Pat the remaining 
-    while (totalsize  < exptotal)
-    {
-      dumpInput<<" " << nevti << " 1 " << ntrks++ <<" " <<0 <<" " <<0 <<" " <<0 <<" " <<0  <<" " <<0 <<" " <<0 <<std::endl;
-      totalsize++;
-    }
-  }
-
   void Isolation::DumpOutputs( std::vector<l1t::TrackerMuon> &trkMus)
   {
     static int nevto =0;
@@ -152,12 +112,68 @@ namespace Phase2L1GMT
     nevto++;
   }
 
+  int Isolation::SetAbsIsolationBits(int accum)
+  {
+
+    int iso = (
+        accum < absiso_thrT ? 3 :
+        accum < absiso_thrM ? 2 :
+        accum < absiso_thrL ? 1 :
+        0);
+
+    if (verbose_)
+    {
+      cout << " [DEBUG Isolation] : absiso_threshold L : " << absiso_thrL << " accum " << accum  <<" bit set : "<< (accum < absiso_thrL) << endl;
+      cout << " [DEBUG Isolation] : absiso_threshold M : " << absiso_thrM << " accum " << accum  <<" bit set : "<< (accum < absiso_thrM) << endl;
+      cout << " [DEBUG Isolation] : absiso_threshold T : " << absiso_thrT << " accum " << accum  <<" bit set : "<< (accum < absiso_thrT) << endl;
+      cout << " [DEBUG Isolation] : absiso : " << (iso) << endl;
+    }
+    return iso;
+
+  }
+
+  int Isolation::SetRelIsolationBits(int accum, int mupt)
+  {
+    const static reliso_thresh_t relisoL(reliso_thrL);
+    const static reliso_thresh_t relisoM(reliso_thrM);
+    const static reliso_thresh_t relisoT(reliso_thrT);
+
+    iso_accum_t thrL = relisoL * mupt; 
+    iso_accum_t thrM = relisoM * mupt; 
+    iso_accum_t thrT = relisoT * mupt; 
+
+
+    int iso = (
+        accum < thrT.to_int() ? 3 :
+        accum < thrM.to_int() ? 2 :
+        accum < thrL.to_int() ? 1 :
+        0);
+
+    if (verbose_)
+    {
+      cout << " [DEBUG Isolation] : reliso_threshold L : " << thrL << " accum " << accum <<" bit set : "<< (accum < thrL.to_int())  << endl;
+      cout << " [DEBUG Isolation] : reliso_threshold M : " << thrM << " accum " << accum <<" bit set : "<< (accum < thrM.to_int())  << endl;
+      cout << " [DEBUG Isolation] : reliso_threshold T : " << thrT << " accum " << accum <<" bit set : "<< (accum < thrT.to_int()) << endl;
+      cout << " [DEBUG Isolation] : reliso : " << (iso<<2) << " org " << iso << endl;
+    }
+
+    return iso << 2;
+  }
+
+
   void Isolation::isolation_allmu_alltrk( std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack>  &convertedTracks)
   {
 
+    load(trkMus, convertedTracks);
     if(dumpForHLS_)
     {
-      DumpInputs(trkMus, convertedTracks);
+      DumpInputs();
+    }
+
+    static int itest =0;
+    if (verbose_)
+    {
+      std::cout << "........ RUNNING TEST NUMBER .......... " << itest++ << std::endl;
     }
 
     for(auto &mu : trkMus)
@@ -170,13 +186,12 @@ namespace Phase2L1GMT
       }
 
       // Only 8 bit for accumation? 
-      ap_ufixed<8, 8, AP_TRN, AP_SAT> iso_accum_t(accum);
-      accum = iso_accum_t.to_int();
+      iso_accum_t temp(accum);
+      accum = temp.to_int();
 
-      iso_ |= (accum < iso_threshold_1) << 0;
-      iso_ |= (accum < iso_threshold_2) << 1;
-      iso_ |= (accum < iso_threshold_3) << 2;
-      iso_ |= (accum < iso_threshold_4) << 3;
+      iso_ |= SetAbsIsolationBits(accum);
+      iso_ |= SetRelIsolationBits(accum, mu.hwPt());
+
       mu.setHwIso(iso_);
     }
 
@@ -184,42 +199,6 @@ namespace Phase2L1GMT
     {
       DumpOutputs(trkMus);
     }
-
-  }
-
-  int Isolation::deltaEta(const int eta1,const int eta2) {
-    ap_int<BITMUETA> ap_eta1(eta1);
-    ap_int<BITMUETA> ap_eta2(eta2);
-    ap_int<BITMUETA> dEta = ap_eta1 - ap_eta2;
-
-    if (dEta<0)
-      return (-1*dEta).to_int();
-    else
-      return dEta.to_int();
-  }
-  int Isolation::deltaZ0(const int Z01,const int Z02) {
-    ap_int<BITMUZ0> ap_Z01(Z01);
-    ap_int<BITMUZ0> ap_Z02(Z02);
-    ap_int<BITMUZ0> dZ0 = ap_Z01 - ap_Z02;
-
-    if (dZ0<0)
-      return (-1*dZ0).to_int();
-    else
-      return dZ0.to_int();
-  }
-
-  // Bad idea here, but as a temparory workout
-  // Ideal the object should carry its own ap types once we finalize
-  int Isolation::deltaPhi(int phi1, int phi2) {
-    ap_int<BITMUPHI> ap_phi1(phi1);
-    ap_int<BITMUPHI> ap_phi2(phi2);
-    ap_int<BITMUPHI> dPhi = phi1 - phi2;
-    ap_uint<BITMUPHI-1> dPhi_unsigned;
-    if (dPhi<0)
-      dPhi_unsigned = -dPhi;
-    else
-      dPhi_unsigned = dPhi;
-    return dPhi_unsigned.to_int();
   }
 
   unsigned Isolation::compute_trk_iso(l1t::TrackerMuon  &in_mu, ConvertedTTTrack &in_trk)
@@ -228,24 +207,35 @@ namespace Phase2L1GMT
     int deta = deltaEta(in_mu.hwEta(), in_trk.eta());
     int dz0 = deltaZ0(in_mu.hwZ0(), in_trk.z0());
 
-    // Need to convert, but still figure out the input format. Ignoring it for now
-    //bool pass_deta        = (deta      < deta_t(c_iso_dangle_max) ? true : false);
-    //bool pass_dphi        = (dphi      < dphi_t(c_iso_dangle_max) ? true : false);
-    //bool pass_dz0         = (dz0       < dz0_t(c_iso_dz_max)      ? true : false);
-    //bool pass_trkpt       = (in_trk.pt() >= hw_pt_t(c_iso_pt_min) ? true : false);
     bool pass_deta        = (deta      < c_iso_dangle_max ? true : false);
     bool pass_dphi        = (dphi      < c_iso_dangle_max ? true : false);
     bool pass_dz0         = (dz0       < c_iso_dz_max     ? true : false);
     bool pass_trkpt       = (in_trk.pt() >= c_iso_pt_min  ? true : false);
     bool pass_ovrl        = (deta > 0 || dphi > 0         ? true : false);
 
+    if (verbose_)
+    {
+      cout << " [DEBUG compute_trk_iso] : Start of debug msg for compute_trk_iso" << endl;
+      cout << " [DEBUG compute_trk_iso] : incoming muon (pt / eta / phi / z0 / isvalid)" << endl;
+      cout << " [DEBUG compute_trk_iso] : MU  =  " << in_mu.hwPt() << " / " << in_mu.hwEta() << " / " << in_mu.hwPhi() << " / " << in_mu.hwZ0() << " / " << 1 << endl;
+      cout << " [DEBUG compute_trk_iso] : incoming track (pt / eta / phi / z0 / isvalid)" << endl;
+      cout << " [DEBUG compute_trk_iso] : TRK =  " << in_trk.pt() << " / " << in_trk.eta() << " / " << in_trk.phi() << " / " << in_trk.z0() << " / " << 1 << endl;
+      cout << " [DEBUG compute_trk_iso] : Delta phi : " << dphi << endl;
+      cout << " [DEBUG compute_trk_iso] : Delta eta : " << deta << endl;
+      cout << " [DEBUG compute_trk_iso] : Delta z0  : " << dz0 << endl;
+      cout << " [DEBUG compute_trk_iso] : pass_deta      : " << pass_deta      << endl;
+      cout << " [DEBUG compute_trk_iso] : pass_dphi      : " << pass_dphi      << endl;
+      cout << " [DEBUG compute_trk_iso] : pass_dz0       : " << pass_dz0       << endl;
+      cout << " [DEBUG compute_trk_iso] : pass_trkpt     : " << pass_trkpt     << endl;
+      cout << " [DEBUG compute_trk_iso] : pass_ovrl      : " << pass_ovrl      << endl;
+    }
     // match conditions
-    if ( pass_deta  &&
-        pass_dphi  &&
-        pass_dz0   &&
-        pass_trkpt &&
-        pass_ovrl
-       ){
+    if ( pass_deta  && pass_dphi  && pass_dz0   && pass_trkpt && pass_ovrl){
+      if (verbose_)
+      {
+        cout << " [DEBUG compute_trk_iso] : THE TRACK WAS MATCHED" << endl;
+        cout << " [DEBUG compute_trk_iso] : RETURN         : " << in_trk.pt() << endl;
+      }
       return in_trk.pt();
     }
     else{

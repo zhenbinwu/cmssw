@@ -57,6 +57,16 @@ gmtMuons = cms.EDProducer('Phase2L1TGMTProducer',
                      ),
                      trackMatching  = cms.PSet(
                          verbose=cms.int32(0)
+                     ),
+                     isolation  = cms.PSet(
+                       AbsIsoThresholdL = cms.int32(160),
+                       AbsIsoThresholdM = cms.int32(120),
+                       AbsIsoThresholdT = cms.int32(80),
+                       RelIsoThresholdL = cms.double(0.1),
+                       RelIsoThresholdM = cms.double(0.05),
+                       RelIsoThresholdT = cms.double(0.01),
+                       verbose       = cms.int32(0),
+                       IsodumpForHLS = cms.int32(1),
                      )
 )
 

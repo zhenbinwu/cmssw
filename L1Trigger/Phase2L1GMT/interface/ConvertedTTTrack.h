@@ -52,6 +52,9 @@ namespace Phase2L1GMT {
     const int phi() const {
       return phi_;
     }
+
+    void setPhi(int phi) { phi_ = phi; }
+
     const int z0() const {
       return z0_;
     }

@@ -15,7 +15,7 @@ namespace Phase2L1GMT {
     tt_track_converter_(new TrackConverter(iConfig.getParameter<edm::ParameterSet>("trackConverter"))),
     roi_assoc_(new ROITempAssociator(iConfig.getParameter<edm::ParameterSet>("roiTrackAssociator"))),
     track_mu_match_(new TrackMuonMatchAlgorithm(iConfig.getParameter<edm::ParameterSet>("trackMatching"))),
-    isolation_(new Isolation(iConfig))
+    isolation_(new Isolation(iConfig.getParameter<edm::ParameterSet>("isolation")))
   {
 
   }
@@ -27,7 +27,7 @@ namespace Phase2L1GMT {
 
   std::vector<l1t::TrackerMuon>  processEvent(const std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > >& tracks, 
 					 const l1t::ObjectRefBxCollection<l1t::RegionalMuonCand>& muonTracks,
-					 const l1t::MuonStubRefVector& stubs) {
+           const l1t::MuonStubRefVector& stubs) {
 
     //Split tracks to the links as they come
     std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > tracks0 = associateTracksWithNonant(tracks,0);
@@ -86,7 +86,7 @@ namespace Phase2L1GMT {
     std::vector<PreTrackMatchedMuon> mu6 = track_mu_match_->processNonant(convertedTracks6,rois6);
     std::vector<PreTrackMatchedMuon> mu7 = track_mu_match_->processNonant(convertedTracks7,rois7);
     std::vector<PreTrackMatchedMuon> mu8 = track_mu_match_->processNonant(convertedTracks8,rois8);
- 
+
     //clean neighboring nonants
     std::vector<PreTrackMatchedMuon> muCleaned = track_mu_match_->cleanNeighbor(mu0,mu8,mu1,true);
     std::vector<PreTrackMatchedMuon> muCleaned1 = track_mu_match_->cleanNeighbor(mu1,mu0,mu2,false);
@@ -108,7 +108,7 @@ namespace Phase2L1GMT {
     std::copy (muCleaned7.begin(), muCleaned7.end(), std::back_inserter(muCleaned));
     std::copy (muCleaned8.begin(), muCleaned8.end(), std::back_inserter(muCleaned));
 
-    
+
     std::vector<l1t::TrackerMuon> trackMatchedMuonsNoIso = track_mu_match_->convert(muCleaned,12);
 
     //Isolation and tau3mu will read those muons and all 9 collections of convertedTracks* 
@@ -122,12 +122,27 @@ namespace Phase2L1GMT {
     std::copy (convertedTracks7.begin(), convertedTracks7.end(), std::back_inserter(convertedTracks));
     std::copy (convertedTracks8.begin(), convertedTracks8.end(), std::back_inserter(convertedTracks));
 
+    // temp: convert phi to [-pi, pi]
+    for(auto &mu : trackMatchedMuonsNoIso)
+    {
+      if (mu.hwPhi() > pow(2, BITSPHI-1))
+      {
+        mu.setHwPhi(mu.hwPhi() -pow(2, BITSPHI));
+      }
+    }
+
+    for(auto &t : convertedTracks)
+    {
+      if (t.phi() > pow(2, BITSPHI-1))
+      {
+        t.setPhi(t.phi() -pow(2, BITSPHI));
+      }
+    }
+
     isolation_->isolation_allmu_alltrk(trackMatchedMuonsNoIso, convertedTracks );
 
-      
-
-      return trackMatchedMuonsNoIso; //when we add more collections like tau3mu etc we change that 
-    }
+    return trackMatchedMuonsNoIso; //when we add more collections like tau3mu etc we change that 
+  }
 
   private:
     std::unique_ptr<TrackConverter> tt_track_converter_;

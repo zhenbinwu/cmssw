@@ -160,11 +160,6 @@ namespace Phase2L1GMT {
 	muon.print();
       }
     }
-    // ZW: We need to pad zero for the maximum muon output
-    for (unsigned int i = out.size(); i < maximum; ++i)
-    {
-      out.push_back(l1t::TrackerMuon());
-    }
     return out;
   }    
 
