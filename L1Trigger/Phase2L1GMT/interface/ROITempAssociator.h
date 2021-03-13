@@ -60,7 +60,7 @@ namespace Phase2L1GMT {
 		if (deltaPhi<-M_PI)
 		  deltaPhi=deltaPhi+2*M_PI;
 		deltaPhi=fabs(deltaPhi);
-		float deltaEta= (stub->etaQuality() & 0x1) ?  fabs(stub->offline_eta1()-eta) : fabs(stub->offline_eta2()-eta);
+		float deltaEta= (stub->etaQuality()==0 || (stub->etaQuality() & 0x1)) ?  fabs(stub->offline_eta1()-eta) : fabs(stub->offline_eta2()-eta);
 		if (deltaPhi<(M_PI/6.0) && deltaEta<0.3 && deltaPhi<dPhi) {
 		  dPhi=deltaPhi;
 		  bestStubINT=i;

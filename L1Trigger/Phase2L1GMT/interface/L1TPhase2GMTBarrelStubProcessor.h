@@ -26,8 +26,10 @@ class L1TPhase2GMTBarrelStubProcessor {
 
   int calculateEta(uint, int,uint,uint);  
   int minPhiQuality_;
+
   int minBX_;
   int maxBX_;
+
   std::vector<int> eta1_;
   std::vector<int> eta2_;
   std::vector<int> eta3_;

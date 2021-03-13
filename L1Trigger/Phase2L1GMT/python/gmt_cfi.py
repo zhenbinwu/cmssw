@@ -19,12 +19,12 @@ gmtStubs = cms.EDProducer("Phase2L1TGMTStubProducer",
     ),
     Barrel = cms.PSet(                         
         verbose            = cms.int32(0),
-        minPhiQuality      = cms.int32(0),
+        minPhiQuality      = cms.int32(5),
         minThetaQuality    = cms.int32(0),
-        minBX              = cms.int32(-100),                           
-        maxBX              = cms.int32(100),                           
+        minBX              = cms.int32(0),                           
+        maxBX              = cms.int32(0),                           
         phiLSB             = cms.double(0.00076660156*32),
-        phiBDivider        = cms.int32(1),
+        phiBDivider        = cms.int32(16),
         etaLSB             = cms.double(7.68334e-04*32), 
         eta_1              = cms.vint32(-1503/32,-1446/32,-1387/32,-1327/32,-1266/32,-1194/32,-1125/32,-985/32,-916/32,-839/32,-752/32,-670/32,-582/32,-489/32,-315/32,-213/32,-115/32,-49/32,49/32, 115/32, 213/32, 315/32, 489/32, 582/32, 670/32, 752/32, 839/32, 916/32, 985/32, 1125/32, 1194/32, 1266/32, 1327/32, 1387/32, 1446/32, 1503),
         eta_2              = cms.vint32(-1334/32,-1279/32,-1227/32,-1168/32,-1109/32,-1044/32,-982/32,-861/32,-793/32,-720/32,-648/32,-577/32,-496/32,-425/32,-268/32,-185/32,-97/32,-51/32,51/32, 97/32, 185/32, 268/32, 425/32, 496/32, 577/32, 648/32, 720/32, 793/32, 861/32, 982/32, 1044/32, 1109/32, 1168/32, 1227/32, 1279/32, 1334),
@@ -33,7 +33,7 @@ gmtStubs = cms.EDProducer("Phase2L1TGMTStubProducer",
         coarseEta_2        = cms.vint32(0/32,653/32,1168/32),
         coarseEta_3        = cms.vint32(0/32,552/32,1001/32),
         coarseEta_4        = cms.vint32(0/32,478/32,878/32),
-        phiOffset          = cms.vint32(75/32,-30/32,+26/32,0)    
+        phiOffset          = cms.vint32(33/32,-8/32,+14/32,0)    
    )
 
 )
@@ -48,9 +48,12 @@ gmtMuons = cms.EDProducer('Phase2L1TGMTProducer',
                      srcBMTF   = cms.InputTag('simBmtfDigis','BMTF'),
                      srcEMTF   = cms.InputTag('simEmtfDigis','EMTF'),
                      srcOMTF   = cms.InputTag('simOmtfDigis','OMTF'),
+                     minTrackStubs = cms.int32(4),     
                      muonBXMin = cms.int32(0),
                      muonBXMax = cms.int32(0),
+                          verbose   = cms.int32(0),     
                      trackConverter  = cms.PSet(
+                         verbose = cms.int32(0)
                      ),
                      roiTrackAssociator  = cms.PSet(
                          verbose=cms.int32(0)

@@ -36,6 +36,7 @@ class Phase2L1TGMTProducer : public edm::stream::EDProducer<> {
       edm::EDGetTokenT<BXVector<RegionalMuonCand> > bmtfTracks_;
       edm::EDGetTokenT<BXVector<RegionalMuonCand> > emtfTracks_;
       edm::EDGetTokenT<BXVector<RegionalMuonCand> > omtfTracks_;
+      int minTrackStubs_;
       int bxMin_;
       int bxMax_;
  
@@ -50,6 +51,7 @@ Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig):
   bmtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcBMTF"))),
   emtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcEMTF"))),
   omtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcOMTF"))),
+  minTrackStubs_(iConfig.getParameter<int>("minTrackStubs")),
   bxMin_(iConfig.getParameter<int>("muonBXMin")),
   bxMax_(iConfig.getParameter<int>("muonBXMax"))
   
@@ -84,7 +86,8 @@ Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > tracks;
    for (uint i=0;i<trackHandle->size();++i) {
      edm::Ptr< l1t::TrackerMuon::L1TTTrackType > track(trackHandle, i);
-     tracks.push_back(track);
+     if (track->getStubRefs().size()>=(unsigned int)(minTrackStubs_))
+       tracks.push_back(track);
    }
 
 

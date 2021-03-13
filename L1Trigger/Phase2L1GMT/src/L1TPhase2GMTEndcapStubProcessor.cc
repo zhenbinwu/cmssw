@@ -142,7 +142,32 @@ L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t::MuonStubCollection& csc
   l1t::MuonStubCollection usedRPC;
   l1t::MuonStubCollection cleanedRPC;
 
-  for (const auto & csc : cscStubs) {
+  l1t::MuonStubCollection cleanedCSC;
+
+  //clean ME11 ambiguities
+  l1t::MuonStubCollection allCSC = cscStubs;
+
+  while(allCSC.size()) {
+    l1t::MuonStub stub = allCSC[0];
+    l1t::MuonStubCollection freeCSC;
+    for (uint i=1;i<allCSC.size();++i) {
+      if ((stub.etaRegion()==allCSC[i].etaRegion()) && (stub.depthRegion()==allCSC[i].depthRegion()) && 
+	  (fabs(deltaPhi(stub.offline_coord1(),allCSC[i].offline_coord1()))<0.001)) {
+	  if (fabs(stub.offline_eta1()-allCSC[i].offline_eta1())>0.001) {
+	    stub.setEta(stub.eta1(),allCSC[i].eta1(),3);
+	    stub.setOfflineQuantities(stub.offline_coord1(),0.0,stub.offline_eta1(),allCSC[i].offline_eta1());
+	  }
+      }
+      else {
+	freeCSC.push_back(allCSC[i]);
+      }
+    }
+    cleanedCSC.push_back(stub);
+    allCSC = freeCSC;
+  }
+
+
+  for (const auto & csc : cleanedCSC) {
     int nRPC=0;
     float phiF=0.0;
     float etaF=0.0;

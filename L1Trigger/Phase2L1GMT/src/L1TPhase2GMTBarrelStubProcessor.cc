@@ -171,6 +171,8 @@ L1TPhase2GMTBarrelStubProcessor::makeStubs(const L1Phase2MuDTPhContainer* phiCon
 	  for (const auto& phiDigi : *phiContainer->getContainer()) {
 	    if ((phiDigi.bxNum()-20)!= bx ||phiDigi.whNum()!=wheel || phiDigi.scNum()!=sector || phiDigi.stNum()!=station)
 	      continue;
+	    if (phiDigi.quality()<minPhiQuality_)
+	      continue;
 	    if (hasEta) {
 	      out.push_back(buildStub(phiDigi,tseta));
 	    }

@@ -85,45 +85,16 @@ namespace Phase2L1GMT {
 
 
     for (uint i=0;i<muons.size();++i) {
-      if (verbose_==1)
+      if (verbose_==1) {
 	muons[i].print();
-
+      }
       bool keep=true;
       for (uint j=0;j<muonsPrevious.size();++j) {
-	bool overlap=false;
-	if (muons[i].stubID0()==muons[j].stubID0() && muons[i].stubID0()!=511)
-	  overlap=true;
-	if (muons[i].stubID1()==muons[j].stubID1() && muons[i].stubID1()!=511)
-	  overlap=true;
-	if (muons[i].stubID2()==muons[j].stubID2() && muons[i].stubID2()!=511)
-	  overlap=true;
-	if (muons[i].stubID3()==muons[j].stubID3() && muons[i].stubID3()!=511)
-	  overlap=true;
-	if (muons[i].stubID4()==muons[j].stubID4() && muons[i].stubID4()!=511)
-	  overlap=true;
-
-	if ((overlap && muons[i].quality()<muons[j].quality() && !equality)||(overlap && muons[i].quality()<=muons[j].quality() &&equality))
-	  keep=false;
+	keep=keep && cleanMuon(muons[i],muonsPrevious[j],equality);
       }
       for (uint j=0;j<muonsNext.size();++j) {
-	bool overlap=false;
-	if (muons[i].stubID0()==muons[j].stubID0() && muons[i].stubID0()!=511)
-	  overlap=true;
-	if (muons[i].stubID1()==muons[j].stubID1() && muons[i].stubID1()!=511)
-	  overlap=true;
-	if (muons[i].stubID2()==muons[j].stubID2() && muons[i].stubID2()!=511)
-	  overlap=true;
-	if (muons[i].stubID3()==muons[j].stubID3() && muons[i].stubID3()!=511)
-	  overlap=true;
-	if (muons[i].stubID4()==muons[j].stubID4() && muons[i].stubID4()!=511)
-	  overlap=true;
-
-	if ((overlap && muons[i].quality()<muons[j].quality() && !equality)||(overlap && muons[i].quality()<=muons[j].quality() &&equality))
-	  keep=false;
+	keep=keep && cleanMuon(muons[i],muonsNext[j],equality);
       }
-
-
-
       if (keep) {
 	if (verbose_==1)
 	  printf("kept\n");
@@ -132,8 +103,6 @@ namespace Phase2L1GMT {
       else {
 	if (verbose_==1)
 	  printf("discarded\n");
-
-
       }
     }
     return out;
@@ -273,16 +242,16 @@ namespace Phase2L1GMT {
     ap_uint<BITSTTCURV2> curvature2= curvature2All/2;
     
     //Remember to change emulator with new k2
-    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>21;
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>26;
     ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1+rescoord1k;
     out.sigma_coord1 = ap_uint<BITSSIGMACOORD>(sigma_coord1);
 
-    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>21;
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>26;
     ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2+rescoord2k;
     out.sigma_coord2 = ap_uint<BITSSIGMACOORD>(sigma_coord2);
 
     
-    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>21;
+    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>26;
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta1 = res0_eta1+resetak;
     out.sigma_eta1 = ap_uint<BITSSIGMAETA>(sigma_eta1);
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta2 = res0_eta2+resetak;
@@ -306,11 +275,14 @@ namespace Phase2L1GMT {
   }
 
   ap_uint<BITSSIGMACOORD+1>  deltaCoord(const ap_int<BITSSTUBCOORD>& phi1,const ap_int<BITSSTUBCOORD>& phi2) {
-    ap_fixed<BITSSIGMACOORD+2,BITSSIGMACOORD+2,AP_TRN_ZERO, AP_SAT_SYM> dPhi = phi1-phi2;
-    if (dPhi<0)
-      return ap_uint<BITSSIGMAETA+1>(-dPhi);
+    ap_int<BITSSTUBCOORD> dPhiRoll = phi1-phi2;
+    ap_ufixed<BITSSIGMACOORD+1,BITSSIGMACOORD+1,AP_TRN_ZERO, AP_SAT_SYM> dPhi;
+    if (dPhiRoll<0)
+      dPhi=ap_ufixed<BITSSIGMACOORD+1,BITSSIGMACOORD+1,AP_TRN_ZERO, AP_SAT_SYM>(-dPhiRoll);
     else
-      return ap_uint<BITSSIGMAETA+1>(dPhi);
+      dPhi=ap_ufixed<BITSSIGMACOORD+1,BITSSIGMACOORD+1,AP_TRN_ZERO, AP_SAT_SYM>(dPhiRoll);
+
+    return ap_uint<BITSSIGMACOORD+1>(dPhi);
   }
 
 
@@ -329,7 +301,6 @@ namespace Phase2L1GMT {
     else {
       coord1Matched=0;
     }
-
     if (verbose_==1)
       printf("Coord1 matched=%d delta=%d res=%d\n",coord1Matched.to_int(),deltaCoord1.to_int(),prop.sigma_coord1.to_int());
 
@@ -342,7 +313,6 @@ namespace Phase2L1GMT {
     else {
       coord2Matched=0;
     }
-
     if (verbose_==1)
       printf("Coord2 matched=%d delta=%d res=%d\n",coord2Matched.to_int(),deltaCoord2.to_int(),prop.sigma_coord2.to_int());
 
@@ -405,16 +375,17 @@ namespace Phase2L1GMT {
 	  out.quality+=24-deltaCoord2/2;
       }
     }
-    //if endcap each coordinate is independent
+    //if endcap each coordinate is independent except the case where phiQuality=1 and etaQuality==3
     else {
       bool match1 =(coord1Matched==1 &&eta1Matched==1);
       bool match2 =(coord2Matched==1&&eta2Matched==1); 
-      out.valid= match1||match2; 
+      bool match3 =(coord1Matched==1 && (eta1Matched||eta2Matched) && stub->etaQuality()==3 && stub->quality()==1); 
+      out.valid= match1||match2||match3; 
       if (out.valid==0) 
 	out.quality=0;
       else {
 	out.quality=0;
-	if (match1)
+	if (match1||match3)
 	  out.quality+=24-deltaCoord1/2;
 	if (match2)
 	  out.quality+=24-deltaCoord2/2;
@@ -538,8 +509,8 @@ namespace Phase2L1GMT {
     }
     muon.setOfflineQuantities(track.offline_pt(),track.offline_eta(),track.offline_phi());
     muon.setTrkPtr(track.trkPtr());
-    if (quality>31) {
-      muon.setValid(quality>31);
+    if (quality>15) {
+      muon.setValid(1);
       muon.setQuality(quality);
     }
     else {
@@ -575,6 +546,44 @@ namespace Phase2L1GMT {
   }
 
 
+  bool cleanMuon(const PreTrackMatchedMuon& mu,const PreTrackMatchedMuon& other,bool eq) {
+	int valids=0;
+	int overlaps=0;
+	if (mu.stubID0()!=511) {
+	  valids=valids+1;
+	  if (mu.stubID0()==other.stubID0())
+	    overlaps=overlaps+1;
+	}
+	if (mu.stubID1()!=511) {
+	  valids=valids+1;
+	  if (mu.stubID1()==other.stubID1())
+	    overlaps=overlaps+1;
+	}
+	if (mu.stubID2()!=511) {
+	  valids=valids+1;
+	  if (mu.stubID2()==other.stubID2())
+	    overlaps=overlaps+1;
+	}
+	if (mu.stubID3()!=511) {
+	  valids=valids+1;
+	  if (mu.stubID3()==other.stubID3())
+	    overlaps=overlaps+1;
+	}
+	if (mu.stubID4()!=511) {
+	  valids=valids+1;
+	  if (mu.stubID4()==other.stubID4())
+	    overlaps=overlaps+1;
+	}
+
+	
+
+	if ((mu.quality()<other.quality() &&valids>=(overlaps+2) && (!eq)) || (mu.quality()<=other.quality() &&valids>=(overlaps+2) && (eq)))
+	  return false;
+	else
+	  return true;
+  }
+
+
   std::vector<PreTrackMatchedMuon> clean(std::vector<PreTrackMatchedMuon>&  muons) {
     std::vector<PreTrackMatchedMuon> out;
     if (muons.size()==0)
@@ -587,26 +596,11 @@ namespace Phase2L1GMT {
       if (verbose_==1)
 	muons[i].print();
 
-
-
       bool keep=true;
       for (uint j=0;j<muons.size();++j) {
 	if (i==j)
 	  continue;
-	bool overlap=false;
-	if (muons[i].stubID0()==muons[j].stubID0() && muons[i].stubID0()!=511)
-	  overlap=true;
-	if (muons[i].stubID1()==muons[j].stubID1() && muons[i].stubID1()!=511)
-	  overlap=true;
-	if (muons[i].stubID2()==muons[j].stubID2() && muons[i].stubID2()!=511)
-	  overlap=true;
-	if (muons[i].stubID3()==muons[j].stubID3() && muons[i].stubID3()!=511)
-	  overlap=true;
-	if (muons[i].stubID4()==muons[j].stubID4() && muons[i].stubID4()!=511)
-	  overlap=true;
-
-	if (overlap && muons[i].quality()<muons[j].quality())
-	  keep=false;
+	keep=keep && cleanMuon(muons[i],muons[j],false);
       }
       if (keep) {
 	if (verbose_==1)

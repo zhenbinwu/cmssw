@@ -13,6 +13,7 @@ namespace Phase2L1GMT {
 
   public:
   Node(const edm::ParameterSet& iConfig):
+    verbose_(iConfig.getParameter<int>("verbose")),
     tt_track_converter_(new TrackConverter(iConfig.getParameter<edm::ParameterSet>("trackConverter"))),
     roi_assoc_(new ROITempAssociator(iConfig.getParameter<edm::ParameterSet>("roiTrackAssociator"))),
     track_mu_match_(new TrackMuonMatchAlgorithm(iConfig.getParameter<edm::ParameterSet>("trackMatching"))),
@@ -78,6 +79,7 @@ namespace Phase2L1GMT {
     std::vector<MuonROI> rois7 = roi_assoc_->associate(0,muonTracks,stubs7);
     std::vector<MuonROI> rois8 = roi_assoc_->associate(0,muonTracks,stubs8);
 
+
     //run track - muon matching per nonant
     std::vector<PreTrackMatchedMuon> mu0 = track_mu_match_->processNonant(convertedTracks0,rois0);
     std::vector<PreTrackMatchedMuon> mu1 = track_mu_match_->processNonant(convertedTracks1,rois1);
@@ -88,9 +90,11 @@ namespace Phase2L1GMT {
     std::vector<PreTrackMatchedMuon> mu6 = track_mu_match_->processNonant(convertedTracks6,rois6);
     std::vector<PreTrackMatchedMuon> mu7 = track_mu_match_->processNonant(convertedTracks7,rois7);
     std::vector<PreTrackMatchedMuon> mu8 = track_mu_match_->processNonant(convertedTracks8,rois8);
-
+    if (verbose_)
+      printf("Matching Nonant 5 with %zu tracks and %zu rois and %zu stubs\n",convertedTracks5.size(),rois5.size(),stubs5.size());
+ 
     //clean neighboring nonants
-    std::vector<PreTrackMatchedMuon> muCleaned = track_mu_match_->cleanNeighbor(mu0,mu8,mu1,true);
+    std::vector<PreTrackMatchedMuon> muCleaned  = track_mu_match_->cleanNeighbor(mu0,mu8,mu1,true);
     std::vector<PreTrackMatchedMuon> muCleaned1 = track_mu_match_->cleanNeighbor(mu1,mu0,mu2,false);
     std::vector<PreTrackMatchedMuon> muCleaned2 = track_mu_match_->cleanNeighbor(mu2,mu1,mu3,true);
     std::vector<PreTrackMatchedMuon> muCleaned3 = track_mu_match_->cleanNeighbor(mu3,mu2,mu4,false);
@@ -149,6 +153,7 @@ namespace Phase2L1GMT {
   }
 
   private:
+    int verbose_;
     std::unique_ptr<TrackConverter> tt_track_converter_;
     std::unique_ptr<ROITempAssociator> roi_assoc_;
     std::unique_ptr<TrackMuonMatchAlgorithm> track_mu_match_;
@@ -159,10 +164,7 @@ namespace Phase2L1GMT {
     std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > associateTracksWithNonant(const std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > >& tracks,uint processor) {
       std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > out;
       for (const auto& track: tracks) {
-
-
 	if (track->phiSector()==processor) {
-	  track->print();
 	  out.push_back(track);
 	}
       }
@@ -172,34 +174,39 @@ namespace Phase2L1GMT {
     l1t::MuonStubRefVector associateStubsWithNonant(const l1t::MuonStubRefVector& allStubs, uint processor) {
       l1t::MuonStubRefVector out;
 
+      ap_int<BITSSTUBCOORD> center = ap_int<BITSSTUBCOORD> ((processor*910)/32);
 
 
       for (const auto& s : allStubs) {
-	int phi=0;
+	ap_int<BITSSTUBCOORD> phi=0;
 	if (s->quality()& 0x1)
 	  phi=s->coord1();
 	else
 	  phi=s->coord2();
 
+	ap_int<BITSSTUBCOORD> deltaPhi = phi-center;
+	ap_uint<BITSSTUBCOORD-1>  absDeltaPhi = (deltaPhi<0) ? ap_uint<BITSSTUBCOORD-1>(-deltaPhi) : ap_uint<BITSSTUBCOORD-1>(deltaPhi);
+	if (absDeltaPhi<42)
+	  out.push_back(s);
 
-	if (processor==0 && phi>=-3000 && phi<=3000 )
-	  out.push_back(s);
-	else if (processor==1 && (phi>=-1000/32 && phi<=5000/32) )
-	  out.push_back(s);
-	else if (processor==2 && (phi>=500/32 && phi<=6500/32) )
-	  out.push_back(s);
-	else if (processor==3 && (phi>=2000/32 || phi<=-8000/32) )
-	  out.push_back(s);
-	else if (processor==4 && (phi>=4500/32 || phi<=-6000/32) )
-	  out.push_back(s);
-	else if (processor==5 && (phi>=6000/32 || phi<=-4500/32) )
-	  out.push_back(s);
-	else if (processor==6 && (phi>=8000/32 || phi<=-2000/32) )
-	  out.push_back(s);
-	else if (processor==7 && (phi>=-7000/32 && phi<=0) )
-	  out.push_back(s);
-	else if (processor==8 && (phi>=-4500/32 && phi<=1000/32) )
-	  out.push_back(s);
+	/* if (processor==0 && phi>=-3000/32 && phi<=3000/32 ) */
+	/*   out.push_back(s); */
+	/* else if (processor==1 && (phi>=-1000/32 && phi<=5000/32) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==2 && (phi>=500/32 && phi<=6500/32) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==3 && (phi>=2000/32 || phi<=-8000/32) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==4 && (phi>=4500/32 || phi<=-6000/32) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==5 && (phi>=6000/32 || phi<=-4500/32) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==6 && (phi>=8000/32 || phi<=-2000/32) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==7 && (phi>=-7000/32 && phi<=0) ) */
+	/*   out.push_back(s); */
+	/* else if (processor==8 && (phi>=-4500/32 && phi<=1000/32) ) */
+	/*   out.push_back(s); */
       }
       return out;
     } 
