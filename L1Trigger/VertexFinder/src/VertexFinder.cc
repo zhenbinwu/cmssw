@@ -595,4 +595,6 @@ namespace l1tVertexFinder {
     pv_index_ = 0;
   }  // end of FastHisto
 
+  void VertexFinder::FastHistoEmulation() {}  // end of FastHistoEmulation
+
 }  // namespace l1tVertexFinder
