@@ -5,6 +5,7 @@
 #include "L1Trigger/Phase2L1GMT/interface/ROITempAssociator.h"
 #include "L1Trigger/Phase2L1GMT/interface/TrackMuonMatchAlgorithm.h"
 #include "L1Trigger/Phase2L1GMT/interface/Isolation.h"
+#include "L1Trigger/Phase2L1GMT/interface/Tauto3Mu.h"
 
 namespace Phase2L1GMT {
 
@@ -15,7 +16,8 @@ namespace Phase2L1GMT {
     tt_track_converter_(new TrackConverter(iConfig.getParameter<edm::ParameterSet>("trackConverter"))),
     roi_assoc_(new ROITempAssociator(iConfig.getParameter<edm::ParameterSet>("roiTrackAssociator"))),
     track_mu_match_(new TrackMuonMatchAlgorithm(iConfig.getParameter<edm::ParameterSet>("trackMatching"))),
-    isolation_(new Isolation(iConfig.getParameter<edm::ParameterSet>("isolation")))
+    isolation_(new Isolation(iConfig.getParameter<edm::ParameterSet>("isolation"))), 
+    tauto3mu_(new Tauto3Mu(iConfig.getParameter<edm::ParameterSet>("tauto3mu")))
   {
 
   }
@@ -141,6 +143,8 @@ namespace Phase2L1GMT {
 
     isolation_->isolation_allmu_alltrk(trackMatchedMuonsNoIso, convertedTracks );
 
+    tauto3mu_->GetTau3Mu(trackMatchedMuonsNoIso, convertedTracks );
+
     return trackMatchedMuonsNoIso; //when we add more collections like tau3mu etc we change that 
   }
 
@@ -149,6 +153,7 @@ namespace Phase2L1GMT {
     std::unique_ptr<ROITempAssociator> roi_assoc_;
     std::unique_ptr<TrackMuonMatchAlgorithm> track_mu_match_;
     std::unique_ptr<Isolation> isolation_;
+    std::unique_ptr<Tauto3Mu> tauto3mu_;
 
 
     std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > associateTracksWithNonant(const std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > >& tracks,uint processor) {
