@@ -29,8 +29,8 @@ namespace Phase2L1GMT {
       int                 curvature   = track->rInv()*(1<<(BITSTTCURV-1))/maxCurv_;
       int                 phi         = track->phi()*(1<<(BITSPHI-1))/(M_PI);
       int                 tanLambda   = track->tanL()*(1<<(BITSTTTANL-1))/maxTanl_;
-      int                 z0          = track->z0()*(1<<(BITSTTZ0-1))/maxZ0_;
-      int                 d0          = track->d0()*(1<<(BITSTTD0-1))/maxD0_;
+      int                 z0          = track->z0()*(1<<(BITSZ0-1))/maxZ0_;
+      int                 d0          = track->d0()*(1<<(BITSD0-1))/maxD0_;
       int                 reducedD0   = (d0/2);
       //calculate pt
       uint  absCurv  = curvature>0 ? (curvature) : (-curvature);
