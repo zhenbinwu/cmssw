@@ -19,7 +19,6 @@
 // system include files
 #include <memory>
 
-
 #include "ap_int.h"
 
 // user include files
@@ -39,7 +38,7 @@
 
 #include "L1Trigger/DemonstratorTools/interface/BoardDataWriter.h"
 #include "L1Trigger/DemonstratorTools/interface/codecs/tracks.h"
-
+#include "L1Trigger/DemonstratorTools/interface/utilities.h"
 
 // If the analyzer does not use TFileService, please remove
 // the template argument to the base class so the class inherits
@@ -54,7 +53,6 @@ public:
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
-
   typedef TTTrack<Ref_Phase2TrackerDigi_> Track_t;
 
   void beginJob() override;
@@ -75,68 +73,30 @@ constexpr size_t kGapLength(6);
 constexpr size_t kTrackTMUX(18);
 
 const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
-  /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-  {0, {kTrackTMUX, 0, kGapLength}},
-  {1, {kTrackTMUX, 0, kGapLength}},
-  {2, {kTrackTMUX, 0, kGapLength}},
-  {3, {kTrackTMUX, 0, kGapLength}},
-  {4, {kTrackTMUX, 0, kGapLength}},
-  {5, {kTrackTMUX, 0, kGapLength}},
-  {6, {kTrackTMUX, 0, kGapLength}},
-  {7, {kTrackTMUX, 0, kGapLength}},
-  {8, {kTrackTMUX, 0, kGapLength}},
+    /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
+    {0, {kTrackTMUX, 0, kGapLength}},   {1, {kTrackTMUX, 0, kGapLength}},   {2, {kTrackTMUX, 0, kGapLength}},
+    {3, {kTrackTMUX, 0, kGapLength}},   {4, {kTrackTMUX, 0, kGapLength}},   {5, {kTrackTMUX, 0, kGapLength}},
+    {6, {kTrackTMUX, 0, kGapLength}},   {7, {kTrackTMUX, 0, kGapLength}},   {8, {kTrackTMUX, 0, kGapLength}},
 
-  {9, {kTrackTMUX, 0, kGapLength}},
-  {10, {kTrackTMUX, 0, kGapLength}},
-  {11, {kTrackTMUX, 0, kGapLength}},
-  {12, {kTrackTMUX, 0, kGapLength}},
-  {13, {kTrackTMUX, 0, kGapLength}},
-  {14, {kTrackTMUX, 0, kGapLength}},
-  {15, {kTrackTMUX, 0, kGapLength}},
-  {16, {kTrackTMUX, 0, kGapLength}},
-  {17, {kTrackTMUX, 0, kGapLength}},
+    {9, {kTrackTMUX, 0, kGapLength}},   {10, {kTrackTMUX, 0, kGapLength}},  {11, {kTrackTMUX, 0, kGapLength}},
+    {12, {kTrackTMUX, 0, kGapLength}},  {13, {kTrackTMUX, 0, kGapLength}},  {14, {kTrackTMUX, 0, kGapLength}},
+    {15, {kTrackTMUX, 0, kGapLength}},  {16, {kTrackTMUX, 0, kGapLength}},  {17, {kTrackTMUX, 0, kGapLength}},
 
-  {18, {kTrackTMUX, 6, kGapLength}},
-  {19, {kTrackTMUX, 6, kGapLength}},
-  {20, {kTrackTMUX, 6, kGapLength}},
-  {21, {kTrackTMUX, 6, kGapLength}},
-  {22, {kTrackTMUX, 6, kGapLength}},
-  {23, {kTrackTMUX, 6, kGapLength}},
-  {24, {kTrackTMUX, 6, kGapLength}},
-  {25, {kTrackTMUX, 6, kGapLength}},
-  {26, {kTrackTMUX, 6, kGapLength}},
+    {18, {kTrackTMUX, 6, kGapLength}},  {19, {kTrackTMUX, 6, kGapLength}},  {20, {kTrackTMUX, 6, kGapLength}},
+    {21, {kTrackTMUX, 6, kGapLength}},  {22, {kTrackTMUX, 6, kGapLength}},  {23, {kTrackTMUX, 6, kGapLength}},
+    {24, {kTrackTMUX, 6, kGapLength}},  {25, {kTrackTMUX, 6, kGapLength}},  {26, {kTrackTMUX, 6, kGapLength}},
 
-  {27, {kTrackTMUX, 6, kGapLength}},
-  {28, {kTrackTMUX, 6, kGapLength}},
-  {29, {kTrackTMUX, 6, kGapLength}},
-  {30, {kTrackTMUX, 6, kGapLength}},
-  {31, {kTrackTMUX, 6, kGapLength}},
-  {32, {kTrackTMUX, 6, kGapLength}},
-  {33, {kTrackTMUX, 6, kGapLength}},
-  {34, {kTrackTMUX, 6, kGapLength}},
-  {35, {kTrackTMUX, 6, kGapLength}},
+    {27, {kTrackTMUX, 6, kGapLength}},  {28, {kTrackTMUX, 6, kGapLength}},  {29, {kTrackTMUX, 6, kGapLength}},
+    {30, {kTrackTMUX, 6, kGapLength}},  {31, {kTrackTMUX, 6, kGapLength}},  {32, {kTrackTMUX, 6, kGapLength}},
+    {33, {kTrackTMUX, 6, kGapLength}},  {34, {kTrackTMUX, 6, kGapLength}},  {35, {kTrackTMUX, 6, kGapLength}},
 
-  {36, {kTrackTMUX, 12, kGapLength}},
-  {37, {kTrackTMUX, 12, kGapLength}},
-  {38, {kTrackTMUX, 12, kGapLength}},
-  {39, {kTrackTMUX, 12, kGapLength}},
-  {40, {kTrackTMUX, 12, kGapLength}},
-  {41, {kTrackTMUX, 12, kGapLength}},
-  {42, {kTrackTMUX, 12, kGapLength}},
-  {43, {kTrackTMUX, 12, kGapLength}},
-  {44, {kTrackTMUX, 12, kGapLength}},
+    {36, {kTrackTMUX, 12, kGapLength}}, {37, {kTrackTMUX, 12, kGapLength}}, {38, {kTrackTMUX, 12, kGapLength}},
+    {39, {kTrackTMUX, 12, kGapLength}}, {40, {kTrackTMUX, 12, kGapLength}}, {41, {kTrackTMUX, 12, kGapLength}},
+    {42, {kTrackTMUX, 12, kGapLength}}, {43, {kTrackTMUX, 12, kGapLength}}, {44, {kTrackTMUX, 12, kGapLength}},
 
-  {45, {kTrackTMUX, 12, kGapLength}},
-  {46, {kTrackTMUX, 12, kGapLength}},
-  {47, {kTrackTMUX, 12, kGapLength}},
-  {48, {kTrackTMUX, 12, kGapLength}},
-  {49, {kTrackTMUX, 12, kGapLength}},
-  {50, {kTrackTMUX, 12, kGapLength}},
-  {51, {kTrackTMUX, 12, kGapLength}},
-  {52, {kTrackTMUX, 12, kGapLength}},
-  {53, {kTrackTMUX, 12, kGapLength}}
-};
-
+    {45, {kTrackTMUX, 12, kGapLength}}, {46, {kTrackTMUX, 12, kGapLength}}, {47, {kTrackTMUX, 12, kGapLength}},
+    {48, {kTrackTMUX, 12, kGapLength}}, {49, {kTrackTMUX, 12, kGapLength}}, {50, {kTrackTMUX, 12, kGapLength}},
+    {51, {kTrackTMUX, 12, kGapLength}}, {52, {kTrackTMUX, 12, kGapLength}}, {53, {kTrackTMUX, 12, kGapLength}}};
 
 //
 // static data member definitions
@@ -146,11 +106,15 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
 // constructors and destructor
 //
 
-GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig) :
-  tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
-  eventCount_(0),
-  fileWriter_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")), "myBufferfile", 9, 6, 1024, kChannelSpecs)
-{
+GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
+    : tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
+      eventCount_(0),
+      fileWriter_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+                  "myBufferfile",
+                  9,
+                  6,
+                  1024,
+                  kChannelSpecs) {
   //now do what ever initialization is needed
 }
 
@@ -161,19 +125,19 @@ GTTInputFileWriter::~GTTInputFileWriter() {
   // please remove this method altogether if it would be left empty
 }
 
-
 void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
   // Select links for correct time slice (18 input links per time slice)
-  // TODO: Find nicer solution - e.g. having BoardDataWriter automatically shuffle 
+  // TODO: Find nicer solution - e.g. having BoardDataWriter automatically shuffle
   //       data between channels based on event-independent 'logical' ID
   //       (at least nicer solution than storing event count as member var)
   const size_t baseIdx = (eventCount_ % 3) * 18;
   eventCount_++;
 
   // 1) Encode track information onto vectors containing link data
-  const std::array<std::vector<l1t::demo::Frame>, 18> trackData(l1t::demo::codecs::encodeTracks(iEvent.get(tracksToken_)));
+  const std::array<std::vector<l1t::demo::Frame>, 18> trackData(
+      l1t::demo::codecs::encodeTracks(iEvent.get(tracksToken_)));
 
   // 2) Pack track information into 'board data' object, and pass that to file writer
   l1t::demo::BoardData boardData;
@@ -182,7 +146,6 @@ void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   fileWriter_.addEvent(boardData);
 }
-
 
 // ------------ method called once each job just before starting event loop  ------------
 void GTTInputFileWriter::beginJob() {

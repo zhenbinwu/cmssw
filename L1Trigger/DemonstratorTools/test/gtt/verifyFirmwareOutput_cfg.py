@@ -34,7 +34,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxE
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load('L1Trigger.DemonstratorTools.GTTOutputFileReader_cff')
-# process.GTTOutputFileReader.files = VECTOR_OF_TEXT_FILES
+process.GTTOutputFileReader.files = cms.vstring("test/gtt/example_vertex_apx.txt")
+process.GTTOutputFileReader.format = cms.untracked.string("apx")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))

@@ -23,8 +23,10 @@ namespace l1t::demo {
         channelSpecs_(channelSpecs) {
     for (const auto& [i, x] : channelSpecs_) {
       boardData_.add(i);
-      maxEventsPerFile_ = std::min(
-          maxEventsPerFile_, (x.tmux / boardTMUX_) * size_t((maxFramesPerFile_ - x.tmuxIndex * framesPerBX_ - x.offset) / (x.tmux * framesPerBX_)));
+      maxEventsPerFile_ =
+          std::min(maxEventsPerFile_,
+                   (x.tmux / boardTMUX_) *
+                       size_t((maxFramesPerFile_ - x.tmuxIndex * framesPerBX_ - x.offset) / (x.tmux * framesPerBX_)));
     }
 
     resetBoardData();

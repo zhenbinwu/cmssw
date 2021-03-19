@@ -1,6 +1,7 @@
 #include "L1Trigger/DemonstratorTools/interface/utilities.h"
 
 #include <fstream>
+#include <unordered_map>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -8,7 +9,6 @@
 #include <boost/regex.hpp>
 
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
-
 
 namespace {
   std::string searchForID(std::ifstream& file) {
@@ -116,7 +116,6 @@ namespace {
   }
 }  // namespace
 
-
 // APx sideband encoding
 //   Short-term, simulation only:
 //     0 -> Valid
@@ -131,18 +130,15 @@ namespace {
 //     6 -> RSV2
 //     7 -> RSV3
 
-
 namespace l1t::demo {
 
   FileFormat parseFileFormat(const std::string& s) {
-    static const kFormatStringMap {
-      {"EMP": FileFormat::EMP},
-      {"emp": FileFormat::EMP},
-      {"APx": FileFormat::APx},
-      {"apx": FileFormat::APx},
-      {"X20": FileFormat::X20},
-      {"x20": FileFormat::X20}
-    };
+    static const std::unordered_map<std::string, FileFormat> kFormatStringMap({{"EMP", FileFormat::EMP},
+                                                                               {"emp", FileFormat::EMP},
+                                                                               {"APx", FileFormat::APx},
+                                                                               {"apx", FileFormat::APx},
+                                                                               {"X20", FileFormat::X20},
+                                                                               {"x20", FileFormat::X20}});
 
     const auto it = kFormatStringMap.find(s);
     if (it == kFormatStringMap.end())

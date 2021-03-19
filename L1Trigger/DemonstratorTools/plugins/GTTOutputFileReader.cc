@@ -34,6 +34,7 @@
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "L1Trigger/DemonstratorTools/interface/BoardDataReader.h"
 #include "L1Trigger/DemonstratorTools/interface/codecs/vertices.h"
+#include "L1Trigger/DemonstratorTools/interface/utilities.h"
 
 //
 // class declaration
@@ -81,9 +82,13 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
 // constructors and destructor
 //
 
-
 GTTOutputFileReader::GTTOutputFileReader(const edm::ParameterSet& iConfig)
-    : fileReader_(l1t::demo::FileFormat::EMP, iConfig.getParameter<std::vector<std::string>>("files"), 9, 6, 10, kChannelSpecs) {
+    : fileReader_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+                  iConfig.getParameter<std::vector<std::string>>("files"),
+                  9,
+                  6,
+                  10,
+                  kChannelSpecs) {
   produces<l1t::VertexCollection>();
 }
 
