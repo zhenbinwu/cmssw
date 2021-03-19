@@ -212,8 +212,37 @@ namespace l1t::demo {
     // Fill in the file
     switch (format) {
       case FileFormat::APx:
-        std::cout << "WARNING: Writing APx file format not yet implemented. Will be done ASAP." << std::endl;
+
+        file << std::setfill('0');
+
+        file << "#Sideband ON" << std::endl;
+
+        // Channel header
+        file << "#LinkLabel";
+        for (const auto& [i, channelData] : data)
+          file << "                LINK_" << std::setw(2) << i << "    ";
+        file << std::endl;
+
+        file << "#BeginData" << std::endl;
+
+        // Frames
+        file << std::hex;
+        for (size_t i = 0; i < firstChannel->second.size(); i++) {
+          file << "0x" << std::setw(4) << i;
+          for (const auto& [j, channelData] : data) {
+            uint16_t sideband = channelData.at(i).valid;
+            if (i > 0)
+              sideband |= (channelData.at(i).valid and (not channelData.at(i - 1).valid)) << 1;
+            if ((i + 1) < channelData.size())
+              sideband |= (channelData.at(i).valid and (not channelData.at(i + 1).valid)) << 3;
+            file << "    0x" << std::setw(2) << sideband;
+            file << " 0x" << std::setw(16) << channelData.at(i).data;
+          }
+          file << std::endl;
+        }
+
         return;
+
       case FileFormat::X20:
         std::cout << "WARNING: Writing X20 file format not yet implemented. Will be done ASAP." << std::endl;
         return;
