@@ -10,11 +10,13 @@ namespace l1t::demo {
   BoardDataWriter::BoardDataWriter(FileFormat format,
                                    const std::string& path,
                                    const size_t framesPerBX,
+                                   const size_t tmux,
                                    const size_t maxFramesPerFile,
                                    const std::map<size_t, ChannelSpec>& channelSpecs)
       : fileFormat_(format),
         filePathGen_([=](const size_t i) { return path + "_" + std::to_string(i) + ".txt"; }),
         framesPerBX_(framesPerBX),
+        boardTMUX_(tmux),
         maxFramesPerFile_(maxFramesPerFile),
         maxEventsPerFile_(maxFramesPerFile_),
         eventIndex_(0),
@@ -22,7 +24,7 @@ namespace l1t::demo {
     for (const auto& [i, x] : channelSpecs_) {
       boardData_.add(i);
       maxEventsPerFile_ = std::min(
-          maxEventsPerFile_, (maxFramesPerFile_ - x.tmuxIndex * framesPerBX_ - x.offset) / (x.tmux * framesPerBX_));
+          maxEventsPerFile_, (x.tmux / boardTMUX_) * size_t((maxFramesPerFile_ - x.tmuxIndex * framesPerBX_ - x.offset) / (x.tmux * framesPerBX_)));
     }
 
     resetBoardData();

@@ -21,6 +21,7 @@ namespace l1t::demo {
     BoardDataWriter(FileFormat,
                     const std::string& filePath,
                     const size_t framesPerBX,
+                    const size_t tmux,
                     const size_t maxFramesPerFile,
                     const std::map<size_t, ChannelSpec>&);
 
@@ -36,6 +37,8 @@ namespace l1t::demo {
     std::vector<std::string> fileNames_;
 
     size_t framesPerBX_;
+
+    size_t boardTMUX_;
 
     size_t maxFramesPerFile_;
 

@@ -149,7 +149,7 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
 GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig) :
   tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
   eventCount_(0),
-  fileWriter_(l1t::demo::FileFormat::EMP, "myBufferfile", 9, 1024, kChannelSpecs)
+  fileWriter_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")), "myBufferfile", 9, 6, 1024, kChannelSpecs)
 {
   //now do what ever initialization is needed
 }

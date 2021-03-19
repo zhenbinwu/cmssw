@@ -7,6 +7,9 @@
 
 namespace l1t::demo {
 
+  // Simple function that converts string to file format enum (for e.g. CMSSW configs)
+  FileFormat parseFileFormat(const std::string& );
+
   BoardData read(const std::string& filePath, const FileFormat format);
 
   void writeToFile(const BoardData& data, const std::string& filePath, const FileFormat format);

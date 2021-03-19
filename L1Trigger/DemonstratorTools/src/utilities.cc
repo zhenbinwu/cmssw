@@ -9,6 +9,7 @@
 
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
 
+
 namespace {
   std::string searchForID(std::ifstream& file) {
     std::string line, id;
@@ -115,7 +116,40 @@ namespace {
   }
 }  // namespace
 
+
+// APx sideband encoding
+//   Short-term, simulation only:
+//     0 -> Valid
+//     1 -> EOF
+//   Planned (from ~ May 2021)
+//     0 -> Valid
+//     1 -> SOF (Start Of Frame)
+//     2 -> FFO (First Frame of Orbit)
+//     3 -> EOF (End Of Frame)
+//     4 -> FERR (Frame Error)
+//     5 -> RSV1
+//     6 -> RSV2
+//     7 -> RSV3
+
+
 namespace l1t::demo {
+
+  FileFormat parseFileFormat(const std::string& s) {
+    static const kFormatStringMap {
+      {"EMP": FileFormat::EMP},
+      {"emp": FileFormat::EMP},
+      {"APx": FileFormat::APx},
+      {"apx": FileFormat::APx},
+      {"X20": FileFormat::X20},
+      {"x20": FileFormat::X20}
+    };
+
+    const auto it = kFormatStringMap.find(s);
+    if (it == kFormatStringMap.end())
+      throw std::runtime_error("Could not convert '" + s + "' to FileFormat enum value");
+
+    return it->second;
+  }
 
   BoardData read(const std::string& filePath, const FileFormat format) {
     std::ifstream file(filePath);
