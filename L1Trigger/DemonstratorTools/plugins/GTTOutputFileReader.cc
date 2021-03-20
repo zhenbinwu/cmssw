@@ -43,7 +43,7 @@
 class GTTOutputFileReader : public edm::stream::EDProducer<> {
 public:
   explicit GTTOutputFileReader(const edm::ParameterSet&);
-  ~GTTOutputFileReader();
+  ~GTTOutputFileReader() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 

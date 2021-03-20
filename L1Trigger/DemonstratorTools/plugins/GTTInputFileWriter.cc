@@ -48,7 +48,7 @@
 class GTTInputFileWriter : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit GTTInputFileWriter(const edm::ParameterSet&);
-  ~GTTInputFileWriter();
+  ~GTTInputFileWriter() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 

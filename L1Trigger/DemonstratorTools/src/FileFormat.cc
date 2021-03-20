@@ -19,4 +19,4 @@ namespace l1t::demo {
     return os;
   }
 
-}
+}  // namespace l1t::demo

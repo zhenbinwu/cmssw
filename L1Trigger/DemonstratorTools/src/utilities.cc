@@ -77,7 +77,7 @@ namespace {
     }
 
     value.valid = (what[2] == "1v");
-    value.data = std::stoull(what[3].str(), 0x0, 16);
+    value.data = std::stoull(what[3].str(), nullptr, 16);
 
     return value;
   }
@@ -199,18 +199,17 @@ namespace l1t::demo {
     throw std::runtime_error("Reading X20 file format not yet implemented. Will be done ASAP.");
   }
 
-
   void writeAPxFile(const BoardData&, std::ostream&, const FileFormat);
 
   void writeEMPFile(const BoardData&, std::ostream&, const FileFormat);
 
   void writeX20File(const BoardData&, std::ostream&, const FileFormat);
 
-
   void write(const BoardData& data, const std::string& filePath, const FileFormat format) {
     // Open file
     std::cout << "Writing board data (" << std::distance(data.begin(), data.end()) << " channels, "
-              << data.begin()->second.size() << " frames) to file '" << filePath << "' (format: " << format << ")" << std::endl;
+              << data.begin()->second.size() << " frames) to file '" << filePath << "' (format: " << format << ")"
+              << std::endl;
     std::ofstream file(filePath);
 
     if (not file.is_open())
@@ -218,7 +217,6 @@ namespace l1t::demo {
 
     write(data, file, format);
   }
-
 
   void write(const BoardData& data, std::ostream& file, const FileFormat format) {
     // Check that number of frames is same for every channel
@@ -245,7 +243,6 @@ namespace l1t::demo {
         return;
     }
   }
-
 
   void writeAPxFile(const BoardData& data, std::ostream& file, const FileFormat format) {
     file << std::setfill('0');
@@ -278,7 +275,6 @@ namespace l1t::demo {
     }
   }
 
-
   void writeEMPFile(const BoardData& data, std::ostream& file, const FileFormat format) {
     file << std::setfill('0');
 
@@ -305,8 +301,7 @@ namespace l1t::demo {
         file << " ";
         //TODO: Add strobe if zero anywhere on channel
         file << "  ";
-        file << std::setw(1) << channelData.at(i).valid << "v" << std::setw(16) << std::hex
-              << channelData.at(i).data;
+        file << std::setw(1) << channelData.at(i).valid << "v" << std::setw(16) << std::hex << channelData.at(i).data;
       }
       file << std::endl << std::dec;
     }

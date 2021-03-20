@@ -27,7 +27,8 @@ namespace l1t::demo {
       // 1) Verify that all expected channels are present
       for (const auto& [i, chanSpec] : channelSpecs_) {
         if (not boardData.has(i))
-          throw std::runtime_error("Channel " + std::to_string(i) + " was declared but is missing from file '" + path + "'");
+          throw std::runtime_error("Channel " + std::to_string(i) + " was declared but is missing from file '" + path +
+                                   "'");
       }
 
       // 2) Verify that packet structure is as expected

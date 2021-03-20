@@ -1,7 +1,7 @@
 #ifndef L1Trigger_DemonstratorTools_ChannelSpec_h
 #define L1Trigger_DemonstratorTools_ChannelSpec_h
 
-#include <stddef.h>
+#include <cstddef>
 
 namespace l1t::demo {
 
