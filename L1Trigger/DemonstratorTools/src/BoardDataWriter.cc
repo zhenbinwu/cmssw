@@ -59,7 +59,7 @@ namespace l1t::demo {
 
       // Write board data object to file
       const std::string filePath = filePathGen_(fileNames_.size());
-      writeToFile(boardData_, filePath, fileFormat_);
+      write(boardData_, filePath, fileFormat_);
       fileNames_.push_back(filePath);
 
       // Clear board data to be ready for next event

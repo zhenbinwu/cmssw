@@ -11,7 +11,7 @@
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
 
 namespace {
-  std::string searchForID(std::ifstream& file) {
+  std::string searchForID(std::istream& file) {
     std::string line, id;
 
     while (getline(file, line)) {
@@ -29,7 +29,7 @@ namespace {
     throw std::logic_error("Board ID not found!");
   }
 
-  std::vector<std::string> searchAndTokenize(std::ifstream& file, const std::string& linePrefix) {
+  std::vector<std::string> searchAndTokenize(std::istream& file, const std::string& linePrefix) {
     std::string line;
 
     while (getline(file, line)) {
@@ -54,7 +54,7 @@ namespace {
     throw std::logic_error("Couldn't find any line starting with \"" + linePrefix + "\"");
   }
 
-  std::vector<size_t> searchForLinks(std::ifstream& file) {
+  std::vector<size_t> searchForLinks(std::istream& file) {
     searchAndTokenize(file, "Quad/Chan :");
     const auto tokens = searchAndTokenize(file, "Link :");
     std::vector<size_t> links;
@@ -82,7 +82,7 @@ namespace {
     return value;
   }
 
-  std::vector<std::vector<l1t::demo::Frame>> readDataRows(std::ifstream& file) {
+  std::vector<std::vector<l1t::demo::Frame>> readDataRows(std::istream& file) {
     std::string line;
     std::vector<std::vector<l1t::demo::Frame>> data;
 
@@ -147,45 +147,80 @@ namespace l1t::demo {
     return it->second;
   }
 
+  BoardData readAPxFile(std::istream&, const FileFormat);
+
+  BoardData readEMPFile(std::istream&, const FileFormat);
+
+  BoardData readX20File(std::istream&, const FileFormat);
+
   BoardData read(const std::string& filePath, const FileFormat format) {
     std::ifstream file(filePath);
 
     if (not file.is_open())
       throw std::runtime_error("Could not open file '" + filePath + "'");
 
-    // Fill in the file
-    switch (format) {
-      case FileFormat::APx:
-        std::cout << "WARNING: Writing APx file format not yet implemented. Will be done ASAP." << std::endl;
-        return BoardData();
-      case FileFormat::X20:
-        std::cout << "WARNING: Writing X20 file format not yet implemented. Will be done ASAP." << std::endl;
-        return BoardData();
-      case FileFormat::EMP:
+    return read(file, format);
+  }
 
-        std::string id = searchForID(file);
-        BoardData boardData(id);
+  BoardData read(std::istream& file, const FileFormat format) {
+    if (format == FileFormat::APx)
+      return readAPxFile(file, format);
+    else if (format == FileFormat::EMP)
+      return readEMPFile(file, format);
+    else
+      return readX20File(file, format);
+  }
 
-        std::vector<size_t> channels = searchForLinks(file);
-        std::vector<std::vector<Frame>> dataRows = readDataRows(file);
-
-        std::vector<std::vector<Frame>> dataColumns(channels.size(), std::vector<Frame>(dataRows.size()));
-
-        for (size_t i = 0; i < channels.size(); i++)
-          for (size_t j = 0; j < dataRows.size(); j++)
-            dataColumns.at(i).at(j) = dataRows.at(j).at(i);
-
-        for (size_t i = 0; i < channels.size(); i++)
-          boardData.add(channels.at(i), dataColumns.at(i));
-
-        return boardData;
-    }
-
-    assert(false);
+  BoardData readAPxFile(std::istream& file, const FileFormat format) {
+    std::cout << "WARNING: Reading APx file format not yet implemented. Will be done ASAP." << std::endl;
     return BoardData();
   }
 
-  void writeToFile(const BoardData& data, const std::string& filePath, const FileFormat format) {
+  BoardData readEMPFile(std::istream& file, const FileFormat format) {
+    std::string id = searchForID(file);
+    BoardData boardData(id);
+
+    std::vector<size_t> channels = searchForLinks(file);
+    std::vector<std::vector<Frame>> dataRows = readDataRows(file);
+
+    std::vector<std::vector<Frame>> dataColumns(channels.size(), std::vector<Frame>(dataRows.size()));
+
+    for (size_t i = 0; i < channels.size(); i++)
+      for (size_t j = 0; j < dataRows.size(); j++)
+        dataColumns.at(i).at(j) = dataRows.at(j).at(i);
+
+    for (size_t i = 0; i < channels.size(); i++)
+      boardData.add(channels.at(i), dataColumns.at(i));
+
+    return boardData;
+  }
+
+  BoardData readX20File(std::istream& file, const FileFormat format) {
+    throw std::runtime_error("Reading X20 file format not yet implemented. Will be done ASAP.");
+  }
+
+
+  void writeAPxFile(const BoardData&, std::ostream&, const FileFormat);
+
+  void writeEMPFile(const BoardData&, std::ostream&, const FileFormat);
+
+  void writeX20File(const BoardData&, std::ostream&, const FileFormat);
+
+
+  void write(const BoardData& data, const std::string& filePath, const FileFormat format) {
+    // Open file
+    std::cout << "Writing board data (" << std::distance(data.begin(), data.end()) << " channels, "
+              << data.begin()->second.size() << " frames) to file '" << filePath << "' (format: " << format << ")" << std::endl;
+    std::ofstream file(filePath);
+
+    if (not file.is_open())
+      throw std::runtime_error("Could not open file '" + filePath + "'");
+
+    write(data, file, format);
+  }
+
+
+  void write(const BoardData& data, std::ostream& file, const FileFormat format) {
     // Check that number of frames is same for every channel
     const auto firstChannel = data.begin();
 
@@ -197,83 +232,88 @@ namespace l1t::demo {
                                  std::to_string(firstChannel->first) + ")");
     }
 
-    // Open file
-    std::cout << "Writing board data (" << std::distance(data.begin(), data.end()) << " channels, "
-              << firstChannel->second.size() << " frames) to file '" << filePath << "'" << std::endl;
-    std::ofstream file(filePath);
-
-    if (not file.is_open())
-      throw std::runtime_error("Could not open file '" + filePath + "'");
-
-    // Fill in the file
+    // Call relevant write function
     switch (format) {
       case FileFormat::APx:
-
-        file << std::setfill('0');
-
-        file << "#Sideband ON" << std::endl;
-
-        // Channel header
-        file << "#LinkLabel";
-        for (const auto& [i, channelData] : data)
-          file << "                LINK_" << std::setw(2) << i << "    ";
-        file << std::endl;
-
-        file << "#BeginData" << std::endl;
-
-        // Frames
-        file << std::hex;
-        for (size_t i = 0; i < firstChannel->second.size(); i++) {
-          file << "0x" << std::setw(4) << i;
-          for (const auto& [j, channelData] : data) {
-            uint16_t sideband = channelData.at(i).valid;
-            if (i > 0)
-              sideband |= (channelData.at(i).valid and (not channelData.at(i - 1).valid)) << 1;
-            if ((i + 1) < channelData.size())
-              sideband |= (channelData.at(i).valid and (not channelData.at(i + 1).valid)) << 3;
-            file << "    0x" << std::setw(2) << sideband;
-            file << " 0x" << std::setw(16) << channelData.at(i).data;
-          }
-          file << std::endl;
-        }
-
-        return;
-
-      case FileFormat::X20:
-        std::cout << "WARNING: Writing X20 file format not yet implemented. Will be done ASAP." << std::endl;
+        writeAPxFile(data, file, format);
         return;
       case FileFormat::EMP:
-
-        file << std::setfill('0');
-
-        // Board name/id
-        file << "Board CMSSW" << std::endl;
-
-        // Quad/chan header
-        file << " Quad/Chan :";
-        for (const auto& [i, channelData] : data)
-          file << "         q" << std::setw(2) << i / 4 << 'c' << std::setw(1) << i % 4 << "       ";
-        file << std::endl;
-
-        // Link header
-        file << "      Link :";
-        for (const auto& [i, channelData] : data)
-          file << "          " << std::setw(3) << i << "        ";
-        file << std::endl;
-
-        // Frames
-        for (size_t i = 0; i < firstChannel->second.size(); i++) {
-          file << "Frame " << std::setw(4) << i << " :";
-          for (const auto& [j, channelData] : data) {
-            file << " ";
-            //TODO: Add strobe if zero anywhere on channel
-            file << "  ";
-            file << std::setw(1) << channelData.at(i).valid << "v" << std::setw(16) << std::hex
-                 << channelData.at(i).data;
-          }
-          file << std::endl << std::dec;
-        }
+        writeEMPFile(data, file, format);
+        return;
+      case FileFormat::X20:
+        writeX20File(data, file, format);
+        return;
     }
+  }
+
+
+  void writeAPxFile(const BoardData& data, std::ostream& file, const FileFormat format) {
+    file << std::setfill('0');
+
+    file << "#Sideband ON" << std::endl;
+
+    // Channel header
+    file << "#LinkLabel";
+    for (const auto& [i, channelData] : data)
+      file << "                LINK_" << std::setw(2) << i << "    ";
+    file << std::endl;
+
+    file << "#BeginData" << std::endl;
+
+    // Frames
+    file << std::hex;
+    const auto firstChannel = data.begin();
+    for (size_t i = 0; i < firstChannel->second.size(); i++) {
+      file << "0x" << std::setw(4) << i;
+      for (const auto& [j, channelData] : data) {
+        uint16_t sideband = channelData.at(i).valid;
+        if (i > 0)
+          sideband |= (channelData.at(i).valid and (not channelData.at(i - 1).valid)) << 1;
+        if ((i + 1) < channelData.size())
+          sideband |= (channelData.at(i).valid and (not channelData.at(i + 1).valid)) << 3;
+        file << "    0x" << std::setw(2) << sideband;
+        file << " 0x" << std::setw(16) << channelData.at(i).data;
+      }
+      file << std::endl;
+    }
+  }
+
+
+  void writeEMPFile(const BoardData& data, std::ostream& file, const FileFormat format) {
+    file << std::setfill('0');
+
+    // Board name/id
+    file << "Board CMSSW" << std::endl;
+
+    // Quad/chan header
+    file << " Quad/Chan :";
+    for (const auto& [i, channelData] : data)
+      file << "         q" << std::setw(2) << i / 4 << 'c' << std::setw(1) << i % 4 << "       ";
+    file << std::endl;
+
+    // Link header
+    file << "      Link :";
+    for (const auto& [i, channelData] : data)
+      file << "          " << std::setw(3) << i << "        ";
+    file << std::endl;
+
+    // Frames
+    const auto firstChannel = data.begin();
+    for (size_t i = 0; i < firstChannel->second.size(); i++) {
+      file << "Frame " << std::setw(4) << i << " :";
+      for (const auto& [j, channelData] : data) {
+        file << " ";
+        //TODO: Add strobe if zero anywhere on channel
+        file << "  ";
+        file << std::setw(1) << channelData.at(i).valid << "v" << std::setw(16) << std::hex
+              << channelData.at(i).data;
+      }
+      file << std::endl << std::dec;
+    }
+  }
+
+  void writeX20File(const BoardData& data, std::ostream& file, const FileFormat format) {
+    throw std::runtime_error("Writing X20 file format not yet implemented. Will be done ASAP.");
   }
 
 }  // namespace l1t::demo

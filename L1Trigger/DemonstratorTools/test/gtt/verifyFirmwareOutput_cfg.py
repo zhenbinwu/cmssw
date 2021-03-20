@@ -7,6 +7,11 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 # PART 1 : PARSE ARGUMENTS
 
 options = VarParsing.VarParsing ('analysis')
+options.register ('format',
+                  'EMP', # default value
+                  VarParsing.VarParsing.multiplicity.singleton,
+                  VarParsing.VarParsing.varType.string,
+                  "File format (APx, EMP or X20)")
 options.parseArguments()
 
 inputFiles = []
@@ -35,7 +40,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxE
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load('L1Trigger.DemonstratorTools.GTTOutputFileReader_cff')
 process.GTTOutputFileReader.files = cms.vstring("test/gtt/example_vertex_apx.txt")
-process.GTTOutputFileReader.format = cms.untracked.string("apx")
+process.GTTOutputFileReader.format = cms.untracked.string(options.format)
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))

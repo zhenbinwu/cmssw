@@ -110,7 +110,7 @@ GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
     : tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
       eventCount_(0),
       fileWriter_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
-                  "myBufferfile",
+                  iConfig.getUntrackedParameter<std::string>("outputFilename"),
                   9,
                   6,
                   1024,
