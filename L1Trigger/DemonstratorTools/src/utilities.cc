@@ -1,39 +1,38 @@
 #include "L1Trigger/DemonstratorTools/interface/utilities.h"
 
+#include <algorithm>
 #include <fstream>
+#include <regex>
 #include <unordered_map>
-
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/regex.hpp>
 
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
 
 namespace {
-  std::string searchForID(std::istream& file) {
-    std::string line, id;
 
-    while (getline(file, line)) {
-      boost::trim(line);
-      if (line.empty())
-        continue;
-      if (line[0] == '#')
-        continue;
+  l1t::demo::BoardData createBoardDataFromRows(const std::string& id,
+                                               const std::vector<size_t>& channels,
+                                               const std::vector<std::vector<l1t::demo::Frame>>& dataRows) {
+    l1t::demo::BoardData boardData(id);
 
-      if (line.rfind("Board ", 0) != std::string::npos)
-        return line.substr(6);
-      else
-        throw std::logic_error("Found unexpected line found when searching for board ID: \"" + line + "\"");
+    for (size_t i = 0; i < channels.size(); i++) {
+      std::vector<l1t::demo::Frame> channelData(dataRows.size());
+      for (size_t j = 0; j < dataRows.size(); j++)
+        channelData.at(j) = dataRows.at(j).at(i);
+      boardData.add(channels.at(i), channelData);
     }
-    throw std::logic_error("Board ID not found!");
+
+    return boardData;
   }
 
   std::vector<std::string> searchAndTokenize(std::istream& file, const std::string& linePrefix) {
     std::string line;
 
     while (getline(file, line)) {
-      boost::trim(line);
+      // Strip leading spaces
+      size_t startIndex = line.find_first_not_of(" \t");
+      if (startIndex != std::string::npos)
+        line = line.substr(startIndex);
+
       if (line.empty())
         continue;
       if (line[0] == '#')
@@ -41,11 +40,18 @@ namespace {
 
       if (line.rfind(linePrefix, 0) != std::string::npos) {
         std::vector<std::string> tokens;
-        std::string lineContents(line.substr(linePrefix.size()));
-        // Trim the line
-        boost::trim(lineContents);
+
         // Split the line into tokens
-        boost::split(tokens, lineContents, boost::is_any_of(" \t"), boost::token_compress_on);
+        const std::regex delimiterRegex("\\s+");
+        std::sregex_token_iterator it(line.begin() + linePrefix.size(), line.end(), delimiterRegex, -1);
+
+        for (; it != std::sregex_token_iterator(); it++) {
+          const std::string token(it->str());
+          if (token.empty())
+            continue;
+          tokens.push_back(token);
+        }
+
         return tokens;
       } else
         throw std::logic_error("Found unexpected line found when searching for \"" + linePrefix + "\": \"" + line +
@@ -54,81 +60,7 @@ namespace {
     throw std::logic_error("Couldn't find any line starting with \"" + linePrefix + "\"");
   }
 
-  std::vector<size_t> searchForLinks(std::istream& file) {
-    searchAndTokenize(file, "Quad/Chan :");
-    const auto tokens = searchAndTokenize(file, "Link :");
-    std::vector<size_t> links;
-    std::transform(
-        tokens.begin(), tokens.end(), std::back_inserter(links), boost::lexical_cast<size_t, const std::string&>);
-    return links;
-  }
-
-  l1t::demo::Frame convertStringToFrame(const std::string& token) {
-    static const boost::regex frameRegex("([01]s)?([01]v)([0-9a-fA-F]{16})");
-
-    boost::smatch what;
-    if (!boost::regex_match(token, what, frameRegex))
-      throw std::logic_error("Token '" + token + "' doesn't match the valid format");
-
-    l1t::demo::Frame value;
-    // Import strobe if the strobe group is matched
-    if (what[1].matched) {
-      value.strobe = (what[1] == "1s");
-    }
-
-    value.valid = (what[2] == "1v");
-    value.data = std::stoull(what[3].str(), nullptr, 16);
-
-    return value;
-  }
-
-  std::vector<std::vector<l1t::demo::Frame>> readDataRows(std::istream& file) {
-    std::string line;
-    std::vector<std::vector<l1t::demo::Frame>> data;
-
-    while (file.good() and getline(file, line)) {
-      boost::trim(line);
-
-      if (line.empty() or line[0] == '#')
-        continue;
-
-      std::ostringstream prefixStream;
-      prefixStream << "Frame ";
-      prefixStream << std::setw(4) << std::setfill('0') << data.size();
-      prefixStream << " :";
-
-      const std::string prefix(prefixStream.str());
-      if (line.rfind(prefix, 0) != std::string::npos) {
-        std::vector<std::string> tokens;
-        std::string tmp(line.substr(prefix.size()));
-        boost::trim(tmp);
-        boost::split(tokens, tmp, boost::is_any_of(" \t"), boost::token_compress_on);
-
-        std::vector<l1t::demo::Frame> row;
-        std::transform(tokens.begin(), tokens.end(), std::back_inserter(row), convertStringToFrame);
-
-        data.push_back(row);
-      } else
-        throw std::logic_error("Found unexpected line found when searching for \"" + prefix + "\": \"" + line + "\"");
-    }
-
-    return data;
-  }
 }  // namespace
-
-// APx sideband encoding
-//   Short-term, simulation only:
-//     0 -> Valid
-//     1 -> EOF
-//   Planned (from ~ May 2021)
-//     0 -> Valid
-//     1 -> SOF (Start Of Frame)
-//     2 -> FFO (First Frame of Orbit)
-//     3 -> EOF (End Of Frame)
-//     4 -> FERR (Frame Error)
-//     5 -> RSV1
-//     6 -> RSV2
-//     7 -> RSV3
 
 namespace l1t::demo {
 
@@ -172,27 +104,152 @@ namespace l1t::demo {
   }
 
   BoardData readAPxFile(std::istream& file, const FileFormat format) {
-    std::cout << "WARNING: Reading APx file format not yet implemented. Will be done ASAP." << std::endl;
-    return BoardData();
+    std::string line;
+
+    // Complain if file is empty
+    if (not std::getline(file, line))
+      throw std::runtime_error("Specified file is empty!");
+
+    // If first line is sideband, skip it and move onto 2nd line
+    if (line.find("#Sideband") == 0) {
+      if (not std::getline(file, line))
+        throw std::runtime_error("APx file has incorrect format: Link labels and data missing!");
+    }
+
+    // Parse link labels
+    if (line.find("#LinkLabel") != 0)
+      throw std::runtime_error(
+          "APx file has incorrect format: Link header does not start with '#LinkLabel' (line is '" + line + "')");
+
+    std::vector<size_t> indices;
+    const std::regex delimiterRegex("\\s+");
+    std::sregex_token_iterator it(line.begin() + 10, line.end(), delimiterRegex, -1);
+    for (; it != std::sregex_token_iterator(); it++) {
+      const std::string token(it->str());
+      if (token.empty())
+        continue;
+
+      if (token.find("LINK_") != 0)
+        throw std::runtime_error("Link column name '" + token + "' (does not start with 'LINK_')");
+      if (token.size() == 5)
+        throw std::runtime_error("Link column name '" + token + "' is too short");
+      if (not std::all_of(token.begin() + 5, token.end(), ::isdigit))
+        throw std::runtime_error("Link column name '" + token + "' does not end with a number");
+
+      indices.push_back(std::stoul(token.substr(5)));
+    }
+
+    // Check for '#BeginData' line
+    if (not std::getline(file, line))
+      throw std::runtime_error("APx file has incorrect format: Data missing!");
+    if (line != "#BeginData")
+      throw std::runtime_error("APx file has incorrect format: '#BeginData' line missing (found '" + line + "')");
+
+    // Parse link data
+    std::vector<std::vector<l1t::demo::Frame>> dataRows;
+    while (std::getline(file, line)) {
+      it = std::sregex_token_iterator(line.begin(), line.end(), delimiterRegex, -1);
+      size_t count = 0;
+      for (; it != std::sregex_token_iterator(); it++, count++) {
+        const std::string token(it->str());
+
+        if ((token.find("0x") != 0) or (not std::all_of(token.begin() + 2, token.end(), ::isxdigit)))
+          throw std::runtime_error("APx file has incorrect format: Data token '" + token +
+                                   "' is not hexadecimal number");
+
+        if (count == 0) {
+          size_t rowIndex = std::stoul(token, nullptr, 16);
+          if (rowIndex != dataRows.size())
+            throw std::runtime_error("APx file has incorrect format: Expected data row " +
+                                     std::to_string(dataRows.size()) + ", but found row " + std::to_string(rowIndex));
+          dataRows.push_back(std::vector<l1t::demo::Frame>(indices.size()));
+        }
+        // Sideband info
+        else if ((count % 2) == 1) {
+          uint16_t sbValue = std::stoul(token, nullptr, 16);
+          dataRows.back().at((count - 1) / 2).valid = (sbValue & 0x1);
+        }
+        // Data word
+        else
+          dataRows.back().at((count - 1) / 2).data = std::stoull(token, nullptr, 16);
+      }
+
+      if (count != (2 * indices.size() + 1))
+        throw std::runtime_error("APx file has incorrect format: Line has incorrect number of tokens (expected " +
+                                 std::to_string(2 * indices.size() + 1) + ", found " + std::to_string(count) + "!");
+    }
+
+    return createBoardDataFromRows("", indices, dataRows);
   }
 
   BoardData readEMPFile(std::istream& file, const FileFormat format) {
-    std::string id = searchForID(file);
-    BoardData boardData(id);
+    // 1) Search for ID string
+    std::string id, line;
+    while (getline(file, line)) {
+      if (line.empty())
+        continue;
+      if (line[0] == '#')
+        continue;
 
-    std::vector<size_t> channels = searchForLinks(file);
-    std::vector<std::vector<Frame>> dataRows = readDataRows(file);
+      if (line.rfind("Board ", 0) != std::string::npos) {
+        id = line.substr(6);
+        break;
+      } else
+        throw std::logic_error("Found unexpected line found when searching for board ID: \"" + line + "\"");
+    }
 
-    std::vector<std::vector<Frame>> dataColumns(channels.size(), std::vector<Frame>(dataRows.size()));
+    // 2) Search for column labels (i.e. list of channels/links)
+    searchAndTokenize(file, "Quad/Chan :");
+    const auto tokens = searchAndTokenize(file, "Link :");
+    std::vector<size_t> channels;
+    std::transform(tokens.begin(), tokens.end(), std::back_inserter(channels), [](const std::string& s) {
+      return std::stoull(s);
+    });
 
-    for (size_t i = 0; i < channels.size(); i++)
-      for (size_t j = 0; j < dataRows.size(); j++)
-        dataColumns.at(i).at(j) = dataRows.at(j).at(i);
+    // 3) Read the main data rows
+    const std::regex delimiterRegex("\\s+");
+    static const std::regex frameRegex("([01]s)?([01]v)([0-9a-fA-F]{16})");
+    std::vector<std::vector<Frame>> dataRows;
+    while (file.good() and getline(file, line)) {
+      if (line.empty() or line[0] == '#')
+        continue;
 
-    for (size_t i = 0; i < channels.size(); i++)
-      boardData.add(channels.at(i), dataColumns.at(i));
+      std::ostringstream prefixStream;
+      prefixStream << "Frame ";
+      prefixStream << std::setw(4) << std::setfill('0') << dataRows.size();
+      prefixStream << " :";
 
-    return boardData;
+      const std::string prefix(prefixStream.str());
+      if (line.rfind(prefix, 0) == std::string::npos)
+        throw std::logic_error("Found unexpected line found when searching for \"" + prefix + "\": \"" + line + "\"");
+
+      std::vector<l1t::demo::Frame> row;
+      std::sregex_token_iterator it(line.begin() + prefix.size(), line.end(), delimiterRegex, -1);
+      for (; it != std::sregex_token_iterator(); it++) {
+        const std::string token(it->str());
+        if (token.empty())
+          continue;
+
+        std::smatch what;
+        if (not std::regex_match(token, what, frameRegex))
+          throw std::logic_error("Token '" + token + "' doesn't match the valid format");
+
+        l1t::demo::Frame value;
+        // Import strobe if the strobe group is matched
+        if (what[1].matched) {
+          value.strobe = (what[1] == "1s");
+        }
+
+        value.valid = (what[2] == "1v");
+        value.data = std::stoull(what[3].str(), nullptr, 16);
+
+        row.push_back(value);
+      }
+
+      dataRows.push_back(row);
+    }
+
+    return createBoardDataFromRows(id, channels, dataRows);
   }
 
   BoardData readX20File(std::istream& file, const FileFormat format) {
@@ -245,8 +302,21 @@ namespace l1t::demo {
   }
 
   void writeAPxFile(const BoardData& data, std::ostream& file, const FileFormat format) {
-    file << std::setfill('0');
+    // Note: APx sideband encoding
+    //   Short-term, simulation only:
+    //     0 -> Valid
+    //     1 -> EOF
+    //   Planned (from ~ May 2021)
+    //     0 -> Valid
+    //     1 -> SOF (Start Of Frame)
+    //     2 -> FFO (First Frame of Orbit)
+    //     3 -> EOF (End Of Frame)
+    //     4 -> FERR (Frame Error)
+    //     5 -> RSV1
+    //     6 -> RSV2
+    //     7 -> RSV3
 
+    file << std::setfill('0');
     file << "#Sideband ON" << std::endl;
 
     // Channel header
