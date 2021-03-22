@@ -72,15 +72,11 @@ private:
   };
 
   static constexpr double kEtaErrThresh = 0.0485;  // error corresponding to 0.25 of a degree error in lambda
-  //static constexpr double kMinTanLambda = 0.;          // lowest value for Tan(lambda) for eta = 0
-  //static constexpr double kMaxTanLambda = 5.466229214; // highest value for Tan(lambda) for eta = 2.4
 
   static constexpr double kPTErrThresh = 5;                    // error threshold in percent
   static constexpr double kSynchrotron = (1.0 / (0.3 * 3.8));  // 1/(0.3*B) for 1/R to 1/pT conversion
-  //static constexpr double kMinRT = (200.0*(double)kSynchrotron);   // lowest possible value for R for 2 GeV (in cm)
-  //static constexpr double kMaxRT = (51200.0*(double)kSynchrotron); // highest value for R (in cm)
-  static constexpr unsigned int kPtLutSize = (int)pow(2, (int)kPTOutputSize);
-  static constexpr unsigned int kEtaLutSize = (int)pow(2, (int)kEtaOutputSize);
+  static constexpr unsigned int kPtLutSize = (1 << ConversionBitWidths::kPTOutputSize);
+  static constexpr unsigned int kEtaLutSize = (1 << ConversionBitWidths::kEtaOutputSize);
 
   typedef TTTrack<Ref_Phase2TrackerDigi_> L1Track;
   typedef std::vector<L1Track> TTTrackCollection;

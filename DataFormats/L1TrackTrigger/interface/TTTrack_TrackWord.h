@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -42,8 +43,9 @@ public:
     kRinvSize = 15,       // Width of Rinv
     kValidSize = 1,       // Valid bit
 
-    kTrackWordSize = kValidSize + kRinvSize + kPhiSize + kChi2RPhiSize + kTanlSize + kZ0Size + kChi2RZSize 
-                   + kD0Size + kBendChi2Size + kHitPatternSize + kMVAQualitySize + kMVAOtherSize,  // Width of the track word in bits
+    kTrackWordSize = kValidSize + kRinvSize + kPhiSize + kChi2RPhiSize + kTanlSize + kZ0Size + kChi2RZSize + kD0Size +
+                     kBendChi2Size + kHitPatternSize + kMVAQualitySize +
+                     kMVAOtherSize,  // Width of the track word in bits
   };
 
   enum TrackBitLocations {
@@ -113,7 +115,8 @@ public:
   typedef ap_uint<TrackBitWidths::kMVAOtherSize> otherMVA_t;      // Specialized MVA selection
 
   // Track word types
-  typedef ap_uint<TrackBitWidths::kTrackWordSize> tkword_t;  // Entire track word;
+  typedef std::bitset<TrackBitWidths::kTrackWordSize> tkword_bs_t;  // Entire track word;
+  typedef ap_uint<TrackBitWidths::kTrackWordSize> tkword_t;         // Entire track word;
 
 public:
   // ----------Constructors --------------------------
@@ -153,43 +156,31 @@ public:
   // ----------member functions (getters) ------------
   // These functions return arbitarary precision unsigned int words (lists of bits) for each quantity
   // Signed quantities have the sign enconded in the left-most bit.
-  ap_uint<TrackBitWidths::kValidSize> getValidWord() const {
-    return trackWord_(TrackBitLocations::kValidMSB, TrackBitLocations::kValidLSB);
+  valid_t getValidWord() const { return getTrackWord()(TrackBitLocations::kValidMSB, TrackBitLocations::kValidLSB); }
+  rinv_t getRinvWord() const { return getTrackWord()(TrackBitLocations::kRinvMSB, TrackBitLocations::kRinvLSB); }
+  phi_t getPhiWord() const { return getTrackWord()(TrackBitLocations::kPhiMSB, TrackBitLocations::kPhiLSB); }
+  tanl_t getTanlWord() const { return getTrackWord()(TrackBitLocations::kTanlMSB, TrackBitLocations::kTanlLSB); }
+  z0_t getZ0Word() const { return getTrackWord()(TrackBitLocations::kZ0MSB, TrackBitLocations::kZ0LSB); }
+  d0_t getD0Word() const { return getTrackWord()(TrackBitLocations::kD0MSB, TrackBitLocations::kD0LSB); }
+  chi2rphi_t getChi2RPhiWord() const {
+    return getTrackWord()(TrackBitLocations::kChi2RPhiMSB, TrackBitLocations::kChi2RPhiLSB);
   }
-  ap_uint<TrackBitWidths::kRinvSize> getRinvWord() const {
-    return trackWord_(TrackBitLocations::kRinvMSB, TrackBitLocations::kRinvLSB);
+  chi2rz_t getChi2RZWord() const {
+    return getTrackWord()(TrackBitLocations::kChi2RZMSB, TrackBitLocations::kChi2RZLSB);
   }
-  ap_uint<TrackBitWidths::kPhiSize> getPhiWord() const {
-    return trackWord_(TrackBitLocations::kPhiMSB, TrackBitLocations::kPhiLSB);
+  bendChi2_t getBendChi2Word() const {
+    return getTrackWord()(TrackBitLocations::kBendChi2MSB, TrackBitLocations::kBendChi2LSB);
   }
-  ap_uint<TrackBitWidths::kTanlSize> getTanlWord() const {
-    return trackWord_(TrackBitLocations::kTanlMSB, TrackBitLocations::kTanlLSB);
+  hit_t getHitPatternWord() const {
+    return getTrackWord()(TrackBitLocations::kHitPatternMSB, TrackBitLocations::kHitPatternLSB);
   }
-  ap_uint<TrackBitWidths::kZ0Size> getZ0Word() const {
-    return trackWord_(TrackBitLocations::kZ0MSB, TrackBitLocations::kZ0LSB);
+  qualityMVA_t getMVAQualityWord() const {
+    return getTrackWord()(TrackBitLocations::kMVAQualityMSB, TrackBitLocations::kMVAQualityLSB);
   }
-  ap_uint<TrackBitWidths::kD0Size> getD0Word() const {
-    return trackWord_(TrackBitLocations::kD0MSB, TrackBitLocations::kD0LSB);
+  otherMVA_t getMVAOtherWord() const {
+    return getTrackWord()(TrackBitLocations::kMVAOtherMSB, TrackBitLocations::kMVAOtherLSB);
   }
-  ap_uint<TrackBitWidths::kChi2RPhiSize> getChi2RPhiWord() const {
-    return trackWord_(TrackBitLocations::kChi2RPhiMSB, TrackBitLocations::kChi2RPhiLSB);
-  }
-  ap_uint<TrackBitWidths::kChi2RZSize> getChi2RZWord() const {
-    return trackWord_(TrackBitLocations::kChi2RZMSB, TrackBitLocations::kChi2RZLSB);
-  }
-  ap_uint<TrackBitWidths::kBendChi2Size> getBendChi2Word() const {
-    return trackWord_(TrackBitLocations::kBendChi2MSB, TrackBitLocations::kBendChi2LSB);
-  }
-  ap_uint<TrackBitWidths::kHitPatternSize> getHitPatternWord() const {
-    return trackWord_(TrackBitLocations::kHitPatternMSB, TrackBitLocations::kHitPatternLSB);
-  }
-  ap_uint<TrackBitWidths::kMVAQualitySize> getMVAQualityWord() const {
-    return trackWord_(TrackBitLocations::kMVAQualityMSB, TrackBitLocations::kMVAQualityLSB);
-  }
-  ap_uint<TrackBitWidths::kMVAOtherSize> getMVAOtherWord() const {
-    return trackWord_(TrackBitLocations::kMVAOtherMSB, TrackBitLocations::kMVAOtherLSB);
-  }
-  ap_uint<TrackBitWidths::kTrackWordSize> getTrackWord() const { return trackWord_; }
+  tkword_t getTrackWord() const { return tkword_t(trackWord_.to_string().c_str(), 2); }
 
   // These functions return the packed bits in integer format for each quantity
   // Signed quantities have the sign enconded in the left-most bit.
@@ -288,7 +279,7 @@ private:
   }
 
   // ----------member data ---------------------------
-  tkword_t trackWord_;
+  tkword_bs_t trackWord_;
 };
 
 #endif

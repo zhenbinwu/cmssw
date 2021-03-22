@@ -131,51 +131,51 @@ void TTTrack_TrackWord::setTrackWord(
     ap_uint<TrackBitWidths::kMVAOtherSize> mvaOther) {
   // pack the track word
   unsigned int offset = 0;
-  for (unsigned int b = offset; b < offset + TrackBitWidths::kValidSize; b++) {
-    trackWord_.set(b, valid[b - offset]);
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAOtherSize); b++) {
+    trackWord_.set(b, mvaOther[b - offset]);
   }
-  offset += TrackBitWidths::kValidSize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kRinvSize); b++) {
-    trackWord_.set(b, rInv[b - offset]);
-  }
-  offset += TrackBitWidths::kRinvSize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kPhiSize); b++) {
-    trackWord_.set(b, phi0[b - offset]);
-  }
-  offset += TrackBitWidths::kPhiSize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kTanlSize); b++) {
-    trackWord_.set(b, tanl[b - offset]);
-  }
-  offset += TrackBitWidths::kTanlSize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kZ0Size); b++) {
-    trackWord_.set(b, z0[b - offset]);
-  }
-  offset += TrackBitWidths::kZ0Size;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kD0Size); b++) {
-    trackWord_.set(b, d0[b - offset]);
-  }
-  offset += TrackBitWidths::kD0Size;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kChi2RPhiSize); b++) {
-    trackWord_.set(b, chi2RPhi[b - offset]);
-  }
-  offset += TrackBitWidths::kChi2RPhiSize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kChi2RZSize); b++) {
-    trackWord_.set(b, chi2RZ[b - offset]);
-  }
-  offset += TrackBitWidths::kChi2RZSize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kBendChi2Size); b++) {
-    trackWord_.set(b, bendChi2[b - offset]);
-  }
-  offset += TrackBitWidths::kBendChi2Size;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kHitPatternSize); b++) {
-    trackWord_.set(b, hitPattern[b - offset]);
-  }
-  offset += TrackBitWidths::kHitPatternSize;
+  offset += TrackBitWidths::kMVAOtherSize;
   for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAQualitySize); b++) {
     trackWord_.set(b, mvaQuality[b - offset]);
   }
   offset += TrackBitWidths::kMVAQualitySize;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAOtherSize); b++) {
-    trackWord_.set(b, mvaOther[b - offset]);
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kHitPatternSize); b++) {
+    trackWord_.set(b, hitPattern[b - offset]);
+  }
+  offset += TrackBitWidths::kHitPatternSize;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kBendChi2Size); b++) {
+    trackWord_.set(b, bendChi2[b - offset]);
+  }
+  offset += TrackBitWidths::kBendChi2Size;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kD0Size); b++) {
+    trackWord_.set(b, d0[b - offset]);
+  }
+  offset += TrackBitWidths::kD0Size;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kChi2RZSize); b++) {
+    trackWord_.set(b, chi2RZ[b - offset]);
+  }
+  offset += TrackBitWidths::kChi2RZSize;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kZ0Size); b++) {
+    trackWord_.set(b, z0[b - offset]);
+  }
+  offset += TrackBitWidths::kZ0Size;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kTanlSize); b++) {
+    trackWord_.set(b, tanl[b - offset]);
+  }
+  offset += TrackBitWidths::kTanlSize;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kChi2RPhiSize); b++) {
+    trackWord_.set(b, chi2RPhi[b - offset]);
+  }
+  offset += TrackBitWidths::kChi2RPhiSize;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kPhiSize); b++) {
+    trackWord_.set(b, phi0[b - offset]);
+  }
+  offset += TrackBitWidths::kPhiSize;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kRinvSize); b++) {
+    trackWord_.set(b, rInv[b - offset]);
+  }
+  offset += TrackBitWidths::kRinvSize;
+  for (unsigned int b = offset; b < offset + TrackBitWidths::kValidSize; b++) {
+    trackWord_.set(b, valid[b - offset]);
   }
 }

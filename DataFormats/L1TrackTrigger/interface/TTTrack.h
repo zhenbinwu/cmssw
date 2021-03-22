@@ -414,11 +414,28 @@ void TTTrack<T>::setTrackWordBits() {
   // missing conversion of global phi to difference from sector center phi
 
   if (theChi2_Z_ < 0) {
-    setTrackWord(valid, theMomentum_, thePOCA_, theRInv_, theChi2_, 0, theStubPtConsistency_, theHitPattern_, mvaQuality, mvaOther);
+    setTrackWord(valid,
+                 theMomentum_,
+                 thePOCA_,
+                 theRInv_,
+                 theChi2_,
+                 0,
+                 theStubPtConsistency_,
+                 theHitPattern_,
+                 mvaQuality,
+                 mvaOther);
 
   } else {
-    setTrackWord(
-        valid, theMomentum_, thePOCA_, theRInv_, theChi2_XY_, theChi2_Z_, theStubPtConsistency_, theHitPattern_, mvaQuality, mvaOther);
+    setTrackWord(valid,
+                 theMomentum_,
+                 thePOCA_,
+                 theRInv_,
+                 theChi2_XY_,
+                 theChi2_Z_,
+                 theStubPtConsistency_,
+                 theHitPattern_,
+                 mvaQuality,
+                 mvaOther);
   }
   return;
 }
