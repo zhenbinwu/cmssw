@@ -51,7 +51,11 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
   cout.precision(4);
 
   //--- Define EDM output to be written to file (if required)
-  produces<l1t::VertexCollection>(outputCollectionName_);
+  if (settings_.vx_algo() == Algorithm::FastHistoEmulation) {
+    produces<l1t::VertexWordCollection>(outputCollectionName_ + "Emulation");
+  } else {
+    produces<l1t::VertexCollection>(outputCollectionName_);
+  }
 }
 
 void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::EventSetup& iSetup) const {
@@ -60,6 +64,9 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
 
   std::vector<l1tVertexFinder::L1Track> l1Tracks;
   l1Tracks.reserve(l1TracksHandle->size());
+  if (settings_.debug() > 1) {
+    edm::LogInfo("VertexProducer") << "produce::Processing " << l1TracksHandle->size() << " tracks";
+  }
   for (const auto& track : l1TracksHandle->ptrs()) {
     auto l1track = L1Track(track);
     // Check the minimum pT of the tracks
@@ -111,16 +118,17 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
   vf.FindPrimaryVertex();
 
   // //=== Store output EDM track and hardware stub collections.
-  std::unique_ptr<l1t::VertexCollection> lProduct(new std::vector<l1t::Vertex>());
-
-  for (const auto& vtx : vf.Vertices()) {
-    std::vector<edm::Ptr<l1t::Vertex::Track_t>> lVtxTracks;
-    lVtxTracks.reserve(vtx.tracks().size());
-    for (const auto& t : vtx.tracks())
-      lVtxTracks.push_back(t->getTTTrackPtr());
-    lProduct->emplace_back(l1t::Vertex(vtx.pt(), vtx.z0(), lVtxTracks));
+  if (settings_.vx_algo() == Algorithm::FastHistoEmulation) {
+    std::unique_ptr<l1t::VertexWordCollection> product_emulation =
+        std::make_unique<l1t::VertexWordCollection>(vf.verticesEmulation().begin(), vf.verticesEmulation().end());
+    iEvent.put(std::move(product_emulation), outputCollectionName_ + "Emulation");
+  } else {
+    std::unique_ptr<l1t::VertexCollection> product(new std::vector<l1t::Vertex>());
+    for (const auto& vtx : vf.vertices()) {
+      product->emplace_back(vtx.vertex());
+    }
+    iEvent.put(std::move(product), outputCollectionName_);
   }
-  iEvent.put(std::move(lProduct), outputCollectionName_);
 }
 
 DEFINE_FWK_MODULE(VertexProducer);

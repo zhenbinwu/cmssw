@@ -89,7 +89,7 @@ namespace l1tVertexFinder {
       } else {
         genPt_PU_ += tp->pt();
       }
-      if (settings.debug() > 0) {
+      if (settings.debug() > 2) {
         edm::LogInfo("InputData") << "InputData::genPt in the event " << genPt_;
       }
 
@@ -116,8 +116,7 @@ namespace l1tVertexFinder {
       if (vertex.numTracks() >= settings.vx_minTracks())
         recoVertices_.push_back(vertex);
     }
-
-    if (settings.debug() > 0)
+    if (settings.debug() > 2)
       edm::LogInfo("InputData") << "InputData::" << vertices_.size() << " pileup vertices in the event, "
                                 << recoVertices_.size() << " reconstructable";
 

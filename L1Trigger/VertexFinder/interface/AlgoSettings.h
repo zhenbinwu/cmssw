@@ -22,6 +22,8 @@ namespace l1tVertexFinder {
     Kmeans
   };
 
+  enum class Precision { Simulation, Emulation };
+
   class AlgoSettings {
   public:
     AlgoSettings(const edm::ParameterSet& iConfig);
@@ -30,6 +32,7 @@ namespace l1tVertexFinder {
     //=== Vertex Reconstruction configuration
     // Vertex Reconstruction algo
     Algorithm vx_algo() const { return vx_algo_; }
+    Precision vx_precision() const { return vx_precision_; }
     /// For Agglomerative cluster algorithm, select a definition of distance between clusters
     unsigned int vx_distanceType() const { return vx_distanceType_; }
     // Assumed Vertex Distance
@@ -42,6 +45,8 @@ namespace l1tVertexFinder {
     unsigned int vx_weightedmean() const { return vx_weightedmean_; }
     /// Chi2 cut for the Adaptive Vertex Recostruction Algorithm
     float vx_chi2cut() const { return vx_chi2cut_; }
+    /// Do track quality cuts in emulation algorithms
+    bool vx_DoQualityCuts() const { return vx_DoQualityCuts_; }
     /// Window size of the sliding window
     unsigned int vx_windowSize() const { return vx_windowSize_; }
     /// FastHisto histogram parameters (min, max, width)
@@ -83,18 +88,21 @@ namespace l1tVertexFinder {
 
   private:
     static const std::map<std::string, Algorithm> algoNameMap;
+    static const std::map<Algorithm, Precision> algoPrecisionMap;
 
     // Parameter sets for differents types of configuration parameter.
     edm::ParameterSet vertex_;
 
     // Vertex Reconstruction configuration
     Algorithm vx_algo_;
+    Precision vx_precision_;
     float vx_distance_;
     float vx_resolution_;
     unsigned int vx_distanceType_;
     unsigned int vx_minTracks_;
     unsigned int vx_weightedmean_;
     float vx_chi2cut_;
+    bool vx_DoQualityCuts_;
     bool vx_DoPtComp_;
     bool vx_DoTightChi2_;
     std::vector<double> vx_histogram_parameters_;

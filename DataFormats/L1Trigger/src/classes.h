@@ -32,6 +32,7 @@
 #include "DataFormats/L1Trigger/interface/HOTwinMuxDigiCollection.h"
 #include "DataFormats/L1Trigger/interface/HOTPDigiTwinMux.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
 
 namespace {
   struct dictionary {

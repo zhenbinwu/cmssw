@@ -25,6 +25,8 @@ VertexProducer = cms.EDProducer('VertexProducer',
         WeightedMean = cms.uint32(1),
         # Chi2 cut for the Adaptive Vertex Reconstruction Algorithm
         AVR_chi2cut = cms.double(5.),
+        # Do track quality cuts in emulation algorithms
+        EM_DoQualityCuts = cms.bool(False),
         # Track-stubs Pt compatibility cut
         FH_DoPtComp = cms.bool(True),
         # chi2dof < 5 for tracks with Pt > 10
