@@ -8,6 +8,9 @@
 #include "firmware/linpuppi_bits.h"
 #endif
 
+#include "../common/bitonic_hybrid_sort_ref.h"
+#include "../common/bitonic_sort_ref.h"
+
 #ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/transform.h"
@@ -43,7 +46,9 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(unsigned int nTrack,
                                          double priorPh_0,
                                          double priorPh_1,
                                          pt_t ptCut_0,
-                                         pt_t ptCut_1)
+                                         pt_t ptCut_1,
+                                         unsigned int nFinalSort,
+                                         SortAlgo finalSortAlgo)
     : nTrack_(nTrack),
       nIn_(nIn),
       nOut_(nOut),
@@ -62,6 +67,8 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(unsigned int nTrack,
       priorNe_(2),
       priorPh_(2),
       ptCut_(2),
+      nFinalSort_(nFinalSort ? nFinalSort : nOut),
+      finalSortAlgo_(finalSortAlgo),
       debug_(false) {
   ptSlopeNe_[0] = ptSlopeNe_0;
   ptSlopeNe_[1] = ptSlopeNe_1;
@@ -106,6 +113,7 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(const edm::ParameterSet &iConfig)
       priorNe_(iConfig.getParameter<std::vector<double>>("priors")),
       priorPh_(iConfig.getParameter<std::vector<double>>("priorsPhoton")),
       ptCut_(edm::vector_transform(iConfig.getParameter<std::vector<double>>("ptCut"), l1ct::Scales::makePtFromFloat)),
+      nFinalSort_(iConfig.getParameter<uint32_t>("nFinalSort")),
       debug_(iConfig.getUntrackedParameter<bool>("debug", false)) {
   if (absEtaBins_.size() + 1 != ptSlopeNe_.size())
     throw cms::Exception("Configuration", "size mismatch for ptSlopes parameter");
@@ -127,28 +135,46 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(const edm::ParameterSet &iConfig)
     throw cms::Exception("Configuration", "size mismatch for alphaCrop parameter");
   if (absEtaBins_.size() + 1 != ptCut_.size())
     throw cms::Exception("Configuration", "size mismatch for ptCut parameter");
+  const std::string &sortAlgo = iConfig.getParameter<std::string>("finalSortAlgo");
+  if (sortAlgo == "Insertion")
+    finalSortAlgo_ = SortAlgo::Insertion;
+  else if (sortAlgo == "BitonicRUFL")
+    finalSortAlgo_ = SortAlgo::BitonicRUFL;
+  else if (sortAlgo == "BitonicHLS")
+    finalSortAlgo_ = SortAlgo::BitonicHLS;
+  else if (sortAlgo == "Hybrid")
+    finalSortAlgo_ = SortAlgo::Hybrid;
+  else
+    throw cms::Exception("Configuration", "unsupported finalSortAlgo '" + sortAlgo + "'");
 }
 #endif
 
 void l1ct::LinPuppiEmulator::puppisort_and_crop_ref(unsigned int nOutMax,
-                                                    const std::vector<PuppiObjEmu> &in,
-                                                    std::vector<PuppiObjEmu> &out) const {
+                                                    const std::vector<l1ct::PuppiObjEmu> &in,
+                                                    std::vector<l1ct::PuppiObjEmu> &out,
+                                                    SortAlgo sortAlgo) {
   const unsigned int nOut = std::min<unsigned int>(nOutMax, in.size());
   out.resize(nOut);
   for (unsigned int iout = 0; iout < nOut; ++iout) {
     out[iout].clear();
   }
 
-  for (unsigned int it = 0, nIn = in.size(); it < nIn; ++it) {
-    for (int iout = int(nOut) - 1; iout >= 0; --iout) {
-      if (out[iout].hwPt <= in[it].hwPt) {
-        if (iout == 0 || out[iout - 1].hwPt > in[it].hwPt) {
-          out[iout] = in[it];
-        } else {
-          out[iout] = out[iout - 1];
+  if (sortAlgo == SortAlgo::Insertion) {
+    for (unsigned int it = 0, nIn = in.size(); it < nIn; ++it) {
+      for (int iout = int(nOut) - 1; iout >= 0; --iout) {
+        if (out[iout].hwPt <= in[it].hwPt) {
+          if (iout == 0 || out[iout - 1].hwPt > in[it].hwPt) {
+            out[iout] = in[it];
+          } else {
+            out[iout] = out[iout - 1];
+          }
         }
       }
     }
+  } else if (sortAlgo == SortAlgo::BitonicRUFL) {
+    bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0]);
+  } else if (sortAlgo == SortAlgo::BitonicHLS || sortAlgo == SortAlgo::Hybrid) {
+    hybrid_bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0], sortAlgo == SortAlgo::Hybrid);
   }
 }
 
@@ -163,13 +189,14 @@ void l1ct::LinPuppiEmulator::linpuppi_chs_ref(const PFRegionEmu &region,
     if (pfch[i].hwPt != 0 && region.isFiducial(pfch[i]) && (std::abs(z0diff) <= int(dzCut_) || pfch[i].hwId.isMuon())) {
       outallch[i].fill(region, pfch[i]);
       if (debug_ && pfch[i].hwPt > 0)
-        printf("ref candidate %02u pt %7.2f pid %1d   vz %+6d  dz %+6d (cut %5d) -> pass\n",
+        printf("ref candidate %02u pt %7.2f pid %1d   vz %+6d  dz %+6d (cut %5d) -> pass, packed %s\n",
                i,
                pfch[i].floatPt(),
                pfch[i].intId(),
                int(pfch[i].hwZ0),
                z0diff,
-               dzCut_);
+               dzCut_,
+               outallch[i].pack().to_string(16).c_str());
     } else {
       outallch[i].clear();
       if (debug_ && pfch[i].hwPt > 0)
@@ -401,6 +428,13 @@ void l1ct::LinPuppiEmulator::linpuppi_ref(const PFRegionEmu &region,
     bool isEM = (pfallne[in].hwId.isPhoton());
     std::pair<pt_t, puppiWgt_t> ptAndW = sum2puppiPt_ref(sum, pfallne[in].hwPt, ieta, isEM, in);
     outallne_nocut[in].fill(region, pfallne[in], ptAndW.first, ptAndW.second);
+    if (debug_ && pfallne[in].hwPt > 0 && ptAndW.first > 0)
+      printf("ref candidate %02u pt %7.2f  -> puppi pt %7.2f, fiducial %1d, packed %s\n",
+             in,
+             pfallne[in].floatPt(),
+             outallne_nocut[in].floatPt(),
+             int(region.isFiducial(pfallne[in])),
+             outallne_nocut[in].pack().to_string(16).c_str());
     if (region.isFiducial(pfallne[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
       outallne[in] = outallne_nocut[in];
     }
@@ -530,8 +564,21 @@ void l1ct::LinPuppiEmulator::run(const PFInputRegion &in,
     std::vector<PuppiObjEmu> outallch, outallne_nocut, outallne, outselne;
     linpuppi_chs_ref(in.region, pvs.front(), out.pfcharged, outallch);
     linpuppi_ref(in.region, in.track, pvs.front(), out.pfneutral, outallne_nocut, outallne, outselne);
-    outallch.insert(outallch.end(), outselne.begin(), outselne.end());
-    puppisort_and_crop_ref(nOut_, outallch, out.puppi);
+    // ensure proper sizes of the vectors, to get accurate sorting wrt firmware
+    const std::vector<PuppiObjEmu> &ne = (nOut_ == nIn_ ? outallne : outselne);
+    unsigned int nch = outallch.size(), nne = ne.size(), i;
+    outallch.resize(nTrack_ + nOut_);
+    for (i = nch; i < nTrack_; ++i)
+      outallch[i].clear();
+    for (unsigned int j = 0; j < nne; ++i, ++j)
+      outallch[i] = ne[j];
+    for (; i < nTrack_ + nOut_; ++i)
+      outallch[i].clear();
+    puppisort_and_crop_ref(nFinalSort_, outallch, out.puppi, finalSortAlgo_);
+    // trim if needed
+    while (!out.puppi.empty() && out.puppi.back().hwPt == 0)
+      out.puppi.pop_back();
+    out.puppi.shrink_to_fit();
   } else {  // forward
     std::vector<PuppiObjEmu> outallne_nocut, outallne;
     fwdlinpuppi_ref(in.region, in.hadcalo, outallne_nocut, outallne, out.puppi);
