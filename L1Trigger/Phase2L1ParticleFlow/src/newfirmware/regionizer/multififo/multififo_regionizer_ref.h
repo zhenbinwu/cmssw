@@ -19,7 +19,8 @@ namespace l1ct {
                                 unsigned int nem,
                                 unsigned int nmu,
                                 bool streaming,
-                                unsigned int outii = 0);
+                                unsigned int outii = 0,
+                                bool useAlsoVtxCoords = false);
 
     // note: this one will work only in CMSSW
     MultififoRegionizerEmulator(const edm::ParameterSet& iConfig);
