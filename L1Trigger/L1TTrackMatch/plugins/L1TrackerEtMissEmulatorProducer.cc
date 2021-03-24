@@ -17,9 +17,10 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "DataFormats/L1Trigger/interface/EtSum.h"
 #include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+
 #include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuAlgo.h"
 #include "L1Trigger/L1TTrackMatch/interface/Cordic.h"
-#include "L1Trigger/L1TTrackMatch/interface/METTrackTransform.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuTrackTransform.h"
 
 #include <numeric>
 
@@ -48,15 +49,12 @@ private:
   std::vector<iglobPhi> phi_quadrants;
   std::vector<iglobPhi> phi_shifts;
 
-  std::map<std::string, unsigned int> binmap;  //Makes accessing N_bins easier, abstracts this data to METtrackTransform
-  std::map<std::string, float> maxmap;
-
   int CordicSteps;
   int debug;
   bool cordicdebug = false;
   bool writeLUTs = false;
 
-  METTrackTransform TrackTransform;
+  L1TkEtMissEmuTrackTransform TrackTransform;
 
   std::string L1MetCollectionName;
 
@@ -74,8 +72,6 @@ L1TrackerEtMissEmulatorProducer::L1TrackerEtMissEmulatorProducer(const edm::Para
   EtCuts = TrackTransform.TransfromCuts(iConfig);
   phi_quadrants = TrackTransform.get_phi_quad();
   phi_shifts = TrackTransform.get_phi_shift();
-  binmap = TrackTransform.get_binmap();
-  maxmap = TrackTransform.get_maxmap();
 
   CordicSteps = (int)iConfig.getParameter<int>("nCordicSteps");
   debug = (int)iConfig.getParameter<int>("Debug");
@@ -88,7 +84,8 @@ L1TrackerEtMissEmulatorProducer::L1TrackerEtMissEmulatorProducer(const edm::Para
   }
 
   //To have same bin spacing between 0 and pi/2 as between original phi granularity
-  int cosLUT_bins = ceil((L1TkEtMissEmuAlgo::max_LUT_phi_ * (binmap["globphi"] - 1)) / (2 * maxmap["phi"]));
+  int cosLUT_bins = ceil((L1TkEtMissEmuAlgo::max_LUT_phi_ * (L1TkEtMissEmuAlgo::N_globPhiBins_ - 1)) /
+                         (2 * L1TkEtMissEmuAlgo::max_TWord_Phi_));
 
   // Compute LUTs
   cosLUT = FillCosLUT(cosLUT_bins);
@@ -128,7 +125,9 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
   edm::Handle<L1TTTrackCollectionType> L1TTTrackHandle;
   iEvent.getByToken(trackToken_, L1TTTrackHandle);
 
-  Cordic cordic_sqrt(binmap["globphi"], L1TkEtMissEmuAlgo::N_ptBits_, CordicSteps, cordicdebug, writeLUTs);
+  //Initialize cordic class
+  Cordic cordicSqrt(
+      L1TkEtMissEmuAlgo::N_METphibins_, L1TkEtMissEmuAlgo::N_METbits_, CordicSteps, cordicdebug, writeLUTs);
 
   if (!L1VertexHandle.isValid()) {
     LogError("L1TrackerEtMissEmulatorProducer")
@@ -180,7 +179,7 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
     int temp = EtTrack.z0 - EtTrack.pV;
     iZ0 z_diff = abs(temp);
 
-    // Track to vertex association
+    // Track to vertex association, adaptive z window based on eta region
     for (unsigned int reg = 0; reg < L1TkEtMissEmuAlgo::N_etaregions_; reg++) {
       if (EtTrack.eta >= EtaRegionsLUT[reg] && EtTrack.eta < EtaRegionsLUT[reg + 1]) {
         deltaZ0 = DeltaZLUT[reg];
@@ -192,75 +191,89 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
       num_assoc_tracks++;
 
       if (debug == 2) {
-        std::cout << "========================Phi Debug=================================\n";
-        std::cout << "pt: " << EtTrack.pt << "\n";
-        std::cout << "Int Phi: " << EtTrack.globalPhi << " Float Phi: " << EtTrack.phi
-                  << " Float Cos(Phi): " << cos(EtTrack.phi) << " Float Sin(Phi): " << sin(EtTrack.phi) << "\n";
+        edm::LogVerbatim("L1TkEtMissEmulator")
+            << "========================Phi Debug=================================\n";
+        edm::LogVerbatim("L1TkEtMissEmulator") << "Int pT: " << EtTrack.pt << "\n";
+        edm::LogVerbatim("L1TkEtMissEmulator")
+            << "Int Phi: " << EtTrack.globalPhi << " Float Phi: " << EtTrack.phi
+            << " Actual Float Cos(Phi): " << cos(EtTrack.phi) << " Actual Float Sin(Phi): " << sin(EtTrack.phi) << "\n";
       }
 
       // Split tracks in phi quadrants and access cosLUT, backwards iteration through cosLUT gives sin
       // Sum sector Et -ve when cos or sin phi are -ve
       if (EtTrack.globalPhi >= phi_quadrants[0] && EtTrack.globalPhi < phi_quadrants[1]) {
-        sumPx[EtTrack.Sector] = sumPx[EtTrack.Sector] + (EtTrack.pt * cosLUT[EtTrack.globalPhi]) / binmap["globphi"];
+        sumPx[EtTrack.Sector] =
+            sumPx[EtTrack.Sector] + (EtTrack.pt * cosLUT[EtTrack.globalPhi]) / L1TkEtMissEmuAlgo::N_globPhiBins_;
         sumPy[EtTrack.Sector] =
-            sumPy[EtTrack.Sector] + (EtTrack.pt * cosLUT[phi_quadrants[1] - 1 - EtTrack.globalPhi]) / binmap["globphi"];
+            sumPy[EtTrack.Sector] +
+            (EtTrack.pt * cosLUT[phi_quadrants[1] - 1 - EtTrack.globalPhi]) / L1TkEtMissEmuAlgo::N_globPhiBins_;
 
         if (debug == 2) {
-          std::cout << "Sector: " << EtTrack.Sector << " Quadrant: " << 1 << "\n";
-          std::cout << "Int Phi: " << EtTrack.globalPhi << " Int Cos(Phi): " << cosLUT[EtTrack.globalPhi]
-                    << " Int Sin(Phi): " << cosLUT[phi_quadrants[1] - 1 - EtTrack.globalPhi] << "\n";
-          std::cout << "Int Phi: " << (float)EtTrack.globalPhi / binmap["globphi"]
-                    << " Int Cos(Phi): " << (float)cosLUT[EtTrack.globalPhi] / binmap["globphi"]
-                    << " Int Sin(Phi): " << (float)cosLUT[phi_quadrants[1] - 1 - EtTrack.globalPhi] / binmap["globphi"]
-                    << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator") << "Sector: " << EtTrack.Sector << " Quadrant: " << 1 << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Int Phi: " << EtTrack.globalPhi << " Int Cos(Phi): " << cosLUT[EtTrack.globalPhi]
+              << " Int Sin(Phi): " << cosLUT[phi_quadrants[1] - 1 - EtTrack.globalPhi] << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Float Phi: " << (float)EtTrack.globalPhi / L1TkEtMissEmuAlgo::N_globPhiBins_
+              << " Float Cos(Phi): " << (float)cosLUT[EtTrack.globalPhi] / L1TkEtMissEmuAlgo::N_globPhiBins_
+              << " Float Sin(Phi): "
+              << (float)cosLUT[phi_quadrants[1] - 1 - EtTrack.globalPhi] / L1TkEtMissEmuAlgo::N_globPhiBins_ << "\n";
         }
       } else if (EtTrack.globalPhi >= phi_quadrants[1] && EtTrack.globalPhi < phi_quadrants[2]) {
         sumPx[EtTrack.Sector] =
-            sumPx[EtTrack.Sector] - (EtTrack.pt * cosLUT[phi_quadrants[2] - 1 - EtTrack.globalPhi]) / binmap["globphi"];
-        sumPy[EtTrack.Sector] =
-            sumPy[EtTrack.Sector] + (EtTrack.pt * cosLUT[EtTrack.globalPhi - phi_quadrants[1]]) / binmap["globphi"];
+            sumPx[EtTrack.Sector] -
+            (EtTrack.pt * cosLUT[phi_quadrants[2] - 1 - EtTrack.globalPhi]) / L1TkEtMissEmuAlgo::N_globPhiBins_;
+        sumPy[EtTrack.Sector] = sumPy[EtTrack.Sector] + (EtTrack.pt * cosLUT[EtTrack.globalPhi - phi_quadrants[1]]) /
+                                                            L1TkEtMissEmuAlgo::N_globPhiBins_;
 
         if (debug == 2) {
-          std::cout << "Sector: " << EtTrack.Sector << " Quadrant: " << 2 << "\n";
-          std::cout << "Int Phi: " << EtTrack.globalPhi << " Int Cos(Phi): -"
-                    << cosLUT[phi_quadrants[2] - EtTrack.globalPhi]
-                    << " Int Sin(Phi): " << cosLUT[EtTrack.globalPhi - phi_quadrants[1]] << "\n";
-          std::cout << "Int Phi: " << (float)EtTrack.globalPhi / binmap["globphi"] << " Int Cos(Phi): -"
-                    << (float)cosLUT[phi_quadrants[2] - 1 - EtTrack.globalPhi] / binmap["globphi"]
-                    << " Int Sin(Phi): " << (float)cosLUT[EtTrack.globalPhi - phi_quadrants[1]] / binmap["globphi"]
-                    << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator") << "Sector: " << EtTrack.Sector << " Quadrant: " << 2 << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Int Phi: " << EtTrack.globalPhi << " Int Cos(Phi): -" << cosLUT[phi_quadrants[2] - EtTrack.globalPhi]
+              << " Int Sin(Phi): " << cosLUT[EtTrack.globalPhi - phi_quadrants[1]] << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Float Phi: " << (float)EtTrack.globalPhi / L1TkEtMissEmuAlgo::N_globPhiBins_ << " Float Cos(Phi): -"
+              << (float)cosLUT[phi_quadrants[2] - 1 - EtTrack.globalPhi] / L1TkEtMissEmuAlgo::N_globPhiBins_
+              << " Float Sin(Phi): "
+              << (float)cosLUT[EtTrack.globalPhi - phi_quadrants[1]] / L1TkEtMissEmuAlgo::N_globPhiBins_ << "\n";
         }
       } else if (EtTrack.globalPhi >= phi_quadrants[2] && EtTrack.globalPhi < phi_quadrants[3]) {
-        sumPx[EtTrack.Sector] =
-            sumPx[EtTrack.Sector] - (EtTrack.pt * cosLUT[EtTrack.globalPhi - phi_quadrants[2]]) / binmap["globphi"];
+        sumPx[EtTrack.Sector] = sumPx[EtTrack.Sector] - (EtTrack.pt * cosLUT[EtTrack.globalPhi - phi_quadrants[2]]) /
+                                                            L1TkEtMissEmuAlgo::N_globPhiBins_;
         sumPy[EtTrack.Sector] =
-            sumPy[EtTrack.Sector] - (EtTrack.pt * cosLUT[phi_quadrants[3] - 1 - EtTrack.globalPhi]) / binmap["globphi"];
+            sumPy[EtTrack.Sector] -
+            (EtTrack.pt * cosLUT[phi_quadrants[3] - 1 - EtTrack.globalPhi]) / L1TkEtMissEmuAlgo::N_globPhiBins_;
 
         if (debug == 2) {
-          std::cout << "Sector: " << EtTrack.Sector << " Quadrant: " << 3 << "\n";
-          std::cout << "Int Phi: " << EtTrack.globalPhi << " Int Cos(Phi): -"
-                    << cosLUT[EtTrack.globalPhi - phi_quadrants[2]] << " Int Sin(Phi): -"
-                    << cosLUT[phi_quadrants[3] - 1 - EtTrack.globalPhi] << "\n";
-          std::cout << "Int Phi: " << (float)EtTrack.globalPhi / binmap["globphi"] << " Int Cos(Phi): -"
-                    << (float)cosLUT[EtTrack.globalPhi - phi_quadrants[2]] / binmap["globphi"] << " Int Sin(Phi): -"
-                    << (float)cosLUT[phi_quadrants[3] - 1 - EtTrack.globalPhi] / binmap["globphi"] << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator") << "Sector: " << EtTrack.Sector << " Quadrant: " << 3 << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Int Phi: " << EtTrack.globalPhi << " Int Cos(Phi): -" << cosLUT[EtTrack.globalPhi - phi_quadrants[2]]
+              << " Int Sin(Phi): -" << cosLUT[phi_quadrants[3] - 1 - EtTrack.globalPhi] << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Float Phi: " << (float)EtTrack.globalPhi / L1TkEtMissEmuAlgo::N_globPhiBins_ << " Float Cos(Phi): -"
+              << (float)cosLUT[EtTrack.globalPhi - phi_quadrants[2]] / L1TkEtMissEmuAlgo::N_globPhiBins_
+              << " Float Sin(Phi): -"
+              << (float)cosLUT[phi_quadrants[3] - 1 - EtTrack.globalPhi] / L1TkEtMissEmuAlgo::N_globPhiBins_ << "\n";
         }
 
       } else if (EtTrack.globalPhi >= phi_quadrants[3] && EtTrack.globalPhi < phi_quadrants[4]) {
         sumPx[EtTrack.Sector] =
-            sumPx[EtTrack.Sector] + (EtTrack.pt * cosLUT[phi_quadrants[4] - 1 - EtTrack.globalPhi]) / binmap["globphi"];
-        sumPy[EtTrack.Sector] =
-            sumPy[EtTrack.Sector] - (EtTrack.pt * cosLUT[EtTrack.globalPhi - phi_quadrants[3]]) / binmap["globphi"];
+            sumPx[EtTrack.Sector] +
+            (EtTrack.pt * cosLUT[phi_quadrants[4] - 1 - EtTrack.globalPhi]) / L1TkEtMissEmuAlgo::N_globPhiBins_;
+        sumPy[EtTrack.Sector] = sumPy[EtTrack.Sector] - (EtTrack.pt * cosLUT[EtTrack.globalPhi - phi_quadrants[3]]) /
+                                                            L1TkEtMissEmuAlgo::N_globPhiBins_;
 
         if (debug == 2) {
-          std::cout << "Sector: " << EtTrack.Sector << " Quadrant: " << 4 << "\n";
-          std::cout << "Int Phi: " << EtTrack.globalPhi
-                    << " Int Cos(Phi): " << cosLUT[phi_quadrants[4] - 1 - EtTrack.globalPhi] << " Int Sin(Phi): -"
-                    << cosLUT[EtTrack.globalPhi - phi_quadrants[3]] << "\n";
-          std::cout << "Int Phi: " << (float)EtTrack.globalPhi / binmap["globphi"]
-                    << " Int Cos(Phi): " << (float)cosLUT[phi_quadrants[4] - 1 - EtTrack.globalPhi] / binmap["globphi"]
-                    << " Int Sin(Phi): -" << (float)cosLUT[EtTrack.globalPhi - phi_quadrants[3]] / binmap["globphi"]
-                    << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator") << "Sector: " << EtTrack.Sector << " Quadrant: " << 4 << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Int Phi: " << EtTrack.globalPhi
+              << " Int Cos(Phi): " << cosLUT[phi_quadrants[4] - 1 - EtTrack.globalPhi] << " Int Sin(Phi): -"
+              << cosLUT[EtTrack.globalPhi - phi_quadrants[3]] << "\n";
+          edm::LogVerbatim("L1TkEtMissEmulator")
+              << "Float Phi: " << (float)EtTrack.globalPhi / L1TkEtMissEmuAlgo::N_globPhiBins_ << " Float Cos(Phi): "
+              << (float)cosLUT[phi_quadrants[4] - 1 - EtTrack.globalPhi] / L1TkEtMissEmuAlgo::N_globPhiBins_
+              << " Float Sin(Phi): -"
+              << (float)cosLUT[EtTrack.globalPhi - phi_quadrants[3]] / L1TkEtMissEmuAlgo::N_globPhiBins_ << "\n";
         }
       }
     }
@@ -270,64 +283,64 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
   iEt GlobalPx = 0;
   iEt GlobalPy = 0;
 
-  //Global Et sum with global phi bit shift to bring sums back to correct magnitude
+  //Global Et sum
   for (unsigned int i = 0; i < L1TkEtMissEmuAlgo::N_sectors_; i++) {
     GlobalPx = GlobalPx + sumPx[i];
     GlobalPy = GlobalPy + sumPy[i];
   }
 
-  //Perform cordic sqrt, take x,y and converts to polar coordinate r/phi where r=sqrt(x**2+y**2) and phi = atan(y/x)
-  EtMiss EtMiss = cordic_sqrt.to_polar(GlobalPx, GlobalPy);
+  //Perform cordic sqrt, take x,y and converts to polar coordinate r,phi where r=sqrt(x**2+y**2) and phi = atan(y/x)
+  EtMiss EtMiss = cordicSqrt.toPolar(GlobalPx, GlobalPy);
 
   // Recentre phi
-  int tempPhi = 0;
+  iMETphi tempPhi = 0;
 
   if ((GlobalPx < 0) && (GlobalPy < 0))
-    tempPhi = EtMiss.Phi - binmap["globphi"] / 2;
+    tempPhi = EtMiss.Phi - L1TkEtMissEmuAlgo::N_METphibins_ / 2;
   else if ((GlobalPx >= 0) && (GlobalPy >= 0))
-    tempPhi = (EtMiss.Phi) + binmap["globphi"] / 2;
+    tempPhi = (EtMiss.Phi) + L1TkEtMissEmuAlgo::N_METphibins_ / 2;
   else if ((GlobalPx >= 0) && (GlobalPy < 0))
-    tempPhi = EtMiss.Phi - binmap["globphi"] / 2;
+    tempPhi = EtMiss.Phi - L1TkEtMissEmuAlgo::N_METphibins_ / 2;
   else if ((GlobalPx < 0) && (GlobalPy >= 0))
-    tempPhi = -EtMiss.Phi + 3 * binmap["globphi"] / 2;
+    tempPhi = -EtMiss.Phi + 3 * L1TkEtMissEmuAlgo::N_METphibins_ / 2;
 
-  if (debug == 4) {
-    float EtScale = maxmap["pt"] / binmap["pt"];
-    float EtphiScale = (2 * M_PI) / binmap["globphi"];
-    std::cout << "====Sector Pt===="
-              << "\n";
+  if (debug == 6) {
+    float EtScale = (L1TkEtMissEmuAlgo::max_METWord_ET_ / L1TkEtMissEmuAlgo::N_METbins_);
+    float EtphiScale = (L1TkEtMissEmuAlgo::max_METWord_Phi_ / L1TkEtMissEmuAlgo::N_METphibins_);
+    edm::LogVerbatim("L1TkEtMissEmulator") << "====Sector Pt====\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "Px: ";
     for (auto i : sumPx) {
-      std::cout << i * EtScale << "|";
+      edm::LogVerbatim("L1TkEtMissEmulator") << i * EtScale << "|";
     }
-    std::cout << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "\n Py: ";
     for (auto i : sumPy) {
-      std::cout << i * EtScale << "|";
+      edm::LogVerbatim("L1TkEtMissEmulator") << i * EtScale << "|";
     }
-    std::cout << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "\n";
 
-    std::cout << "====Global Pt===="
-              << "\n";
-    std::cout << GlobalPx << "|" << GlobalPy << "\n";
-    std::cout << GlobalPx * EtScale << "|" << GlobalPy * EtScale << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "====Global Pt====\n";
+    edm::LogVerbatim("L1TkEtMissEmulator")
+        << "Integer Global Px: " << GlobalPx << "| Integer Global Py: " << GlobalPy << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator")
+        << "Float Global Px: " << GlobalPx * EtScale << "| Float Global Py: " << GlobalPy * EtScale << "\n";
   }
 
   if (debug == 6) {
-    float EtScale = maxmap["pt"] / binmap["pt"];
-    float EtphiScale = (2 * M_PI) / binmap["globphi"];
-    std::cout << "====MET==="
-              << "\n";
-    std::cout << EtMiss.Et << "|" << EtMiss.Phi << "\n";
-    std::cout << (EtMiss.Et) * EtScale << "|" << (float)tempPhi * EtphiScale << "\n";
+    float EtScale = (L1TkEtMissEmuAlgo::max_METWord_ET_ / L1TkEtMissEmuAlgo::N_METbins_);
+    float EtphiScale = (L1TkEtMissEmuAlgo::max_METWord_Phi_ / L1TkEtMissEmuAlgo::N_METphibins_);
+    edm::LogVerbatim("L1TkEtMissEmulator") << "====MET===\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "Integer MET: " << EtMiss.Et << "| Integer MET phi" << EtMiss.Phi << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator")
+        << "Float MET: " << (EtMiss.Et) * EtScale << "| Float MET phi" << (float)tempPhi * EtphiScale - M_PI << "\n";
 
-    std::cout << "numTracks: " << num_tracks << "\n";
-    std::cout << "quality Tracks: " << num_quality_tracks << "\n";
-    std::cout << "assoc_tracks: " << num_assoc_tracks << "\n";
-    std::cout << "========================================================"
-              << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "# Intial Tracks: " << num_tracks << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "# Tracks after Quality Cuts: " << num_quality_tracks << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "# Tracks Associated to Vertex: " << num_assoc_tracks << "\n";
+    edm::LogVerbatim("L1TkEtMissEmulator") << "========================================================\n";
   }
 
   math::XYZTLorentzVector missingEt(-GlobalPx, -GlobalPy, 0, EtMiss.Et);
-  EtSum L1EtSum(missingEt, EtSum::EtSumType::kMissingEt, (int)EtMiss.Et, 0, tempPhi, (int)num_assoc_tracks);
+  EtSum L1EtSum(missingEt, EtSum::EtSumType::kMissingEt, (int)EtMiss.Et, 0, (int)tempPhi, (int)num_assoc_tracks);
 
   METCollection->push_back(L1EtSum);
 

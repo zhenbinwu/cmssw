@@ -122,8 +122,8 @@ void L1TkMETAnalyser::beginJob() {
     hisPhiResidual_ = inputDir.make<TH1F>("hisPhiResidual_", "sim - emu phi [rad]", 101, -1, 1);
     hisNtrkResidual_ = inputDir.make<TH1F>("hisNtrkResidual_", "sim - emu ntrks", 101, -10, 10);
 
-    EtScale = L1TkEtMissEmuAlgo::max_TWord_Pt_ / L1TkEtMissEmuAlgo::N_ptBins_;
-    EtphiScale = (2 * M_PI) / L1TkEtMissEmuAlgo::N_globPhiBins_;
+    EtScale = (L1TkEtMissEmuAlgo::max_METWord_ET_ / L1TkEtMissEmuAlgo::N_METbins_);
+    EtphiScale = (L1TkEtMissEmuAlgo::max_METWord_Phi_ / L1TkEtMissEmuAlgo::N_METphibins_);
   }
 
   if (HW_analysis_) {

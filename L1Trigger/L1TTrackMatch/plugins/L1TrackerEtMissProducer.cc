@@ -210,17 +210,6 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
 
   math::XYZTLorentzVector missingEt(-sumPx, -sumPy, 0, et);
 
-  /*
-  std::cout << "====Global Pt====" << std::endl;
-  std::cout << sumPx << "|" << sumPy << std::endl;
-  std::cout << "====MET===" << std::endl;
-  std::cout << et << "|" << etphi << std::endl;
-
-  std::cout << "numTracks: " << numtracks << std::endl;
-  std::cout << "quality Tracks: " << numqualitytracks << std::endl;
-  std::cout << "assoc_tracks: " << numassoctracks << std::endl;
-  std::cout << "========================================================" << std::endl;
-  */
 
   int ibx = 0;
   METCollection->push_back(TkEtMiss(missingEt, TkEtMiss::kMET, etphi, numassoctracks, ibx));

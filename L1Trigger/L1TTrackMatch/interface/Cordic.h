@@ -8,20 +8,26 @@ using namespace L1TkEtMissEmuAlgo;
 class Cordic {
 public:
   Cordic();
-  Cordic(iPhi aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs);
+  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs);
 
-  EtMiss to_polar(iEt x, iEt y) const;
+  EtMiss toPolar(iEt x, iEt y) const;
 
 private:
+  //Scale for Phi calculation to maintain precision
   const int mPhiScale;
+  //Scale for Magnitude calculation
   const int mMagnitudeScale;
+  //Bit width for internal magnitude
   const int mMagnitudeBits;
-  const int cordic_steps;
+  //Number of cordic iterations
+  const int cordicSteps;
 
   const bool debug;
 
-  std::vector<iPhi> atan_LUT;
-  std::vector<iEt> mag_renormalization_LUT;
+  //To calculate atan
+  std::vector<iMETphi> atanLUT;
+  //To normalise final magnitude
+  std::vector<iEt> magNormalisationLUT;
 };
 
 #endif

@@ -13,6 +13,8 @@
 #include <ap_int.h>
 
 using namespace std;
+// Namespace that defines constants and types used by the EtMiss Emulation
+// Includes functions for writing LUTs and converting to integer representations
 namespace L1TkEtMissEmuAlgo {
 
   const unsigned int N_chi2XYbits_{4};  //Taken from TTTrack_Word class
@@ -27,6 +29,9 @@ namespace L1TkEtMissEmuAlgo {
   const unsigned int N_globphiExtra_{3};  //Extra bits needed by global phi to span full range
   const unsigned int N_EtExtra_{8};       //Extra room for Et sums
 
+  const unsigned int N_METbits_{14};     //For output Magnitude
+  const unsigned int N_METphibits_{11};  //For Output Phi
+
   typedef ap_uint<N_chi2XYbits_> ichi2XY;
   typedef ap_uint<N_chi2bendbits_> ichi2bend;
   typedef ap_uint<3> iNstub;
@@ -36,6 +41,10 @@ namespace L1TkEtMissEmuAlgo {
   typedef ap_uint<N_ptBits_> iPt;
   typedef ap_int<N_ptBits_ + N_EtExtra_> iEt;
   typedef ap_uint<N_etaBits_> iEta;
+
+  typedef ap_uint<N_METbits_> iMET;
+  typedef ap_uint<N_METphibits_>
+      iMETphi;  //Cordic means this is evaluated between 0 and 2Pi rather than -pi to pi so unsigned
 
   /*
   typedef unsigned int ichi2XY;
@@ -47,6 +56,9 @@ namespace L1TkEtMissEmuAlgo {
   typedef unsigned int iPt;
   typedef int iEt;
   typedef unsigned int iEta;
+
+  typedef unsigned int iMET
+  typedef unsigned int iMETphi
   */
 
   const unsigned int N_chi2XYbins_ = 1 << N_chi2XYbits_;
@@ -56,6 +68,8 @@ namespace L1TkEtMissEmuAlgo {
   const unsigned int N_z0Bins_ = 1 << N_z0Bits_;
   const unsigned int N_phiBins_ = 1 << N_phiBits_;
   const unsigned int N_globPhiBins_ = 1 << N_globphiBits_;
+  const unsigned int N_METbins_ = 1 << N_METbits_;
+  const unsigned int N_METphibins_ = 1 << N_METphibits_;
 
   const unsigned int N_etaregions_{6};
   const unsigned int N_sectors_{9};
@@ -66,28 +80,35 @@ namespace L1TkEtMissEmuAlgo {
   const float max_TWord_Eta_{2.776472281};
   const float max_TWord_Z0_{20.46912512};
 
+  const float max_METWord_ET_{4000};
+  const float max_METWord_Phi_{2 * M_PI};
+
   const float EtaRegions_[N_etaregions_ + 1] = {0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4};
   const float DeltaZ_[N_etaregions_] = {0.4, 0.6, 0.76, 1.0, 1.7, 2.2};
 
-  const float max_LUT_phi_{
-      M_PI / 2};  // Enough symmetry in cos and sin between 0 and pi/2 to get all possible values of cos and sin phi
+  const float chi2Values[N_chi2XYbins_] = {0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000};
+  const float chi2bendValues[N_chi2bendbins_] = {0, 0.5, 1.25, 2, 3, 5, 10, 50};
+
+  // Enough symmetry in cos and sin between 0 and pi/2 to get all possible values of cos and sin phi
+  const float max_LUT_phi_{M_PI / 2};
 
   const string LUTdir_{"LUTs/"};
 
+  //Simple struct used for ouput of cordic
   struct EtMiss {
-    iEt Et;
-    iglobPhi Phi;
+    iMET Et;
+    iMETphi Phi;
   };
 
   std::vector<iglobPhi> FillCosLUT(unsigned int cosLUT_size);
   std::vector<iEta> generate_EtaRegions();
   std::vector<iZ0> generate_DeltaZBins();
 
-  //Function to transform float variables to fixed type ints -> would be part of tttrack needed for cuts
+  //Function to transform float variables to fixed type ints
   template <typename T>
   T digitize_Signed(float var, float min, float max, unsigned int n_bins) {
     float temp_var{0.0};
-    T seg = 0;
+    T out = 0;
 
     if (var > max) {
       temp_var = max;
@@ -101,8 +122,8 @@ namespace L1TkEtMissEmuAlgo {
     }
 
     temp_var = (temp_var - min) / ((max - min) / (n_bins - 1));
-    seg = T(temp_var);
-    return seg;
+    out = T(temp_var);
+    return out;
   }
 
   template <typename T>

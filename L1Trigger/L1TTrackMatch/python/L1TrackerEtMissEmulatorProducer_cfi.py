@@ -15,7 +15,6 @@ L1TrackerEmuEtMiss = cms.EDProducer('L1TrackerEtMissEmulatorProducer',
 
     nCordicSteps = cms.int32( 8 ), #Number of steps for cordic sqrt and phi computation
     Debug        = cms.int32( 0 ),  #0 - No Debug, 1 - LUT debug, 2 - Phi Debug, 3 - Z debug, 4 - Et Debug, 5 - Cordic Debug, 6 - Output
-    phiScale     = cms.int32( 2048), #Phi scale for cordic to convert to degrees in radians
-    WriteLUTs    = cms.bool(True)
+    WriteLUTs    = cms.bool( False )
 )
 
