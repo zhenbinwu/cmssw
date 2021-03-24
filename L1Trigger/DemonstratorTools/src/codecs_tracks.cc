@@ -25,13 +25,13 @@ namespace l1t::demo::codecs {
   }
 
   // Encodes track collection onto 18 output links (2x9 eta-phi sectors; first 9 negative eta)
-  std::array<std::vector<l1t::demo::Frame>, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>& tracks) {
+  std::array<l1t::demo::BoardData::Channel, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>& tracks) {
     std::array<std::vector<ap_uint<96>>, 18> trackWords;
 
     for (const auto& track : tracks)
       trackWords.at((track.eta() >= 0 ? 9 : 0) + track.phiSector()).push_back(encodeTrack(track));
 
-    std::array<std::vector<l1t::demo::Frame>, 18> linkData;
+    std::array<l1t::demo::BoardData::Channel, 18> linkData;
 
     for (size_t i = 0; i < linkData.size(); i++) {
       // Pad track vectors -> full packet length (156 frames = 104 tracks)

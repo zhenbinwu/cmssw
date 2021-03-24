@@ -6,11 +6,11 @@
 
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 
-#include "L1Trigger/DemonstratorTools/interface/Frame.h"
+#include "L1Trigger/DemonstratorTools/interface/BoardData.h"
 
 namespace l1t::demo::codecs {
 
-  std::vector<l1t::Vertex> decodeVertices(const std::vector<l1t::demo::Frame>&);
+  std::vector<l1t::Vertex> decodeVertices(const l1t::demo::BoardData::Channel&);
 
 }
 

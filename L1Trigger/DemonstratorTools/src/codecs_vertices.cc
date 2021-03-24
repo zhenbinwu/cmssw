@@ -3,7 +3,7 @@
 
 namespace l1t::demo::codecs {
 
-  std::vector<l1t::Vertex> decodeVertices(const std::vector<l1t::demo::Frame>& frames) {
+  std::vector<l1t::Vertex> decodeVertices(const l1t::demo::BoardData::Channel& frames) {
     std::vector<l1t::Vertex> vertices;
 
     for (const auto& x : frames) {

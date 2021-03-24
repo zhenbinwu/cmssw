@@ -136,7 +136,7 @@ void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup
   eventCount_++;
 
   // 1) Encode track information onto vectors containing link data
-  const std::array<std::vector<l1t::demo::Frame>, 18> trackData(
+  const std::array<l1t::demo::BoardData::Channel, 18> trackData(
       l1t::demo::codecs::encodeTracks(iEvent.get(tracksToken_)));
 
   // 2) Pack track information into 'board data' object, and pass that to file writer
