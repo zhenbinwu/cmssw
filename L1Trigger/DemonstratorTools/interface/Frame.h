@@ -15,7 +15,7 @@ namespace l1t::demo {
 
     Frame(const ap_uint<64>&);
 
-    uint64_t data{0};
+    ap_uint<64> data{0};
     bool valid{false};
     bool strobe{true};
   };

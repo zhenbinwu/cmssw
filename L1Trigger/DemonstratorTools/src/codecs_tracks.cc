@@ -39,10 +39,10 @@ namespace l1t::demo::codecs {
       linkData.at(i).resize(156, {0});
 
       for (size_t j = 0; (j < trackWords.size()); j += 2) {
-        linkData.at(i).at(3 * j / 2).data = ap_uint<64>(trackWords.at(i).at(j)(63, 0));
+        linkData.at(i).at(3 * j / 2).data = trackWords.at(i).at(j)(63, 0);
         linkData.at(i).at(3 * j / 2 + 1).data =
-            ap_uint<64>((ap_uint<32>(trackWords.at(i).at(j + 1)(31, 0)), ap_uint<32>(trackWords.at(i).at(j)(95, 64))));
-        linkData.at(i).at(3 * j / 2 + 2).data = ap_uint<64>(trackWords.at(i).at(j + 1)(95, 32));
+            (ap_uint<32>(trackWords.at(i).at(j + 1)(31, 0)), ap_uint<32>(trackWords.at(i).at(j)(95, 64)));
+        linkData.at(i).at(3 * j / 2 + 2).data = trackWords.at(i).at(j + 1)(95, 32);
       }
     }
 

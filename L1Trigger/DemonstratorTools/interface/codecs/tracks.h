@@ -5,6 +5,8 @@
 #include <array>
 #include <vector>
 
+#include "ap_int.h"
+
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"

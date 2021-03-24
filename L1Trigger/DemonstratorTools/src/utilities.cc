@@ -171,7 +171,7 @@ namespace l1t::demo {
         }
         // Data word
         else
-          dataRows.back().at((count - 1) / 2).data = std::stoull(token, nullptr, 16);
+          dataRows.back().at((count - 1) / 2).data = ap_uint<64>(std::stoull(token, nullptr, 16));
       }
 
       if (count != (2 * indices.size() + 1))
@@ -241,7 +241,7 @@ namespace l1t::demo {
         }
 
         value.valid = (what[2] == "1v");
-        value.data = std::stoull(what[3].str(), nullptr, 16);
+        value.data = ap_uint<64>(std::stoull(what[3].str(), nullptr, 16));
 
         row.push_back(value);
       }
@@ -339,7 +339,7 @@ namespace l1t::demo {
         if ((i + 1) < channelData.size())
           sideband |= (channelData.at(i).valid and (not channelData.at(i + 1).valid)) << 3;
         file << "    0x" << std::setw(2) << sideband;
-        file << " 0x" << std::setw(16) << channelData.at(i).data;
+        file << " 0x" << std::setw(16) << uint64_t(channelData.at(i).data);
       }
       file << std::endl;
     }
@@ -371,7 +371,8 @@ namespace l1t::demo {
         file << " ";
         //TODO: Add strobe if zero anywhere on channel
         file << "  ";
-        file << std::setw(1) << channelData.at(i).valid << "v" << std::setw(16) << std::hex << channelData.at(i).data;
+        file << std::setw(1) << channelData.at(i).valid << "v" << std::setw(16) << std::hex
+             << uint64_t(channelData.at(i).data);
       }
       file << std::endl << std::dec;
     }
