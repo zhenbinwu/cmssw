@@ -11,7 +11,7 @@ namespace l1t::demo::codecs {
         break;
 
       // TODO: Replace with complete implementation
-      Vertex vertex(ap_fixed<15, 6>(ap_uint<64>(x.data)(15, 1)), {});
+      Vertex vertex(0.0, ap_fixed<15, 6>(ap_uint<64>(x.data)(15, 1)), {});
       vertices.push_back(vertex);
     }
 
