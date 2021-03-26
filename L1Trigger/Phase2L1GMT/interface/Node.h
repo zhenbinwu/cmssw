@@ -114,9 +114,10 @@ namespace Phase2L1GMT {
     std::copy (muCleaned7.begin(), muCleaned7.end(), std::back_inserter(muCleaned));
     std::copy (muCleaned8.begin(), muCleaned8.end(), std::back_inserter(muCleaned));
 
+    
+    std::vector<l1t::TrackerMuon> trackMatchedMuonsNoIso = track_mu_match_->convert(muCleaned,32);
 
-    std::vector<l1t::TrackerMuon> trackMatchedMuonsNoIso = track_mu_match_->convert(muCleaned,12);
-
+    
     //Isolation and tau3mu will read those muons and all 9 collections of convertedTracks* 
     std::vector<ConvertedTTTrack>  convertedTracks = convertedTracks0;
     std::copy (convertedTracks1.begin(), convertedTracks1.end(), std::back_inserter(convertedTracks));
@@ -144,12 +145,15 @@ namespace Phase2L1GMT {
         t.setPhi(t.phi() -pow(2, BITSPHI));
       }
     }
+    
+    //sorter here:
+    std::vector<l1t::TrackerMuon> sortedTrackMuonsNoIso = track_mu_match_->sort(trackMatchedMuonsNoIso,12);
+    
+    isolation_->isolation_allmu_alltrk(sortedTrackMuonsNoIso, convertedTracks );
 
-    isolation_->isolation_allmu_alltrk(trackMatchedMuonsNoIso, convertedTracks );
+    tauto3mu_->GetTau3Mu(sortedTrackMuonsNoIso convertedTracks );
 
-    tauto3mu_->GetTau3Mu(trackMatchedMuonsNoIso, convertedTracks );
-
-    return trackMatchedMuonsNoIso; //when we add more collections like tau3mu etc we change that 
+    return sortedTrackMuonsNoIso; //when we add more collections like tau3mu etc we change that 
   }
 
   private:

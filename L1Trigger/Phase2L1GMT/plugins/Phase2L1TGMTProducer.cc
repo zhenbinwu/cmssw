@@ -86,6 +86,8 @@ Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    std::vector<edm::Ptr< l1t::TrackerMuon::L1TTTrackType > > tracks;
    for (uint i=0;i<trackHandle->size();++i) {
      edm::Ptr< l1t::TrackerMuon::L1TTTrackType > track(trackHandle, i);
+     if (track->momentum().transverse()<2.0)
+       continue;
      if (track->getStubRefs().size()>=(unsigned int)(minTrackStubs_))
        tracks.push_back(track);
    }

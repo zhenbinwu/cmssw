@@ -35,7 +35,7 @@ namespace Phase2L1GMT {
   } propagation_t;
 
   typedef struct {
-    ap_uint<BITSMATCHQUALITY-3> quality;
+    ap_uint<BITSMATCHQUALITY-2> quality;
     ap_uint<BITSSTUBID> id;
     ap_uint<1> valid;
     bool isGlobal;
@@ -75,6 +75,7 @@ namespace Phase2L1GMT {
 
   std::vector<PreTrackMatchedMuon> cleanNeighbor(const std::vector<PreTrackMatchedMuon>&  muons,const std::vector<PreTrackMatchedMuon>&  muonsPrevious,const std::vector<PreTrackMatchedMuon>&  muonsNext, bool equality) {
     std::vector<PreTrackMatchedMuon> out;
+
     if (muons.size()==0)
       return out;
 
@@ -88,14 +89,14 @@ namespace Phase2L1GMT {
       if (verbose_==1) {
 	muons[i].print();
       }
-      bool keep=true;
+      ap_uint<5> mask=0x1f;
       for (uint j=0;j<muonsPrevious.size();++j) {
-	keep=keep && cleanMuon(muons[i],muonsPrevious[j],equality);
+	mask=mask & cleanMuon(muons[i],muonsPrevious[j],equality);
       }
       for (uint j=0;j<muonsNext.size();++j) {
-	keep=keep && cleanMuon(muons[i],muonsNext[j],equality);
+	mask=mask & cleanMuon(muons[i],muonsNext[j],equality);
       }
-      if (keep) {
+      if (mask) {
 	if (verbose_==1)
 	  printf("kept\n");
 	out.push_back(muons[i]);
@@ -132,6 +133,23 @@ namespace Phase2L1GMT {
     return out;
   }    
 
+  std::vector<l1t::TrackerMuon> sort(std::vector<l1t::TrackerMuon>&  muons,uint maximum) {
+    if (muons.size()<2)
+      return muons;
+    
+    std::sort(muons.begin(),muons.end(),[](l1t::TrackerMuon a , l1t::TrackerMuon b) {
+	return a.hwPt()>b.hwPt();
+      });
+    std::vector<l1t::TrackerMuon> out;
+    for (unsigned int i=0;i<muons.size();++i) {
+      out.push_back(muons[i]);
+      if (i==(maximum-1))
+	break;
+    }
+
+    return out;
+  }    
+
 
   private:
 
@@ -149,7 +167,7 @@ namespace Phase2L1GMT {
     ap_uint<BITSPROPSIGMAETA_A>     res0_eta2 = 0;
     ap_uint<1>                      is_barrel = 0;
 
-    uint reducedAbsEta = track.abseta()/32;
+    uint reducedAbsEta = track.abseta()/8;
 
     if (layer ==0 ) {
       prop_coord1        =      lt_prop_coord1_0[reducedAbsEta];
@@ -242,16 +260,16 @@ namespace Phase2L1GMT {
     ap_uint<BITSTTCURV2> curvature2= curvature2All/2;
     
     //Remember to change emulator with new k2
-    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>26;
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord1k = (res1_coord1*curvature2)>>23;
     ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1+rescoord1k;
     out.sigma_coord1 = ap_uint<BITSSIGMACOORD>(sigma_coord1);
 
-    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>26;
+    ap_uint<BITSPROPSIGMACOORD_B+BITSTTCURV2>  rescoord2k = (res1_coord2*curvature2)>>23;
     ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2+rescoord2k;
     out.sigma_coord2 = ap_uint<BITSSIGMACOORD>(sigma_coord2);
 
     
-    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>26;
+    ap_uint<BITSPROPSIGMAETA_B+BITSTTCURV2> resetak = (res1_eta*curvature2)>>23;
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta1 = res0_eta1+resetak;
     out.sigma_eta1 = ap_uint<BITSSIGMAETA>(sigma_eta1);
     ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> sigma_eta2 = res0_eta2+resetak;
@@ -260,6 +278,7 @@ namespace Phase2L1GMT {
     out.is_barrel = is_barrel; 
 
     if(verbose_==1)
+      
       printf("Propagating to layer %d:is barrel=%d  coords=%d+-%d , %d +-%d etas = %d +- %d +-%d\n",int(layer),out.is_barrel.to_int(),out.coord1.to_int(),out.sigma_coord1.to_int(),out.coord2.to_int(),out.sigma_coord2.to_int(),out.eta.to_int(),out.sigma_eta1.to_int(),out.sigma_eta2.to_int());
 
     return out;
@@ -370,9 +389,9 @@ namespace Phase2L1GMT {
 	out.quality=0;
       }
       else {
-	out.quality = 24-deltaCoord1/2;
+	out.quality = 32-deltaCoord1;
 	if (coord2Matched==1)
-	  out.quality+=24-deltaCoord2/2;
+	  out.quality+=32-deltaCoord2;
       }
     }
     //if endcap each coordinate is independent except the case where phiQuality=1 and etaQuality==3
@@ -386,9 +405,9 @@ namespace Phase2L1GMT {
       else {
 	out.quality=0;
 	if (match1||match3)
-	  out.quality+=24-deltaCoord1/2;
+	  out.quality+=32-deltaCoord1;
 	if (match2)
-	  out.quality+=24-deltaCoord2/2;
+	  out.quality+=32-deltaCoord2;
       } 
 
 	
@@ -434,7 +453,7 @@ namespace Phase2L1GMT {
     for (const auto& roi : rois)  {
       if (verbose_==1) {
 	printf("New ROI with %d stubs \n",int(roi.stubs().size()));
-      }
+}
       for (const auto& stub: roi.stubs()) {
 	match_t m = propagateAndMatch(track,stub);
 	if (m.valid==1) {
@@ -457,6 +476,9 @@ namespace Phase2L1GMT {
       }
     }
     
+
+    ap_ufixed<6,6,AP_TRN_ZERO, AP_SAT_SYM> ptPenalty = ap_ufixed<6,6,AP_TRN_ZERO, AP_SAT_SYM>(track.pt()/32); 
+
     ap_uint<BITSMATCHQUALITY> quality=0;
     PreTrackMatchedMuon muon(track.charge(),track.pt(),track.eta(),track.phi(),track.z0(),track.d0());
     
@@ -507,11 +529,18 @@ namespace Phase2L1GMT {
 	quality+=b.quality;
       }
     }
+
     muon.setOfflineQuantities(track.offline_pt(),track.offline_eta(),track.offline_phi());
     muon.setTrkPtr(track.trkPtr());
-    if (quality>15) {
+
+    ap_uint<8> etaAddr = muon.eta()<0 ? ap_uint<8> (-muon.eta()/256) : ap_uint<8> ((muon.eta())/256); 
+    ap_uint<8> ptAddr  = muon.pt()>4095 ? ap_uint<8> (15) : ap_uint<8> (muon.pt()/256);
+    ap_uint<8> addr = ptAddr|(etaAddr<<4);
+    ap_uint<8> qualityCut = lt_tpsID[addr];
+
+    if (quality>=qualityCut) {
       muon.setValid(1);
-      muon.setQuality(quality);
+      muon.setQuality(quality+ptPenalty);
     }
     else {
       muon.setValid(0);
@@ -546,41 +575,43 @@ namespace Phase2L1GMT {
   }
 
 
-  bool cleanMuon(const PreTrackMatchedMuon& mu,const PreTrackMatchedMuon& other,bool eq) {
-	int valids=0;
-	int overlaps=0;
+  ap_uint<5> cleanMuon(const PreTrackMatchedMuon& mu,const PreTrackMatchedMuon& other,bool eq) {
+	ap_uint<5> valid=0;
+	ap_uint<5> overlap=0;
 	if (mu.stubID0()!=511) {
-	  valids=valids+1;
+	  valid = valid | 0x1;
 	  if (mu.stubID0()==other.stubID0())
-	    overlaps=overlaps+1;
+	    overlap=overlap| 0x1;
 	}
 	if (mu.stubID1()!=511) {
-	  valids=valids+1;
+	  valid = valid | 0x2;
 	  if (mu.stubID1()==other.stubID1())
-	    overlaps=overlaps+1;
+	    overlap=overlap| 0x2;
+
 	}
 	if (mu.stubID2()!=511) {
-	  valids=valids+1;
+	  valid = valid | 0x4;
 	  if (mu.stubID2()==other.stubID2())
-	    overlaps=overlaps+1;
+	    overlap=overlap| 0x4;
+
 	}
 	if (mu.stubID3()!=511) {
-	  valids=valids+1;
+	  valid = valid | 0x8;
 	  if (mu.stubID3()==other.stubID3())
-	    overlaps=overlaps+1;
+	  overlap=overlap| 0x8;
+
 	}
 	if (mu.stubID4()!=511) {
-	  valids=valids+1;
+	  valid = valid | 0x10;
 	  if (mu.stubID4()==other.stubID4())
-	    overlaps=overlaps+1;
+	  overlap=overlap| 0x8;
 	}
 
 	
-
-	if ((mu.quality()<other.quality() &&valids>=(overlaps+2) && (!eq)) || (mu.quality()<=other.quality() &&valids>=(overlaps+2) && (eq)))
-	  return false;
+	if (((mu.quality()<other.quality())&&(!eq))||((mu.quality()<=other.quality())&&(eq)))
+	  return valid&(~overlap); 
 	else
-	  return true;
+	  return valid;
   }
 
 
@@ -596,13 +627,13 @@ namespace Phase2L1GMT {
       if (verbose_==1)
 	muons[i].print();
 
-      bool keep=true;
+      ap_uint<5> mask=0x1f;
       for (uint j=0;j<muons.size();++j) {
 	if (i==j)
 	  continue;
-	keep=keep && cleanMuon(muons[i],muons[j],false);
+	mask=mask & cleanMuon(muons[i],muons[j],false);
       }
-      if (keep) {
+      if (mask) {
 	if (verbose_==1)
 	  printf("kept\n");
 	out.push_back(muons[i]);

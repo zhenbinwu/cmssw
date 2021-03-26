@@ -19,7 +19,7 @@ gmtStubs = cms.EDProducer("Phase2L1TGMTStubProducer",
     ),
     Barrel = cms.PSet(                         
         verbose            = cms.int32(0),
-        minPhiQuality      = cms.int32(5),
+        minPhiQuality      = cms.int32(0),#was 5
         minThetaQuality    = cms.int32(0),
         minBX              = cms.int32(0),                           
         maxBX              = cms.int32(0),                           

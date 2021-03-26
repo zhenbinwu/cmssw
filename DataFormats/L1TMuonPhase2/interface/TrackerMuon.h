@@ -57,6 +57,16 @@ namespace l1t {
     void print() const;
     const MuonStubRefVector stubs() const {return stubs_;}
     void addStub(const MuonStubRef& stub) {stubs_.push_back(stub);}
+
+    bool operator < (const TrackerMuon& other) const
+    {
+      return (hwPt() < other.hwPt());
+    }
+    bool operator > (const TrackerMuon& other) const
+    {
+      return (hwPt() > other.hwPt());
+    }
+
   private:
     // used for the Naive producer
     edm::Ptr<L1TTTrackType> trkPtr_;
