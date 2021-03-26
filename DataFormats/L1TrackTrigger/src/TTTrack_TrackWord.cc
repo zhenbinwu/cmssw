@@ -11,9 +11,6 @@
 ///////
 
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
-#include <iostream>
-#include <bitset>
-#include <string>
 
 //Constructor - turn track parameters into 96-bit word
 TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,

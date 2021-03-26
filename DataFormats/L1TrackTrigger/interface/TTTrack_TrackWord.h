@@ -182,8 +182,9 @@ public:
   }
   tkword_t getTrackWord() const { return tkword_t(trackWord_.to_string().c_str(), 2); }
 
-  // These functions return the packed bits in integer format for each quantity
-  // Signed quantities have the sign enconded in the left-most bit.
+  // These functions return the packed bits in unsigned integer format for each quantity
+  // Signed quantities have the sign enconded in the left-most bit of the pattern using
+  //   a two's complement representation
   unsigned int getValidBits() const { return getValidWord().to_uint(); }
   unsigned int getRinvBits() const { return getRinvWord().to_uint(); }
   unsigned int getPhiBits() const { return getPhiWord().to_uint(); }
@@ -201,10 +202,10 @@ public:
   // These functions return real numbers converted from the digitized quantities by unpacking the 96-bit track word
   bool getValid() const { return getValidWord().to_bool(); }
   double getRinv() const { return unpackSignedValue(getRinvBits(), TrackBitWidths::kRinvSize, stepRinv); }
-  double getPhi() const { return unpackSignedValue(getPhiBits(), TrackBitWidths::kPhiSize, stepRinv); }
-  double getTanl() const { return unpackSignedValue(getTanlBits(), TrackBitWidths::kTanlSize, stepRinv); }
-  double getZ0() const { return unpackSignedValue(getZ0Bits(), TrackBitWidths::kZ0Size, stepRinv); }
-  double getD0() const { return unpackSignedValue(getD0Bits(), TrackBitWidths::kD0Size, stepRinv); }
+  double getPhi() const { return unpackSignedValue(getPhiBits(), TrackBitWidths::kPhiSize, stepPhi0); }
+  double getTanl() const { return unpackSignedValue(getTanlBits(), TrackBitWidths::kTanlSize, stepTanL); }
+  double getZ0() const { return unpackSignedValue(getZ0Bits(), TrackBitWidths::kZ0Size, stepZ0); }
+  double getD0() const { return unpackSignedValue(getD0Bits(), TrackBitWidths::kD0Size, stepD0); }
   double getChi2RPhi() const { return chi2RPhiBins[getChi2RPhiBits()]; }
   double getChi2RZ() const { return chi2RZBins[getChi2RZBits()]; }
   double getBendChi2() const { return bendChi2Bins[getBendChi2Bits()]; }
