@@ -48,7 +48,8 @@ namespace l1ct {
           priorNe_(1, priorNe),
           priorPh_(1, priorPh),
           ptCut_(1, ptCut),
-          debug_(false) {}
+          debug_(false),
+          fakePuppi_(false) {}
 
     LinPuppiEmulator(unsigned int nTrack,
                      unsigned int nIn,
@@ -115,7 +116,8 @@ namespace l1ct {
           priorNe_(priorNe),
           priorPh_(priorPh),
           ptCut_(ptCut),
-          debug_(false) {}
+          debug_(false),
+          fakePuppi_(false) {}
 
     LinPuppiEmulator(const edm::ParameterSet &iConfig);
 
@@ -171,6 +173,9 @@ namespace l1ct {
 
     void setDebug(bool debug = true) { debug_ = debug; }
 
+    // instead of running Puppi, write Puppi debug information into the output Puppi candidates
+    void setFakePuppi(bool fakePuppi = true) { fakePuppi_ = fakePuppi; }
+
   protected:
     unsigned int nTrack_, nIn_,
         nOut_;  // nIn_, nOut refer to the calorimeter clusters or neutral PF candidates as input and as output (after sorting)
@@ -182,7 +187,7 @@ namespace l1ct {
     std::vector<pt_t> ptCut_;
 
     bool debug_;
-
+    bool fakePuppi_;
     // utility
     unsigned int find_ieta(const PFRegionEmu &region, eta_t eta) const;
     std::pair<pt_t, puppiWgt_t> sum2puppiPt_ref(uint64_t sum, pt_t pt, unsigned int ieta, bool isEM, int icand) const;
