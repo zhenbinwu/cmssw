@@ -36,7 +36,8 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
-process.load("FWCore.MessageLogger.MessageLogger_cfi")
+process.load("FWCore.MessageService.MessageLogger_cfi")
+#process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(1000000000)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(inputFiles) )
 process.TFileService = cms.Service("TFileService", fileName = cms.string(options.outputFile))
@@ -60,13 +61,19 @@ if process.L1TVertexNTupler.debug == 0:
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
 producerSum = process.VertexProducer
-additionalProducerAlgorithms = ["FastHistoLooseAssociation", "DBSCAN"]
+additionalProducerAlgorithms = ["FastHistoEmulation", "FastHistoLooseAssociation", "DBSCAN"]
 for algo in additionalProducerAlgorithms:
     producerName = 'VertexProducer{0}'.format(algo)
     producerName = producerName.replace(".","p") # legalize the name
 
     producer = process.VertexProducer.clone()
     producer.VertexReconstruction.Algorithm = cms.string(algo)
+
+    if "Emulation" in algo:
+        process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
+        producer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
+        producerSum = process.L1GTTInputProducer + producerSum
+
     setattr(process, producerName, producer)
     producerSum += producer
 
