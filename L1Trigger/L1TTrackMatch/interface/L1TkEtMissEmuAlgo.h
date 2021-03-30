@@ -1,152 +1,134 @@
 #ifndef L1Trigger_L1TTrackMatch_L1TkEtMissEmuAlgo_HH
 #define L1Trigger_L1TTrackMatch_L1TkEtMissEmuAlgo_HH
 
-#include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
-#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
-#include <numeric>
+#include <ap_int.h>
 
 #include <cmath>
-#include <iostream>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <ap_int.h>
+#include <iostream>
+#include <numeric>
+
+#include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
+#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 using namespace std;
 // Namespace that defines constants and types used by the EtMiss Emulation
 // Includes functions for writing LUTs and converting to integer representations
 namespace L1TkEtMissEmuAlgo {
 
-  const unsigned int N_chi2XYbits_{4};  //Taken from TTTrack_Word class
-  const unsigned int N_chi2bendbits_{3};
-  const unsigned int N_hitpatternbits_{7};
-  const unsigned int N_ptBits_{15};
-  const unsigned int N_etaBits_{16};
-  const unsigned int N_z0Bits_{12};
-  const unsigned int N_phiBits_{12};
+const unsigned int kGlobalPhiSize{11}; 
+const unsigned int kGlobalPhiExtra{3}; 
+// Extra bits needed by global phi to span full range
+const unsigned int kEtExtra{8};  
+// Extra room for Et sums
 
-  const unsigned int N_globphiBits_{11};  //Precision of Cos LUT (only spans 0 to pi/2) whereas global phi ( 0 to 2 pi)
-  const unsigned int N_globphiExtra_{3};  //Extra bits needed by global phi to span full range
-  const unsigned int N_EtExtra_{8};       //Extra room for Et sums
+const unsigned int kMETSize{15};     // For output Magnitude
+const unsigned int kMETPhiSize{14};  // For Output Phi
 
-  const unsigned int N_METbits_{14};     //For output Magnitude
-  const unsigned int N_METphibits_{11};  //For Output Phi
+typedef ap_uint<3> nstub_t;
 
-  typedef ap_uint<N_chi2XYbits_> ichi2XY;
-  typedef ap_uint<N_chi2bendbits_> ichi2bend;
-  typedef ap_uint<3> iNstub;
-  typedef ap_uint<N_phiBits_> iPhi;
-  typedef ap_uint<N_globphiBits_ + N_globphiExtra_> iglobPhi;
-  typedef ap_uint<N_z0Bits_> iZ0;
-  typedef ap_uint<N_ptBits_> iPt;
-  typedef ap_int<N_ptBits_ + N_EtExtra_> iEt;
-  typedef ap_uint<N_etaBits_> iEta;
+typedef ap_uint<kGlobalPhiSize + kGlobalPhiExtra> global_phi_t;
 
-  typedef ap_uint<N_METbits_> iMET;
-  typedef ap_uint<N_METphibits_>
-      iMETphi;  //Cordic means this is evaluated between 0 and 2Pi rather than -pi to pi so unsigned
+typedef ap_uint<TTTrack_TrackWord::TrackBitWidths::kRinvSize> pt_t;
+typedef ap_uint<TTTrack_TrackWord::TrackBitWidths::kTanlSize> eta_t;
+// For internal Et representation, sums become larger than initial pt
+// representation
+typedef ap_int<TTTrack_TrackWord::TrackBitWidths::kRinvSize + kEtExtra> Et_t;
 
-  /*
-  typedef unsigned int ichi2XY;
-  typedef unsigned int ichi2bend;
-  typedef unsigned int iNstub;
-  typedef unsigned int iPhi;
-  typedef unsigned int iglobPhi;
-  typedef unsigned int iZ0;
-  typedef unsigned int iPt;
-  typedef int iEt;
-  typedef unsigned int iEta;
+typedef ap_uint<kMETSize> MET_t;
+// Cordic means this is evaluated between 0 and 2Pi rather than -pi to pi so
+// unsigned
+typedef ap_uint<kMETPhiSize> METphi_t;
 
-  typedef unsigned int iMET
-  typedef unsigned int iMETphi
-  */
+const unsigned int kGlobalPhiBins = 1 << kGlobalPhiSize;
+const unsigned int kMETBins = 1 << kMETSize;
+const unsigned int kMETPhiBins = 1 << kMETPhiSize;
 
-  const unsigned int N_chi2XYbins_ = 1 << N_chi2XYbits_;
-  const unsigned int N_chi2bendbins_ = 1 << N_chi2bendbits_;
-  const unsigned int N_ptBins_ = 1 << N_ptBits_;
-  const unsigned int N_etaBins_ = 1 << N_etaBits_;
-  const unsigned int N_z0Bins_ = 1 << N_z0Bits_;
-  const unsigned int N_phiBins_ = 1 << N_phiBits_;
-  const unsigned int N_globPhiBins_ = 1 << N_globphiBits_;
-  const unsigned int N_METbins_ = 1 << N_METbits_;
-  const unsigned int N_METphibins_ = 1 << N_METphibits_;
+const unsigned int NEtaRegion{6};
+const unsigned int NSector{9};
+const unsigned int NQuadrants{4};
 
-  const unsigned int N_etaregions_{6};
-  const unsigned int N_sectors_{9};
-  const unsigned int N_quadrants_{4};  //4 quadrants + 1
+const float maxTrackPt{1024};  // TODO calculate from GTTinput module
+const float maxTrackEta{4};    // TODO calculate from GTTinput module
 
-  const float max_TWord_Pt_{1024};         //21955               // Arbitrary, define properly!
-  const float max_TWord_Phi_{0.69813248};  // relative to the center of the sector
-  const float max_TWord_Eta_{2.776472281};
-  const float max_TWord_Z0_{20.46912512};
+const double stepPt = (std::abs(maxTrackPt)) /
+                      (1 << TTTrack_TrackWord::TrackBitWidths::kRinvSize);
+const double stepEta = (2 * std::abs(maxTrackEta)) /
+                       (1 << TTTrack_TrackWord::TrackBitWidths::kTanlSize);
 
-  const float max_METWord_ET_{4000};
-  const float max_METWord_Phi_{2 * M_PI};
+const float maxMET{4000};  // 4 TeV
+const float maxMETPhi{2 * M_PI};
 
-  const float EtaRegions_[N_etaregions_ + 1] = {0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4};
-  const float DeltaZ_[N_etaregions_] = {0.4, 0.6, 0.76, 1.0, 1.7, 2.2};
+const double stepMET =
+    (L1TkEtMissEmuAlgo::maxMET / L1TkEtMissEmuAlgo::kMETBins);
+const double stepMETPhi =
+    (L1TkEtMissEmuAlgo::maxMETPhi / L1TkEtMissEmuAlgo::kMETPhiBins);
 
-  const float chi2Values[N_chi2XYbins_] = {0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000};
-  const float chi2bendValues[N_chi2bendbins_] = {0, 0.5, 1.25, 2, 3, 5, 10, 50};
+const float EtaRegionBins[NEtaRegion + 1] = {0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4};
+const float DeltaZBins[NEtaRegion] = {0.4, 0.6, 0.76, 1.0, 1.7, 2.2};
 
-  // Enough symmetry in cos and sin between 0 and pi/2 to get all possible values of cos and sin phi
-  const float max_LUT_phi_{M_PI / 2};
+// Enough symmetry in cos and sin between 0 and pi/2 to get all possible values
+// of cos and sin phi
+const float maxCosLUTPhi{M_PI / 2};
 
-  const string LUTdir_{"LUTs/"};
+const string LUTdir{"LUTs/"};
 
-  //Simple struct used for ouput of cordic
-  struct EtMiss {
-    iMET Et;
-    iMETphi Phi;
-  };
+// Simple struct used for ouput of cordic
+struct EtMiss {
+  MET_t Et;
+  METphi_t Phi;
+};
 
-  std::vector<iglobPhi> FillCosLUT(unsigned int cosLUT_size);
-  std::vector<iEta> generate_EtaRegions();
-  std::vector<iZ0> generate_DeltaZBins();
+std::vector<global_phi_t> generateCosLUT(unsigned int size);
+std::vector<eta_t> generateEtaRegionLUT();
+std::vector<TTTrack_TrackWord::z0_t> generateDeltaZLUT();
 
-  //Function to transform float variables to fixed type ints
-  template <typename T>
-  T digitize_Signed(float var, float min, float max, unsigned int n_bins) {
-    float temp_var{0.0};
-    T out = 0;
+template <typename T>
+T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
+  T digitized_value = std::floor(std::abs(value) / lsb);
+  T digitized_maximum =
+      (1 << (nBits - 1)) -
+      1;  // The remove 1 bit from nBits to account for the sign
+  if (digitized_value > digitized_maximum) digitized_value = digitized_maximum;
+  if (value < 0)
+    digitized_value =
+        (1 << nBits) - digitized_value;  // two's complement encoding
+  return digitized_value;
+}
 
-    if (var > max) {
-      temp_var = max;
-    } else {
-      temp_var = var;
-    }
-    if (var < min) {
-      temp_var = min;
-    } else {
-      temp_var = temp_var;
-    }
+template <typename T>
+unsigned int getBin(double value, const T& bins) {
+  auto up = std::upper_bound(bins.begin(), bins.end(), value);
+  return (up - bins.begin() - 1);
+}
 
-    temp_var = (temp_var - min) / ((max - min) / (n_bins - 1));
-    out = T(temp_var);
-    return out;
+int unpackSignedValue(unsigned int bits, unsigned int nBits);
+
+template <typename T>
+void writeLUTtoFile(vector<T>(&LUT), const string& filename,
+                    const string& delimiter) {
+  int fail = system((string("mkdir -p ") + L1TkEtMissEmuAlgo::LUTdir).c_str());
+  if (fail)
+    throw cms::Exception("BadDir")
+        << __FILE__ << " " << __LINE__ << " could not create directory "
+        << L1TkEtMissEmuAlgo::LUTdir;
+
+  const string fname = L1TkEtMissEmuAlgo::LUTdir + filename + ".tab";
+  ofstream outstream(fname);
+  if (outstream.fail())
+    throw cms::Exception("BadFile")
+        << __FILE__ << " " << __LINE__ << " could not create file " << fname;
+
+  outstream << "{" << endl;
+  for (unsigned int i = 0; i < LUT.size(); i++) {
+    if (i != 0) outstream << delimiter << endl;
+    outstream << LUT[i];
   }
-
-  template <typename T>
-  void writevectorLUTout(vector<T>(&LUT), const string& filename, const string& delimiter) {
-    int fail = system((string("mkdir -p ") + L1TkEtMissEmuAlgo::LUTdir_).c_str());
-    if (fail)
-      throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory "
-                                     << L1TkEtMissEmuAlgo::LUTdir_;
-
-    const string fname = L1TkEtMissEmuAlgo::LUTdir_ + filename + ".tab";
-    ofstream outstream(fname);
-    if (outstream.fail())
-      throw cms::Exception("BadFile") << __FILE__ << " " << __LINE__ << " could not create file " << fname;
-
-    outstream << "{" << endl;
-    for (unsigned int i = 0; i < LUT.size(); i++) {
-      if (i != 0)
-        outstream << delimiter << endl;
-      outstream << LUT[i];
-    }
-    outstream << endl << "};" << endl;
-    outstream.close();
-  }
+  outstream << endl << "};" << endl;
+  outstream.close();
+}
 
 }  // namespace L1TkEtMissEmuAlgo
 #endif

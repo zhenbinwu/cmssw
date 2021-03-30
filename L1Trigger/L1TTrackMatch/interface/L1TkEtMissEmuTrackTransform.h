@@ -1,84 +1,79 @@
 #ifndef L1Trigger_L1TTrackMatch_L1TkEtMissEmuTrackTransform_HH
 #define L1Trigger_L1TTrackMatch_L1TkEtMissEmuTrackTransform_HH
 
-#include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuAlgo.h"
+#include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuAlgo.h"
+
+/*
+** class  : L1TkEtMissEmuTrackTransform
+** author : Christopher Brown
+** date   : 19/02/2021
+** brief  : Converts TTrack_trackword to internal Et word including vertex
+
+**        : 
+*/
 
 using namespace L1TkEtMissEmuAlgo;
 
-//Internal Word used by EtMiss Emulation, producer expects this wordtype
-//Allows for additional conversion functions e.g. from additional GTT emulators to this word
-struct InternalEtWord{
-    iZ0 pV;
+// Internal Word used by EtMiss Emulation, producer expects this wordtype
+struct InternalEtWord {
+  TTTrack_TrackWord::z0_t pV;
+  TTTrack_TrackWord::z0_t z0;
 
-    iZ0 z0;
-    iPt pt;
-    iEta eta;
-    iglobPhi globalPhi;
-    iNstub nstubs;
-    ichi2bend bendChi2;
-    ichi2XY chi2rphidof;
-    ichi2XY chi2rzdof;
+  pt_t pt;
+  eta_t eta;
+  global_phi_t globalPhi;
+  nstub_t nstubs;
 
-    unsigned int Sector;
+  TTTrack_TrackWord::bendChi2_t bendChi2;
+  TTTrack_TrackWord::chi2rphi_t chi2rphidof;
+  TTTrack_TrackWord::chi2rz_t chi2rzdof;
 
-    float phi;  //Used to debug cos phi LUT
+  unsigned int Sector;
+
+  float phi;  // Used to debug cos phi LUT
 };
 
-// Converts float tracks to internal Et word including initial digitisation
-// Can also run directly from digitised TTTrack_Word  
+
 class L1TkEtMissEmuTrackTransform {
-public:
-  L1TkEtMissEmuTrackTransform() = default;  
-  ~L1TkEtMissEmuTrackTransform() {};
+ public:
+  L1TkEtMissEmuTrackTransform() = default;
+  ~L1TkEtMissEmuTrackTransform(){};
 
-  void GenerateLUTs();  //Generate internal LUTs needed for track transfrom
+  void generateLUTs();  // Generate internal LUTs needed for track transfrom
 
-  InternalEtWord TransformTrack(TTTrack< Ref_Phase2TrackerDigi_ >& track_ref,float PV);
-  InternalEtWord TransfromCuts(const edm::ParameterSet& iConfig);
+  // Transform track and vertex
+  InternalEtWord transformTrack(TTTrack<Ref_Phase2TrackerDigi_>& track_ref,
+                                l1t::Vertex& PV);
 
-    //Converts local int phi to global int phi
-  iglobPhi local_to_global(iPhi local_phi,iglobPhi sector_shift);
+  // Converts local int phi to global int phi
+  global_phi_t localToGlobalPhi(TTTrack_TrackWord::phi_t local_phi,
+                                global_phi_t sector_shift);
 
-    //Function to count stubs in hitpattern
-  iNstub CountNStub(unsigned int Hitpattern);
+  // Function to count stubs in hitpattern
+  nstub_t countNStub(TTTrack_TrackWord::hit_t Hitpattern);
 
-  //Function to take float phi to local integer phi 
-  iPhi FloatPhi_to_iPhi(float phi,unsigned int sector);
+  // Function to take float phi to local integer phi
+  TTTrack_TrackWord::phi_t floatGlobalPhiToSectorPhi(float phi,
+                                                     unsigned int sector);
 
-  std::vector<iglobPhi> generate_phi_slice_LUTs(unsigned int N);
+  std::vector<global_phi_t> generatePhiSliceLUT(unsigned int N);
 
-  //function to transfrom float chi to int chi bins 
-  template <typename chi>
-  chi Chi_to_FWChi(float Chi2,const float bins[],unsigned int N);
+  std::vector<global_phi_t> getPhiQuad() const { return phiQuadrants; }
+  std::vector<global_phi_t> getPhiShift() const { return phiShift; }
 
-  std::vector<iglobPhi> get_phi_quad() const {return phi_quadrants;}
-  std::vector<iglobPhi> get_phi_shift() const {return phi_shift;}
+  void setGTTinput(bool input) { GTTinput_ = input; }
+  void setVtxEmulator(bool vtx) { VtxEmulator_ = vtx; }
 
-  std::map<std::string, unsigned int> get_binmap() const {return binmap;}
-  std::map<std::string, float> get_maxmap() const {return maxmap;}
+ private:
+  std::vector<global_phi_t> phiQuadrants;
+  std::vector<global_phi_t> phiShift;
 
-
-private:
-  
-  std::map<std::string, unsigned int> binmap { {"chixy",N_chi2XYbins_}, 
-                                               {"chibend",N_chi2bendbins_},
-                                               {"pt",N_ptBins_},
-                                               {"eta",N_etaBins_} ,
-                                               {"z0",N_z0Bins_},
-                                               {"phi",N_phiBins_},
-                                               {"globphi",N_globPhiBins_}};
-
-  std::map<std::string, float> maxmap { {"pt",max_TWord_Pt_},
-                                        {"eta",max_TWord_Eta_},
-                                        {"z0",max_TWord_Z0_},
-                                        {"phi",max_TWord_Phi_}};
-
-
-  std::vector<iglobPhi> phi_quadrants;
-  std::vector<iglobPhi> phi_shift;
- 
+  bool GTTinput_ = false;
+  bool VtxEmulator_ = false;
 };
 
 #endif

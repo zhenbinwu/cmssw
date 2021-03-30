@@ -3,31 +3,41 @@
 
 #include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuAlgo.h"
 
+/*
+** class  : Cordic
+** author : Christopher Brown
+** date   : 19/02/2021
+** brief  : Integer sqrt and atan calculation for TrackMET emulation
+
+**        : 
+*/
+
 using namespace L1TkEtMissEmuAlgo;
 
 class Cordic {
-public:
+ public:
   Cordic();
-  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs);
+  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug,
+         bool writeLUTs);
 
-  EtMiss toPolar(iEt x, iEt y) const;
+  EtMiss toPolar(Et_t x, Et_t y) const;
 
-private:
-  //Scale for Phi calculation to maintain precision
+ private:
+  // Scale for Phi calculation to maintain precision
   const int mPhiScale;
-  //Scale for Magnitude calculation
+  // Scale for Magnitude calculation
   const int mMagnitudeScale;
-  //Bit width for internal magnitude
+  // Bit width for internal magnitude
   const int mMagnitudeBits;
-  //Number of cordic iterations
+  // Number of cordic iterations
   const int cordicSteps;
 
   const bool debug;
 
-  //To calculate atan
-  std::vector<iMETphi> atanLUT;
-  //To normalise final magnitude
-  std::vector<iEt> magNormalisationLUT;
+  // To calculate atan
+  std::vector<METphi_t> atanLUT;
+  // To normalise final magnitude
+  std::vector<Et_t> magNormalisationLUT;
 };
 
 #endif

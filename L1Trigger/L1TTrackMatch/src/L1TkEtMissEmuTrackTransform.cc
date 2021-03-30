@@ -1,123 +1,149 @@
-#include <cmath>
 #include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuTrackTransform.h"
 
-void L1TkEtMissEmuTrackTransform::GenerateLUTs(){
-    phi_quadrants = generate_phi_slice_LUTs (L1TkEtMissEmuAlgo::N_quadrants_);
-    phi_shift     = generate_phi_slice_LUTs (L1TkEtMissEmuAlgo::N_sectors_);
+#include <cmath>
+
+void L1TkEtMissEmuTrackTransform::generateLUTs() {
+  phiQuadrants = generatePhiSliceLUT(L1TkEtMissEmuAlgo::NQuadrants);
+  phiShift = generatePhiSliceLUT(L1TkEtMissEmuAlgo::NSector);
 }
 
-InternalEtWord L1TkEtMissEmuTrackTransform::TransformTrack(TTTrack< Ref_Phase2TrackerDigi_ >& track_ref, float PV){
-    InternalEtWord Outword;
+InternalEtWord L1TkEtMissEmuTrackTransform::transformTrack(
+    TTTrack<Ref_Phase2TrackerDigi_>& track_ref, l1t::Vertex& PV) {
+  InternalEtWord Outword;
 
-    Outword.pV = digitize_Signed <iZ0> (PV, -maxmap["z0"], maxmap["z0"], binmap["z0"]); //Convert vertex 
-    //Read in and convert track parameters to integer representation
-    Outword.pt   = digitize_Signed <iPt> (track_ref.momentum().perp(),0,maxmap["pt"],binmap["pt"]);
-    Outword.eta = digitize_Signed <iEta> (abs(track_ref.momentum().eta()),-maxmap["eta"], maxmap["eta"], binmap["eta"]);
-
-    Outword.chi2rphidof = Chi_to_FWChi <ichi2XY> (track_ref.chi2XY(),chi2Values,binmap["chixy"]);   
-    Outword.chi2rzdof   = Chi_to_FWChi <ichi2XY> (track_ref.chi2Z(),chi2Values,binmap["chixy"]);
-    Outword.bendChi2  = Chi_to_FWChi <ichi2bend> (track_ref.stubPtConsistency(),chi2bendValues,binmap["chibend"]);
-    Outword.nstubs       = CountNStub(track_ref.unpack_hitPattern());
-
-    unsigned int Sector  = track_ref.phiSector();
-    Outword.Sector  = Sector;
-    // convert to local phi
-    Outword.phi = track_ref.phi();
-    iPhi localPhi        = FloatPhi_to_iPhi(track_ref.phi(),Sector);
-    // Convert to global phi
-    Outword.globalPhi   = local_to_global(localPhi,phi_shift[Sector]);
-
-    Outword.z0       = digitize_Signed <iZ0> (track_ref.z0(), -maxmap["z0"], maxmap["z0"], binmap["z0"]);
-
-    return Outword;
-}
-
-InternalEtWord L1TkEtMissEmuTrackTransform::TransfromCuts(const edm::ParameterSet& iConfig){
-  InternalEtWord cutword;
-  cutword.z0          = digitize_Signed <iZ0> ((float)iConfig.getParameter<double>("maxZ0"),-maxmap["z0"], maxmap["z0"], binmap["z0"]);
-
-  cutword.eta        = digitize_Signed <iEta> ((float)iConfig.getParameter<double>("maxEta"), -maxmap["eta"],maxmap["eta"], binmap["eta"]);
-
-  cutword.chi2rphidof = Chi_to_FWChi <ichi2XY> ((float)iConfig.getParameter<double>("chi2rphidofMax"),chi2Values,binmap["chixy"]);
-  cutword.chi2rzdof   = Chi_to_FWChi <ichi2XY> ((float)iConfig.getParameter<double>("chi2rzdofMax"),chi2Values,binmap["chixy"]);
-  cutword.bendChi2   = Chi_to_FWChi <ichi2bend> ((float)iConfig.getParameter<double>("bendChi2Max"),chi2bendValues,binmap["chibend"]);
-  cutword.pt          = digitize_Signed <iPt> ((float)iConfig.getParameter<double>("minPt"),0,maxmap["pt"],binmap["pt"]);
-  cutword.nstubs  = (iNstub)iConfig.getParameter<int>("nStubsmin");
-
-  return cutword;
-
-}
-
-iglobPhi L1TkEtMissEmuTrackTransform::local_to_global(iPhi local_phi,iglobPhi sector_shift){ 
-      int PhiShift = binmap["globphi"]/2;
-      int PhiMin = phi_quadrants.front();
-      int PhiMax = phi_quadrants.back();
-      int phi_multiplier = L1TkEtMissEmuAlgo::N_phiBits_ - L1TkEtMissEmuAlgo::N_globphiBits_;
-
-      int tempPhi = 0;
-      iglobPhi globalPhi = 0;
-
-      tempPhi = (local_phi / pow(2,phi_multiplier)) + sector_shift - PhiShift;
-      if (tempPhi < PhiMin) {tempPhi = tempPhi + PhiMax;}
-      else if(tempPhi > PhiMax) {tempPhi = tempPhi - PhiMax;}
-      else tempPhi = tempPhi;
-
-      globalPhi = iglobPhi (tempPhi);
-
-      return globalPhi;
-
-}
-
-iNstub L1TkEtMissEmuTrackTransform::CountNStub(unsigned int Hitpattern){  
-    iNstub Nstub = 0;
-    for (int i = (L1TkEtMissEmuAlgo::N_hitpatternbits_-1); i >= 0; i--) {
-      int k = Hitpattern >> i;
-        if (k & 1)
-          Nstub ++;
+  if (GTTinput_) {
+    if ((track_ref.getRinvWord() &
+         (1 << (TTTrack_TrackWord::TrackBitWidths::kRinvSize - 1))) != 0) {
+      // Only Want Magnitude of Pt for sums so perform absolute value
+      Outword.pt =
+          abs((1 << (TTTrack_TrackWord::TrackBitWidths::kRinvSize - 1)) -
+              track_ref.getRinvWord());
+    } else {
+      Outword.pt = track_ref.getRinvWord();
     }
-    return Nstub;
-}
 
-iPhi L1TkEtMissEmuTrackTransform::FloatPhi_to_iPhi(float phi,unsigned int sector){   
-    float temp_phi = 0.0;
-    if (sector < 4 ){ 
-      temp_phi = phi - (sector * (2*M_PI)/9); 
-    } else if (sector > 5 ){
-      temp_phi = phi + ((9-sector) * (2*M_PI)/9); 
-    } else if (sector == 4 ){
-      if (phi > 0){
-        temp_phi = phi - (sector *  (2*M_PI)/9);
-      } else{ 
-        temp_phi = phi + ((9-sector) * (2*M_PI)/9);
-      }
-    } else if (sector == 5 ){
-      if (phi < 0){
-        temp_phi = phi + ((9-sector) * (2*M_PI)/9); 
-      } else{
-         temp_phi = phi - (sector *  (2*M_PI)/9);
-      }
+    if ((track_ref.getTanlWord() &
+         (1 << (TTTrack_TrackWord::TrackBitWidths::kTanlSize - 1))) != 0) {
+      // Only Want Magnitude of Eta for cuts and track to vertex association so
+      // perform absolute value
+      Outword.eta = (1 << (TTTrack_TrackWord::TrackBitWidths::kTanlSize)) -
+                    track_ref.getTanlWord();
+    } else {
+      Outword.eta = track_ref.getTanlWord();
     }
-    return L1TkEtMissEmuAlgo::digitize_Signed <iPhi> (temp_phi,-maxmap["phi"],maxmap["phi"],binmap["phi"]);
-}
 
-std::vector<iglobPhi> L1TkEtMissEmuTrackTransform::generate_phi_slice_LUTs(unsigned int N) {
-    float slice_centre= 0.0;
-    std::vector<iglobPhi> phi_LUT;
-    for (unsigned int q=0;q<=N;q++){
-      phi_LUT.push_back((iglobPhi)(slice_centre / (2*maxmap["phi"] / (binmap["globphi"]-1))));
-      slice_centre += 2*M_PI/N;
-    }
-    return phi_LUT;
-}
-
-template <typename chi>
-chi L1TkEtMissEmuTrackTransform::Chi_to_FWChi(float Chi2,const float bins[],unsigned int N){  
-    chi outputChi = 0;
-    for (unsigned int ibin = 0; ibin < N; ++ibin) {
-      outputChi = ibin;
-      if (Chi2 < bins[ibin])
-        break;
-    }
-    return outputChi;
+  } else {
+    track_ref.setTrackWordBits();
+    Outword.pt =
+        digitizeSignedValue<pt_t>(track_ref.momentum().perp(),
+                                  TTTrack_TrackWord::TrackBitWidths::kRinvSize,
+                                  L1TkEtMissEmuAlgo::stepPt);
+    Outword.eta =
+        digitizeSignedValue<eta_t>(abs(track_ref.momentum().eta()),
+                                   TTTrack_TrackWord::TrackBitWidths::kTanlSize,
+                                   L1TkEtMissEmuAlgo::stepEta);
   }
-  
+
+  if (VtxEmulator_) {
+    Outword.pV = PV.z0();  // Convert vertex TODO change to correct vertexing
+                           // emulation output
+  }
+
+  else {
+    Outword.pV = digitizeSignedValue<TTTrack_TrackWord::z0_t>(
+        PV.z0(), TTTrack_TrackWord::TrackBitWidths::kZ0Size,
+        TTTrack_TrackWord::stepZ0);  // Convert vertex
+  }
+
+  Outword.chi2rphidof = track_ref.getChi2RPhiWord();
+  Outword.chi2rzdof = track_ref.getChi2RZWord();
+  Outword.bendChi2 = track_ref.getBendChi2Word();
+  Outword.nstubs = countNStub(track_ref.getHitPatternWord());
+
+  unsigned int Sector = track_ref.phiSector();
+  Outword.Sector = Sector;
+  // convert to local phi
+  Outword.phi = track_ref.phi();
+  TTTrack_TrackWord::phi_t localPhi =
+      floatGlobalPhiToSectorPhi(track_ref.phi(), Sector);
+  // Convert to global phi
+  Outword.globalPhi = localToGlobalPhi(localPhi, phiShift[Sector]);
+  Outword.z0 = track_ref.getZ0Word();
+
+  return Outword;
+}
+
+global_phi_t L1TkEtMissEmuTrackTransform::localToGlobalPhi(
+    TTTrack_TrackWord::phi_t local_phi, global_phi_t sector_shift) {
+  int PhiShift = 1 << L1TkEtMissEmuAlgo::kGlobalPhiBins - 1;
+  int PhiMin = phiQuadrants.front();
+  int PhiMax = phiQuadrants.back();
+  int phiMultiplier = TTTrack_TrackWord::TrackBitWidths::kPhiSize -
+                      L1TkEtMissEmuAlgo::kGlobalPhiSize;
+
+  int tempPhi = 0;
+  global_phi_t globalPhi = 0;
+
+  tempPhi = (unpackSignedValue(local_phi,
+                               TTTrack_TrackWord::TrackBitWidths::kPhiSize) /
+             pow(2, phiMultiplier)) +
+            sector_shift - PhiShift;
+  if (tempPhi < PhiMin) {
+    tempPhi = tempPhi + PhiMax;
+  } else if (tempPhi > PhiMax) {
+    tempPhi = tempPhi - PhiMax;
+  } else
+    tempPhi = tempPhi;
+
+  globalPhi = global_phi_t(tempPhi);
+
+  return globalPhi;
+}
+
+nstub_t L1TkEtMissEmuTrackTransform::countNStub(
+    TTTrack_TrackWord::hit_t Hitpattern) {
+  nstub_t Nstub = 0;
+  for (int i = (TTTrack_TrackWord::kHitPatternSize - 1); i >= 0; i--) {
+    int k = Hitpattern >> i;
+    if (k & 1) Nstub++;
+  }
+  return Nstub;
+}
+
+TTTrack_TrackWord::phi_t L1TkEtMissEmuTrackTransform::floatGlobalPhiToSectorPhi(
+    float phi, unsigned int sector) {
+  float tempPhi = 0.0;
+  if (sector < 4) {
+    tempPhi = phi - (sector * (2 * M_PI) / 9);
+  } else if (sector > 5) {
+    tempPhi = phi + ((9 - sector) * (2 * M_PI) / 9);
+  } else if (sector == 4) {
+    if (phi > 0) {
+      tempPhi = phi - (sector * (2 * M_PI) / 9);
+    } else {
+      tempPhi = phi + ((9 - sector) * (2 * M_PI) / 9);
+    }
+  } else if (sector == 5) {
+    if (phi < 0) {
+      tempPhi = phi + ((9 - sector) * (2 * M_PI) / 9);
+    } else {
+      tempPhi = phi - (sector * (2 * M_PI) / 9);
+    }
+  }
+  return digitizeSignedValue<TTTrack_TrackWord::phi_t>(
+      tempPhi, TTTrack_TrackWord::TrackBitWidths::kPhiSize,
+      TTTrack_TrackWord::stepPhi0);
+}
+
+std::vector<global_phi_t> L1TkEtMissEmuTrackTransform::generatePhiSliceLUT(
+    unsigned int N) {
+  float sliceCentre = 0.0;
+  std::vector<global_phi_t> phiLUT;
+  for (unsigned int q = 0; q <= N; q++) {
+    phiLUT.push_back((global_phi_t)(sliceCentre /
+                                    (-2 * TTTrack_TrackWord::minPhi0 /
+                                     (L1TkEtMissEmuAlgo::kGlobalPhiBins - 1))));
+    sliceCentre += 2 * M_PI / N;
+  }
+  return phiLUT;
+}
