@@ -3,6 +3,7 @@
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "FWCore/Framework/interface/global/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"

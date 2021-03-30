@@ -70,16 +70,20 @@ for algo in additionalProducerAlgorithms:
     producer.VertexReconstruction.Algorithm = cms.string(algo)
 
     if "Emulation" in algo:
-        process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
-        producer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
-        producerSum = process.L1GTTInputProducer + producerSum
+        if "L1GTTInputProducer" not in process.producerNames():
+            process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
+            producer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
+            producerSum = process.L1GTTInputProducer + producerSum
+
+        process.L1TVertexNTupler.emulationVertexInputTags.append( cms.InputTag(producerName, 'l1verticesEmulation') )
+        process.L1TVertexNTupler.emulationVertexBranchNames.append(algo)
+    else:
+        process.L1TVertexNTupler.l1VertexInputTags.append( cms.InputTag(producerName, 'l1vertices') )
+        process.L1TVertexNTupler.l1VertexBranchNames.append(algo)
+        process.L1TVertexNTupler.l1VertexTrackInputs.append('hybrid')
 
     setattr(process, producerName, producer)
     producerSum += producer
-
-    process.L1TVertexNTupler.l1VertexInputTags.append( cms.InputTag(producerName, 'l1vertices') )
-    process.L1TVertexNTupler.l1VertexBranchNames.append(algo)
-    process.L1TVertexNTupler.l1VertexTrackInputs.append('hybrid')
 
 # PART 3: PERFORM SCAN OVER ALGO PARAMETER SPACE
 if options.runVariations:
