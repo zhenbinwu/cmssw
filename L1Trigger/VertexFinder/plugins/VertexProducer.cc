@@ -14,6 +14,10 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     case Algorithm::FastHisto:
       edm::LogInfo("VertexProducer") << "VertexProducer::Finding vertices using the FastHisto binning algorithm";
       break;
+    case Algorithm::FastHistoEmulation:
+      edm::LogInfo("VertexProducer")
+          << "VertexProducer::Finding vertices using the emulation version of the FastHisto binning algorithm";
+      break;
     case Algorithm::FastHistoLooseAssociation:
       edm::LogInfo("VertexProducer")
           << "VertexProducer::Finding vertices using the FastHistoLooseAssociation binning algorithm";
@@ -74,6 +78,9 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
       vf.FastHisto(tTopoHandle.product());
       break;
     }
+    case Algorithm::FastHistoEmulation:
+      vf.FastHistoEmulation();
+      break;
     case Algorithm::FastHistoLooseAssociation:
       vf.FastHistoLooseAssociation();
       break;

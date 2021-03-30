@@ -11,6 +11,7 @@ namespace l1tVertexFinder {
 
   enum class Algorithm {
     FastHisto,
+    FastHistoEmulation,
     FastHistoLooseAssociation,
     GapClustering,
     AgglomerativeHierarchical,

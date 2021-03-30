@@ -48,6 +48,7 @@ namespace l1tVertexFinder {
 
   const std::map<std::string, Algorithm> AlgoSettings::algoNameMap = {
       {"FastHisto", Algorithm::FastHisto},
+      {"FastHistoEmulation", Algorithm::FastHistoEmulation},
       {"FastHistoLooseAssociation", Algorithm::FastHistoLooseAssociation},
       {"GapClustering", Algorithm::GapClustering},
       {"Agglomerative", Algorithm::AgglomerativeHierarchical},
