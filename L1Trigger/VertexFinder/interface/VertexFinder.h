@@ -2,6 +2,7 @@
 #define __L1Trigger_VertexFinder_VertexFinder_h__
 
 #include "DataFormats/Common/interface/Ptr.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -14,6 +15,9 @@
 #include <vector>
 
 namespace l1tVertexFinder {
+
+  // Returns the number of bits needed to represent and integer decimal
+  static constexpr unsigned BitsToRepresent(unsigned x) { return x < 2 ? 1 : 1 + BitsToRepresent(x >> 1); }
 
   typedef std::vector<L1Track> FitTrackCollection;
   typedef std::vector<RecoVertex<>> RecoVertexCollection;
@@ -41,28 +45,35 @@ namespace l1tVertexFinder {
     /// Accessors
 
     /// Storage for tracks out of the L1 Track finder
-    const FitTrackCollection& FitTracks() const { return fitTracks_; }
+    const FitTrackCollection& fitTracks() const { return fitTracks_; }
     /// Number of iterations
-    unsigned int IterationsPerTrack() const { return double(iterations_) / double(fitTracks_.size()); }
+    unsigned int iterationsPerTrack() const { return double(iterations_) / double(fitTracks_.size()); }
     /// Storage for tracks out of the L1 Track finder
     unsigned int numInputTracks() const { return fitTracks_.size(); }
     /// Number of iterations
-    unsigned int NumIterations() const { return iterations_; }
+    unsigned int numIterations() const { return iterations_; }
     /// Number of reconstructed vertices
     unsigned int numVertices() const { return vertices_.size(); }
-    /// Reconstructed Primary Vertex
-    RecoVertex<> PrimaryVertex() const {
-      if (pv_index_ < vertices_.size())
-        return vertices_[pv_index_];
+    /// Number of emulation vertices
+    unsigned int numVerticesEmulation() const { return verticesEmulation_.size(); }
+    /// Reconstructed primary vertex
+    template <typename T>
+    T PrimaryVertex() const {
+      if ((settings_->vx_precision() == Precision::Simulation) && (pvIndex_ < vertices_.size()))
+        return vertices_[pvIndex_];
+      else if ((settings_->vx_precision() == Precision::Emulation) && (pvIndex_ < vertices_.size()))
+        return verticesEmulation_[pvIndex_];
       else {
-        edm::LogWarning("VertexFinder") << "PrimaryVertex::No Primary Vertex has been found.";
+        edm::LogWarning("VertexFinder") << "PrimaryVertex::No primary vertex has been found.";
         return RecoVertex<>();
       }
     }
     /// Reconstructed Primary Vertex Id
-    unsigned int PrimaryVertexId() const { return pv_index_; }
-    /// Returns the z positions of the reconstructed primary vertices
-    const std::vector<RecoVertex<>>& Vertices() const { return vertices_; }
+    unsigned int PrimaryVertexId() const { return pvIndex_; }
+    /// Returns the reconstructed primary vertices
+    const RecoVertexCollection& vertices() const { return vertices_; }
+    /// Returns the emulation primary vertices
+    const l1t::VertexWordCollection& verticesEmulation() const { return verticesEmulation_; }
 
     /// Utility member functions
 
@@ -70,18 +81,20 @@ namespace l1tVertexFinder {
     void AssociatePrimaryVertex(double trueZ0);
     /// Find the primary vertex
     void FindPrimaryVertex();
+    /// Print an ASCII histogram
+    template <class data_type, typename stream_type = std::ostream>
+    void printHistogram(stream_type& stream,
+                        std::vector<data_type> data,
+                        int width = 80,
+                        int minimum = 0,
+                        int maximum = -1,
+                        std::string title = "",
+                        std::string color = "");
     /// Sort vertices in pT
-    void SortVerticesInPt() {
-      std::sort(vertices_.begin(), vertices_.end(), [](const RecoVertex<>& vertex0, const RecoVertex<>& vertex1) {
-        return (vertex0.pt() > vertex1.pt());
-      });
-    }
+    void SortVerticesInPt();
     /// Sort vertices in z
-    void SortVerticesInZ0() {
-      std::sort(vertices_.begin(), vertices_.end(), [](const RecoVertex<>& vertex0, const RecoVertex<>& vertex1) {
-        return (vertex0.z0() < vertex1.z0());
-      });
-    }
+    void SortVerticesInZ0();
+    /// Generate sequence of floats in a certain range
     template <typename ForwardIterator, typename T>
     void strided_iota(ForwardIterator first, ForwardIterator last, T value, T stride) {
       while (first != last) {
@@ -127,10 +140,10 @@ namespace l1tVertexFinder {
 
   private:
     const AlgoSettings* settings_;
-    std::vector<RecoVertex<>> vertices_;
-    unsigned int numMatchedVertices_;
+    RecoVertexCollection vertices_;
+    l1t::VertexWordCollection verticesEmulation_;
     FitTrackCollection fitTracks_;
-    unsigned int pv_index_;
+    unsigned int pvIndex_;
     unsigned int iterations_;
   };
 
