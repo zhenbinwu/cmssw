@@ -14,7 +14,9 @@
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 
 #include <ap_int.h>
+#include <ap_fixed.h>
 
+#include <bitset>
 #include <vector>
 
 namespace l1t {
