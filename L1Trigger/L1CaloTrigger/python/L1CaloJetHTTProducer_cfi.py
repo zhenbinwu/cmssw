@@ -5,6 +5,6 @@ L1CaloJetHTTProducer = cms.EDProducer("L1CaloJetHTTProducer",
     PtMin = cms.double(30.0),
     BXVCaloJetsInputTag = cms.InputTag("L1CaloJetProducer","L1CaloJetCollectionBXV"),
     genJets = cms.InputTag("ak4GenJetsNoNu", "", "HLT"),
-    debug = cms.bool(False),
+    debug = cms.bool(True),
     use_gen_jets = cms.bool(False),
 )

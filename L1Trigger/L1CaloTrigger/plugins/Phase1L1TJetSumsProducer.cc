@@ -139,6 +139,7 @@ l1t::EtSum Phase1L1TJetSumsProducer::computeHT(const edm::Handle<std::vector<rec
   lHTVector.SetPt(lHT);
   lHTVector.SetEta(0);
   lHTVector.SetPhi(0);
+  cout<<"this the the HT:"<<lHT<<endl;
   l1t::EtSum lHTSum(lHTVector, l1t::EtSum::EtSumType::kTotalHt, 0, 0, 0, 0);
   return lHTSum;
 }
@@ -176,6 +177,7 @@ l1t::EtSum Phase1L1TJetSumsProducer::computeMHT(const edm::Handle<std::vector<re
   }
 
   double lMHT = floor(sqrt(lTotalJetPx * lTotalJetPx + lTotalJetPy * lTotalJetPy)) * ptlsb_;
+  cout<<"this the the MHT:"<<lMHT<<endl;
   math::PtEtaPhiMLorentzVector lMHTVector(lMHT, 0, acos(lTotalJetPx / (lMHT / ptlsb_)), 0);
   l1t::EtSum lMHTSum(lMHTVector, l1t::EtSum::EtSumType::kMissingHt, 0, 0, 0, 0);
 
