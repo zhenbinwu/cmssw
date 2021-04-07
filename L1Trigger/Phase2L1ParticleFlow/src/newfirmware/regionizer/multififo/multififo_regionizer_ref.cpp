@@ -16,7 +16,8 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(const edm::Parame
           iConfig.getParameter<uint32_t>("nEmCalo"),
           iConfig.getParameter<uint32_t>("nMu"),
           /*streaming=*/false,
-          /*outii=*/1) {
+          /*outii=*/1,
+          iConfig.getParameter<bool>("useAlsoVtxCoords")) {
   debug_ = iConfig.getUntrackedParameter<bool>("debug", false);
 }
 #endif
@@ -28,8 +29,9 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
                                                                unsigned int nem,
                                                                unsigned int nmu,
                                                                bool streaming,
-                                                               unsigned int outii)
-    : RegionizerEmulator(false),
+                                                               unsigned int outii,
+                                                               bool useAlsoVtxCoords)
+    : RegionizerEmulator(useAlsoVtxCoords),
       nendcaps_(nendcaps),
       nclocks_(nclocks),
       ntk_(ntk),
@@ -39,7 +41,7 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
       outii_(outii),
       streaming_(streaming),
       init_(false),
-      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii),
+      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, useAlsoVtxCoords),
       hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii),
       emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii),
       muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii) {
