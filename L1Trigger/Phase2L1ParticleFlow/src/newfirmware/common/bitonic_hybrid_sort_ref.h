@@ -5,7 +5,7 @@
 #include <cassert>
 
 namespace hybridBitonicSortUtils {
-  unsigned int PowerOf2LessThan(unsigned int n) {
+  inline unsigned int PowerOf2LessThan(unsigned int n) {
     unsigned int i = 1;
     unsigned int prev = 1;
     if (n <= 1)
