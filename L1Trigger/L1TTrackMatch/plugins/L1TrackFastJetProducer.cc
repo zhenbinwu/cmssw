@@ -28,6 +28,7 @@
 #include "DataFormats/L1TCorrelator/interface/TkJet.h"
 #include "DataFormats/L1TCorrelator/interface/TkJetFwd.h"
 #include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+#include "DataFormats/L1Trigger/interface/Vertex.h"
 
 // geometry
 #include "Geometry/Records/interface/TrackerTopologyRcd.h"
@@ -79,13 +80,13 @@ private:
   bool displaced_;            //use prompt/displaced tracks
 
   const edm::EDGetTokenT<std::vector<TTTrack< Ref_Phase2TrackerDigi_ > > > trackToken_;
-  edm::EDGetTokenT<TkPrimaryVertexCollection> pvToken_;
+  edm::EDGetTokenT<l1t::VertexCollection> pvToken_;
 };
 
 // constructor
 L1TrackFastJetProducer::L1TrackFastJetProducer(const edm::ParameterSet& iConfig) :
 trackToken_(consumes< std::vector<TTTrack< Ref_Phase2TrackerDigi_> > > (iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))),
-pvToken_(consumes<TkPrimaryVertexCollection>(iConfig.getParameter<edm::InputTag>("L1PrimaryVertexTag")))
+pvToken_(consumes<l1t::VertexCollection>(iConfig.getParameter<edm::InputTag>("L1PrimaryVertexTag")))
 {
   trkZMax_    = (float)iConfig.getParameter<double>("trk_zMax");
   trkChi2dofMax_ = (float)iConfig.getParameter<double>("trk_chi2dofMax");
@@ -121,13 +122,13 @@ void L1TrackFastJetProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   ESHandle<TrackerGeometry> tGeomHandle;
   iSetup.get<TrackerDigiGeometryRecord>().get(tGeomHandle);
 
-  edm::Handle<TkPrimaryVertexCollection>TkPrimaryVertexHandle;
+  edm::Handle<l1t::VertexCollection>TkPrimaryVertexHandle;
   iEvent.getByToken(pvToken_, TkPrimaryVertexHandle);
 
   fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, coneSize_);
   std::vector<fastjet::PseudoJet>  JetInputs;
 
-  float recoVtx = TkPrimaryVertexHandle->begin()->zvertex();
+  float recoVtx = TkPrimaryVertexHandle->begin()->z0();
   unsigned int this_l1track = 0;
   for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
     this_l1track++;

@@ -22,7 +22,7 @@ L1TrackerEtMiss = cms.EDProducer('L1TrackerEtMissProducer',
                                     # When maxPt < 0, no special treatment is done for high PT tracks.
     displaced = cms.bool(False),     # Use promt/displaced tracks
     
-    debug     = cms.bool(True)
+                                 debug     = cms.bool(False)
 )
 
 L1TrackerEtMissExtended = cms.EDProducer('L1TrackerEtMissProducer',
