@@ -18,6 +18,8 @@ namespace l1t::demo {
     ap_uint<64> data{0};
     bool valid{false};
     bool strobe{true};
+    bool start{false};
+    bool end{false};
   };
 
 }  // namespace l1t::demo

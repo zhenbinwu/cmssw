@@ -46,7 +46,23 @@ namespace l1t::demo {
                                  " frames between packets) is too long (" + std::to_string(channelData.size()) +
                                  " frames)");
 
+      if (channelData.empty())
+        throw std::runtime_error("Event data for link " + std::to_string(i) + " is empty");
+
+      // Copy event data for this channel to board data object
       boardData_.at(i).insert(boardData_.at(i).end(), channelData.begin(), channelData.end());
+
+      // Override flags for start & end of event
+      BoardData::Channel::iterator it(boardData_.at(i).end() - channelData.size());
+      it->start = true;
+      it->end = false;
+      for (it++; it != boardData_.at(i).end(); it++) {
+        it->start = false;
+        it->end = false;
+      }
+      (it - 1)->end = true;
+
+      // Pad link with non-valid frames
       boardData_.at(i).insert(
           boardData_.at(i).end(), channelSpecs_.at(i).tmux * framesPerBX_ - channelData.size(), Frame());
     }

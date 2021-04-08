@@ -168,6 +168,8 @@ namespace l1t::demo {
         else if ((count % 2) == 1) {
           uint16_t sbValue = std::stoul(token, nullptr, 16);
           dataRows.back().at((count - 1) / 2).valid = (sbValue & 0x1);
+          dataRows.back().at((count - 1) / 2).start = ((sbValue >> 1) & 0x1);
+          dataRows.back().at((count - 1) / 2).end = ((sbValue >> 3) & 0x1);
         }
         // Data word
         else
@@ -334,10 +336,8 @@ namespace l1t::demo {
       file << "0x" << std::setw(4) << i;
       for (const auto& [j, channelData] : data) {
         uint16_t sideband = channelData.at(i).valid;
-        if (i > 0)
-          sideband |= (channelData.at(i).valid and (not channelData.at(i - 1).valid)) << 1;
-        if ((i + 1) < channelData.size())
-          sideband |= (channelData.at(i).valid and (not channelData.at(i + 1).valid)) << 3;
+        sideband |= channelData.at(i).start << 1;
+        sideband |= channelData.at(i).end << 3;
         file << "    0x" << std::setw(2) << sideband;
         file << " 0x" << std::setw(16) << uint64_t(channelData.at(i).data);
       }
