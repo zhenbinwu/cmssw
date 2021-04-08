@@ -3,16 +3,21 @@
 
 namespace l1t::demo::codecs {
 
-  std::vector<l1t::Vertex> decodeVertices(const l1t::demo::BoardData::Channel& frames) {
-    std::vector<l1t::Vertex> vertices;
+  std::vector<l1t::VertexWord> decodeVertices(const l1t::demo::BoardData::Channel& frames) {
+    std::vector<l1t::VertexWord> vertices;
 
     for (const auto& x : frames) {
-      if (not(x.data & 1))
+      if (not x.data.test(VertexWord::kValidLSB))
         break;
 
-      // TODO: Replace with complete implementation
-      Vertex vertex(0.0, ap_fixed<15, 6>(ap_uint<64>(x.data)(15, 1)), {});
-      vertices.push_back(vertex);
+      VertexWord v(VertexWord::vtxvalid_t(1),
+                   VertexWord::vtxz0_t(x.data(VertexWord::kZ0MSB, VertexWord::kZ0LSB)),
+                   VertexWord::vtxmultiplicity_t(x.data(VertexWord::kNTrackInPVMSB, VertexWord::kNTrackInPVLSB)),
+                   VertexWord::vtxsumpt_t(x.data(VertexWord::kSumPtMSB, VertexWord::kSumPtLSB)),
+                   VertexWord::vtxquality_t(x.data(VertexWord::kQualityMSB, VertexWord::kQualityLSB)),
+                   VertexWord::vtxinversemult_t(x.data(VertexWord::kNTrackOutPVMSB, VertexWord::kNTrackOutPVLSB)),
+                   VertexWord::vtxunassigned_t(x.data(VertexWord::kUnassignedMSB, VertexWord::kUnassignedLSB)));
+      vertices.push_back(v);
     }
 
     return vertices;

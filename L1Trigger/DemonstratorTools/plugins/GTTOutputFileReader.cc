@@ -89,7 +89,7 @@ GTTOutputFileReader::GTTOutputFileReader(const edm::ParameterSet& iConfig)
                   6,
                   10,
                   kChannelSpecs) {
-  produces<l1t::VertexCollection>();
+  produces<l1t::VertexWordCollection>();
 }
 
 GTTOutputFileReader::~GTTOutputFileReader() {
@@ -109,11 +109,11 @@ void GTTOutputFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   l1t::demo::BoardData eventData(fileReader_.getNextEvent());
 
-  l1t::VertexCollection vertices(l1t::demo::codecs::decodeVertices(eventData.at(kVertexChanIndex)));
+  l1t::VertexWordCollection vertices(l1t::demo::codecs::decodeVertices(eventData.at(kVertexChanIndex)));
 
   std::cout << vertices.size() << " vertices found" << std::endl;
 
-  iEvent.put(std::make_unique<l1t::VertexCollection>(vertices));
+  iEvent.put(std::make_unique<l1t::VertexWordCollection>(vertices));
 
   /* this is an EventSetup example
   //Read SetupData from the SetupRecord in the EventSetup
