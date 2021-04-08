@@ -27,6 +27,9 @@ namespace l1t::demo {
 
     void addEvent(const BoardData& data);
 
+    // If there are events that have not been written to file, forces creation of a board data file containing them
+    void flush();
+
   private:
     void resetBoardData();
 
@@ -45,6 +48,9 @@ namespace l1t::demo {
     size_t maxEventsPerFile_;
 
     size_t eventIndex_;
+
+    // Number of events stored in boardData_
+    size_t pendingEvents_;
 
     BoardData boardData_;
 

@@ -154,7 +154,8 @@ void GTTInputFileWriter::beginJob() {
 
 // ------------ method called once each job just after ending the event loop  ------------
 void GTTInputFileWriter::endJob() {
-  // please remove this method if not needed
+  // Writing pending events to file before exiting
+  fileWriter_.flush();
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------

@@ -20,6 +20,7 @@ namespace l1t::demo {
         maxFramesPerFile_(maxFramesPerFile),
         maxEventsPerFile_(maxFramesPerFile_),
         eventIndex_(0),
+        pendingEvents_(0),
         channelSpecs_(channelSpecs) {
     for (const auto& [i, x] : channelSpecs_) {
       boardData_.add(i);
@@ -51,20 +52,27 @@ namespace l1t::demo {
     }
 
     eventIndex_++;
+    pendingEvents_++;
 
-    if ((eventIndex_ % maxEventsPerFile_) == 0) {
-      // Pad any channels that aren't full with invalid frames
-      for (auto& x : boardData_)
-        x.second.resize(maxFramesPerFile_);
+    if (pendingEvents_ == maxEventsPerFile_)
+      flush();
+  }
 
-      // Write board data object to file
-      const std::string filePath = filePathGen_(fileNames_.size());
-      write(boardData_, filePath, fileFormat_);
-      fileNames_.push_back(filePath);
+  void BoardDataWriter::flush() {
+    if (pendingEvents_ == 0)
+      return;
 
-      // Clear board data to be ready for next event
-      resetBoardData();
-    }
+    // Pad any channels that aren't full with invalid frames
+    for (auto& x : boardData_)
+      x.second.resize(maxFramesPerFile_);
+
+    // Write board data object to file
+    const std::string filePath = filePathGen_(fileNames_.size());
+    write(boardData_, filePath, fileFormat_);
+    fileNames_.push_back(filePath);
+
+    // Clear board data to be ready for next event
+    resetBoardData();
   }
 
   void BoardDataWriter::resetBoardData() {
@@ -73,6 +81,8 @@ namespace l1t::demo {
 
     for (const auto& [i, spec] : channelSpecs_)
       boardData_.at(i).resize(spec.tmuxIndex * framesPerBX_ + spec.offset);
+
+    pendingEvents_ = 0;
   }
 
 }  // namespace l1t::demo
