@@ -3,9 +3,7 @@
 
 namespace l1t::demo::codecs {
 
-  ap_uint<64> encodeVertex(const l1t::VertexWord& v) {
-    return v.vertexWord();
-  }
+  ap_uint<64> encodeVertex(const l1t::VertexWord& v) { return v.vertexWord(); }
 
   // Encodes vertex collection onto 1 output link
   std::array<l1t::demo::BoardData::Channel, 1> encodeVertices(const edm::View<l1t::VertexWord>& vertices) {

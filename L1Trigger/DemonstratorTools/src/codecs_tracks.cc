@@ -3,9 +3,7 @@
 
 namespace l1t::demo::codecs {
 
-  ap_uint<96> encodeTrack(const TTTrack_TrackWord& t) {
-    return t.getTrackWord();
-  }
+  ap_uint<96> encodeTrack(const TTTrack_TrackWord& t) { return t.getTrackWord(); }
 
   // Encodes track collection onto 18 output links (2x9 eta-phi sectors; first 9 negative eta)
   std::array<l1t::demo::BoardData::Channel, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>& tracks) {

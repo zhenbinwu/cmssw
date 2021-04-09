@@ -118,7 +118,8 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator =
 
 GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
     : tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
-      convertedTracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("convertedTracks"))),
+      convertedTracksToken_(
+          consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("convertedTracks"))),
       verticesToken_(consumes<edm::View<l1t::VertexWord>>(iConfig.getUntrackedParameter<edm::InputTag>("vertices"))),
       eventCount_(0),
       fileWriterInputTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
@@ -134,11 +135,11 @@ GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
                                  1024,
                                  kChannelSpecsInput),
       fileWriterOutputToCorrelator_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
-                        iConfig.getUntrackedParameter<std::string>("outputFilename"),
-                        9,
-                        6,
-                        1024,
-                        kChannelSpecsOutputToCorrelator) {
+                                    iConfig.getUntrackedParameter<std::string>("outputFilename"),
+                                    9,
+                                    6,
+                                    1024,
+                                    kChannelSpecsOutputToCorrelator) {
   //now do what ever initialization is needed
 }
 
