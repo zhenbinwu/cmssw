@@ -15,14 +15,13 @@
 using namespace L1TkEtMissEmuAlgo;
 
 class Cordic {
- public:
+public:
   Cordic();
-  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug,
-         bool writeLUTs);
+  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs);
 
   EtMiss toPolar(Et_t x, Et_t y) const;
 
- private:
+private:
   // Scale for Phi calculation to maintain precision
   const int mPhiScale;
   // Scale for Magnitude calculation
