@@ -17,7 +17,8 @@ namespace l1t::demo::codecs {
     std::array<l1t::demo::BoardData::Channel, 1> linkData;
 
     for (size_t i = 0; i < linkData.size(); i++) {
-      // No need to pad the vertices with valid, but {0} frames
+      // Pad vertex vectors -> full packet length (10 frames = 10 vertices)
+      vertexWords.resize(10, 0);
       linkData.at(i).resize(vertexWords.size(), {0});
 
       for (size_t j = 0; (j < vertexWords.size()); j++) {

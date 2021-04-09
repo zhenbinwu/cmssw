@@ -38,10 +38,6 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxE
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
-#process.load("L1Trigger.L1TTrackMatch.L1TrackJetProducer_cfi")
-#process.load("L1Trigger.L1TTrackMatch.L1TrackFastJetProducer_cfi")
-#process.load("L1Trigger.L1TTrackMatch.L1TrackerEtMissProducer_cfi")
-#process.load("L1Trigger.L1TTrackMatch.L1TkHTMissProducer_cfi")
 process.load('L1Trigger.VertexFinder.VertexProducer_cff')
 process.load('L1Trigger.DemonstratorTools.GTTInputFileWriter_cff')
 

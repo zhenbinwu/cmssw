@@ -67,7 +67,7 @@ private:
   size_t eventCount_;
   l1t::demo::BoardDataWriter fileWriterInputTracks_;
   l1t::demo::BoardDataWriter fileWriterConvertedTracks_;
-  l1t::demo::BoardDataWriter fileWriterOutput_;
+  l1t::demo::BoardDataWriter fileWriterOutputToCorrelator_;
 };
 
 //
@@ -104,7 +104,7 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsInput = {
     {48, {kTrackTMUX, 12, kGapLength}}, {49, {kTrackTMUX, 12, kGapLength}}, {50, {kTrackTMUX, 12, kGapLength}},
     {51, {kTrackTMUX, 12, kGapLength}}, {52, {kTrackTMUX, 12, kGapLength}}, {53, {kTrackTMUX, 12, kGapLength}}};
 
-const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutput = {
+const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator = {
     /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
     {0, {kTrackTMUX, 0, kGapLength}}};
 
@@ -133,12 +133,12 @@ GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
                                  6,
                                  1024,
                                  kChannelSpecsInput),
-      fileWriterOutput_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+      fileWriterOutputToCorrelator_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                         iConfig.getUntrackedParameter<std::string>("outputFilename"),
                         9,
                         6,
                         1024,
-                        kChannelSpecsOutput) {
+                        kChannelSpecsOutputToCorrelator) {
   //now do what ever initialization is needed
 }
 
@@ -183,7 +183,7 @@ void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   fileWriterInputTracks_.addEvent(boardDataTracks);
   fileWriterConvertedTracks_.addEvent(boardDataConvertedTracks);
-  fileWriterOutput_.addEvent(boardDataVertices);
+  fileWriterOutputToCorrelator_.addEvent(boardDataVertices);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -194,7 +194,9 @@ void GTTInputFileWriter::beginJob() {
 // ------------ method called once each job just after ending the event loop  ------------
 void GTTInputFileWriter::endJob() {
   // Writing pending events to file before exiting
-  fileWriter_.flush();
+  fileWriterInputTracks_.flush();
+  fileWriterConvertedTracks_.flush();
+  fileWriterOutputToCorrelator_.flush();
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
