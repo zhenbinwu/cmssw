@@ -34,10 +34,12 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
 #include "DataFormats/Common/interface/View.h"
 
 #include "L1Trigger/DemonstratorTools/interface/BoardDataWriter.h"
 #include "L1Trigger/DemonstratorTools/interface/codecs/tracks.h"
+#include "L1Trigger/DemonstratorTools/interface/codecs/vertices.h"
 #include "L1Trigger/DemonstratorTools/interface/utilities.h"
 
 // If the analyzer does not use TFileService, please remove
@@ -60,8 +62,12 @@ private:
   void endJob() override;
 
   edm::EDGetTokenT<edm::View<Track_t>> tracksToken_;
+  edm::EDGetTokenT<edm::View<Track_t>> convertedTracksToken_;
+  edm::EDGetTokenT<edm::View<l1t::VertexWord>> verticesToken_;
   size_t eventCount_;
-  l1t::demo::BoardDataWriter fileWriter_;
+  l1t::demo::BoardDataWriter fileWriterInputTracks_;
+  l1t::demo::BoardDataWriter fileWriterConvertedTracks_;
+  l1t::demo::BoardDataWriter fileWriterOutput_;
 };
 
 //
@@ -72,7 +78,7 @@ private:
 constexpr size_t kGapLength(6);
 constexpr size_t kTrackTMUX(18);
 
-const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
+const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsInput = {
     /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
     {0, {kTrackTMUX, 0, kGapLength}},   {1, {kTrackTMUX, 0, kGapLength}},   {2, {kTrackTMUX, 0, kGapLength}},
     {3, {kTrackTMUX, 0, kGapLength}},   {4, {kTrackTMUX, 0, kGapLength}},   {5, {kTrackTMUX, 0, kGapLength}},
@@ -98,6 +104,10 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
     {48, {kTrackTMUX, 12, kGapLength}}, {49, {kTrackTMUX, 12, kGapLength}}, {50, {kTrackTMUX, 12, kGapLength}},
     {51, {kTrackTMUX, 12, kGapLength}}, {52, {kTrackTMUX, 12, kGapLength}}, {53, {kTrackTMUX, 12, kGapLength}}};
 
+const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutput = {
+    /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
+    {0, {kTrackTMUX, 0, kGapLength}}};
+
 //
 // static data member definitions
 //
@@ -108,13 +118,27 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
 
 GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
     : tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
+      convertedTracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("convertedTracks"))),
+      verticesToken_(consumes<edm::View<l1t::VertexWord>>(iConfig.getUntrackedParameter<edm::InputTag>("vertices"))),
       eventCount_(0),
-      fileWriter_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
-                  iConfig.getUntrackedParameter<std::string>("outputFilename"),
-                  9,
-                  6,
-                  1024,
-                  kChannelSpecs) {
+      fileWriterInputTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+                             iConfig.getUntrackedParameter<std::string>("inputFilename"),
+                             9,
+                             6,
+                             1024,
+                             kChannelSpecsInput),
+      fileWriterConvertedTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+                                 iConfig.getUntrackedParameter<std::string>("inputConvertedFilename"),
+                                 9,
+                                 6,
+                                 1024,
+                                 kChannelSpecsInput),
+      fileWriterOutput_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
+                        iConfig.getUntrackedParameter<std::string>("outputFilename"),
+                        9,
+                        6,
+                        1024,
+                        kChannelSpecsOutput) {
   //now do what ever initialization is needed
 }
 
@@ -138,13 +162,28 @@ void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup
   // 1) Encode track information onto vectors containing link data
   const std::array<l1t::demo::BoardData::Channel, 18> trackData(
       l1t::demo::codecs::encodeTracks(iEvent.get(tracksToken_)));
+  const std::array<l1t::demo::BoardData::Channel, 18> convertedTrackData(
+      l1t::demo::codecs::encodeTracks(iEvent.get(convertedTracksToken_)));
+
+  const std::array<l1t::demo::BoardData::Channel, 1> outputData(
+      l1t::demo::codecs::encodeVertices(iEvent.get(verticesToken_)));
 
   // 2) Pack track information into 'board data' object, and pass that to file writer
-  l1t::demo::BoardData boardData;
-  for (size_t i = 0; i < 18; i++)
-    boardData.add(baseIdx + i, trackData.at(i));
+  l1t::demo::BoardData boardDataTracks;
+  l1t::demo::BoardData boardDataConvertedTracks;
+  for (size_t i = 0; i < 18; i++) {
+    boardDataTracks.add(baseIdx + i, trackData.at(i));
+    boardDataConvertedTracks.add(baseIdx + i, convertedTrackData.at(i));
+  }
 
-  fileWriter_.addEvent(boardData);
+  l1t::demo::BoardData boardDataVertices;
+  for (size_t i = 0; i < 1; i++) {
+    boardDataVertices.add(i, outputData.at(i));
+  }
+
+  fileWriterInputTracks_.addEvent(boardDataTracks);
+  fileWriterConvertedTracks_.addEvent(boardDataConvertedTracks);
+  fileWriterOutput_.addEvent(boardDataVertices);
 }
 
 // ------------ method called once each job just before starting event loop  ------------

@@ -1,4 +1,3 @@
-
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -38,7 +37,16 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(inpu
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
+process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
+#process.load("L1Trigger.L1TTrackMatch.L1TrackJetProducer_cfi")
+#process.load("L1Trigger.L1TTrackMatch.L1TrackFastJetProducer_cfi")
+#process.load("L1Trigger.L1TTrackMatch.L1TrackerEtMissProducer_cfi")
+#process.load("L1Trigger.L1TTrackMatch.L1TkHTMissProducer_cfi")
+process.load('L1Trigger.VertexFinder.VertexProducer_cff')
 process.load('L1Trigger.DemonstratorTools.GTTInputFileWriter_cff')
+
+process.VertexProducer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
+process.VertexProducer.VertexReconstruction.Algorithm = cms.string("FastHistoEmulation")
 
 process.GTTInputFileWriter.format = cms.untracked.string(options.format)
 # process.GTTInputFileWriter.outputFilename = cms.untracked.string("myOutputFile.txt")
@@ -46,4 +54,4 @@ process.GTTInputFileWriter.format = cms.untracked.string(options.format)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
-process.p = cms.Path(process.L1HybridTracks * process.GTTInputFileWriter)
+process.p = cms.Path(process.L1HybridTracks * process.L1GTTInputProducer * process.VertexProducer * process.GTTInputFileWriter)
