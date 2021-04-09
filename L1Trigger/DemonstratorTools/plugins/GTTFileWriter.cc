@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
 // Package:    L1Trigger/DemonstratorTools
-// Class:      GTTInputFileWriter
+// Class:      GTTFileWriter
 //
-/**\class GTTInputFileWriter GTTInputFileWriter.cc L1Trigger/DemonstratorTools/plugins/GTTInputFileWriter.cc
+/**\class GTTFileWriter GTTFileWriter.cc L1Trigger/DemonstratorTools/plugins/GTTFileWriter.cc
 
  Description: Example EDAnalyzer class, illustrating how BoardDataWriter can be used to write I/O buffer files for hardware/firmware tests
 
@@ -47,10 +47,10 @@
 // from  edm::one::EDAnalyzer<>
 // This will improve performance in multithreaded jobs.
 
-class GTTInputFileWriter : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class GTTFileWriter : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit GTTInputFileWriter(const edm::ParameterSet&);
-  ~GTTInputFileWriter() override;
+  explicit GTTFileWriter(const edm::ParameterSet&);
+  ~GTTFileWriter() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -116,7 +116,7 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator =
 // constructors and destructor
 //
 
-GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
+GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
     : tracksToken_(consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
       convertedTracksToken_(
           consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("convertedTracks"))),
@@ -143,14 +143,14 @@ GTTInputFileWriter::GTTInputFileWriter(const edm::ParameterSet& iConfig)
   //now do what ever initialization is needed
 }
 
-GTTInputFileWriter::~GTTInputFileWriter() {
+GTTFileWriter::~GTTFileWriter() {
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
   //
   // please remove this method altogether if it would be left empty
 }
 
-void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
   // Select links for correct time slice (18 input links per time slice)
@@ -188,12 +188,12 @@ void GTTInputFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void GTTInputFileWriter::beginJob() {
+void GTTFileWriter::beginJob() {
   // please remove this method if not needed
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void GTTInputFileWriter::endJob() {
+void GTTFileWriter::endJob() {
   // Writing pending events to file before exiting
   fileWriterInputTracks_.flush();
   fileWriterConvertedTracks_.flush();
@@ -201,7 +201,7 @@ void GTTInputFileWriter::endJob() {
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void GTTInputFileWriter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void GTTFileWriter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -216,4 +216,4 @@ void GTTInputFileWriter::fillDescriptions(edm::ConfigurationDescriptions& descri
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(GTTInputFileWriter);
+DEFINE_FWK_MODULE(GTTFileWriter);

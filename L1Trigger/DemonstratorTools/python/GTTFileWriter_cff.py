@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-GTTInputFileWriter = cms.EDAnalyzer('GTTInputFileWriter',
+GTTFileWriter = cms.EDAnalyzer('GTTFileWriter',
   tracks = cms.untracked.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),
   convertedTracks = cms.untracked.InputTag("L1GTTInputProducer","Level1TTTracksConverted"),
   vertices = cms.untracked.InputTag("VertexProducer", "l1verticesEmulation"),

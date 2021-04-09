@@ -23,7 +23,7 @@ for filePath in options.inputFiles:
 
 # PART 2: SETUP MAIN CMSSW PROCESS 
 
-process = cms.Process("GTTInputWriter")
+process = cms.Process("GTTFileWriter")
 
 process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
 process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
@@ -39,15 +39,15 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxE
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
 process.load('L1Trigger.VertexFinder.VertexProducer_cff')
-process.load('L1Trigger.DemonstratorTools.GTTInputFileWriter_cff')
+process.load('L1Trigger.DemonstratorTools.GTTFileWriter_cff')
 
 process.VertexProducer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
 process.VertexProducer.VertexReconstruction.Algorithm = cms.string("FastHistoEmulation")
 
-process.GTTInputFileWriter.format = cms.untracked.string(options.format)
-# process.GTTInputFileWriter.outputFilename = cms.untracked.string("myOutputFile.txt")
+process.GTTFileWriter.format = cms.untracked.string(options.format)
+# process.GTTFileWriter.outputFilename = cms.untracked.string("myOutputFile.txt")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
-process.p = cms.Path(process.L1HybridTracks * process.L1GTTInputProducer * process.VertexProducer * process.GTTInputFileWriter)
+process.p = cms.Path(process.L1HybridTracks * process.L1GTTInputProducer * process.VertexProducer * process.GTTFileWriter)
