@@ -24,7 +24,7 @@ for filePath in options.inputFiles:
 
 # PART 2: SETUP MAIN CMSSW PROCESS 
 
-process = cms.Process("GTTOutputValidation")
+process = cms.Process("GTTValidation")
 
 process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
 process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
@@ -38,11 +38,11 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(inpu
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
-process.load('L1Trigger.DemonstratorTools.GTTOutputFileReader_cff')
-process.GTTOutputFileReader.files = cms.vstring("test/gtt/example_vertex_apx.txt")
-process.GTTOutputFileReader.format = cms.untracked.string(options.format)
+process.load('L1Trigger.DemonstratorTools.GTTFileReader_cff')
+process.GTTFileReader.files = cms.vstring("test/gtt/example_vertex_apx.txt")
+process.GTTFileReader.format = cms.untracked.string(options.format)
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
-process.p = cms.Path(process.L1HybridTracks * process.GTTOutputFileReader) # vertex emulator & FW-emulator comparsion module need to be added here
+process.p = cms.Path(process.L1HybridTracks * process.GTTFileReader) # vertex emulator & FW-emulator comparsion module need to be added here

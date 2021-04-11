@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
 // Package:    L1Trigger/DemonstratorTools
-// Class:      GTTOutputFileReader
+// Class:      GTTFileReader
 //
-/**\class GTTOutputFileReader GTTOutputFileReader.cc L1Trigger/DemonstratorTools/plugins/GTTOutputFileReader.cc
+/**\class GTTFileReader GTTFileReader.cc L1Trigger/DemonstratorTools/plugins/GTTFileReader.cc
 
  Description: Example EDProducer class, illustrating how BoardDataReader can be used to
    read I/O buffer files (that have been created in hardware/firmware tests), decode
@@ -40,59 +40,50 @@
 // class declaration
 //
 
-class GTTOutputFileReader : public edm::stream::EDProducer<> {
+class GTTFileReader : public edm::stream::EDProducer<> {
 public:
-  explicit GTTOutputFileReader(const edm::ParameterSet&);
-  ~GTTOutputFileReader() override;
+  explicit GTTFileReader(const edm::ParameterSet&);
+  ~GTTFileReader() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
+  // ----------constants, enums and typedefs ---------
+  // NOTE: At least some of the info from these constants will eventually come from config files
+  static constexpr size_t kFramesPerTMUXPeriod = 9;
+  static constexpr size_t kGapLength = 44;
+  static constexpr size_t kVertexTMUX = 6;
+  static constexpr size_t kVertexChanIndex = 0;
+  static constexpr size_t kEmptyFrames = 10;
+
+  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
+      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
+      {kVertexChanIndex, {kVertexTMUX, 0, kGapLength}}};
+
+  // ----------member functions ----------------------
   void beginStream(edm::StreamID) override;
   void produce(edm::Event&, const edm::EventSetup&) override;
   void endStream() override;
-
-  //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
-  //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
-  //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-  //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
   // ----------member data ---------------------------
   l1t::demo::BoardDataReader fileReader_;
 };
 
 //
-// constants, enums and typedefs
-//
-
-// NOTE: At least some of the info from these constants will eventually come from config files
-constexpr size_t kGapLength(44);
-constexpr size_t kVertexTMUX(6);
-constexpr size_t kVertexChanIndex(0);
-
-const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
-    /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-    {kVertexChanIndex, {kVertexTMUX, 0, kGapLength}}};
-
-//
-// static data member definitions
-//
-
-//
 // constructors and destructor
 //
 
-GTTOutputFileReader::GTTOutputFileReader(const edm::ParameterSet& iConfig)
+GTTFileReader::GTTFileReader(const edm::ParameterSet& iConfig)
     : fileReader_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                   iConfig.getParameter<std::vector<std::string>>("files"),
-                  9,
-                  6,
-                  10,
+                  kFramesPerTMUXPeriod,
+                  kVertexTMUX,
+                  kEmptyFrames,
                   kChannelSpecs) {
   produces<l1t::VertexWordCollection>();
 }
 
-GTTOutputFileReader::~GTTOutputFileReader() {
+GTTFileReader::~GTTFileReader() {
   // do anything here that needs to be done at destruction time
   // (e.g. close files, deallocate resources etc.)
   //
@@ -104,7 +95,7 @@ GTTOutputFileReader::~GTTOutputFileReader() {
 //
 
 // ------------ method called to produce the data  ------------
-void GTTOutputFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GTTFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
   l1t::demo::BoardData eventData(fileReader_.getNextEvent());
@@ -122,49 +113,17 @@ void GTTOutputFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------
-void GTTOutputFileReader::beginStream(edm::StreamID) {
+void GTTFileReader::beginStream(edm::StreamID) {
   // please remove this method if not needed
 }
 
 // ------------ method called once each stream after processing all runs, lumis and events  ------------
-void GTTOutputFileReader::endStream() {
+void GTTFileReader::endStream() {
   // please remove this method if not needed
 }
 
-// ------------ method called when starting to processes a run  ------------
-/*
-void
-GTTOutputFileReader::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when ending the processing of a run  ------------
-/*
-void
-GTTOutputFileReader::endRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when starting to processes a luminosity block  ------------
-/*
-void
-GTTOutputFileReader::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when ending the processing of a luminosity block  ------------
-/*
-void
-GTTOutputFileReader::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
-
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void GTTOutputFileReader::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void GTTFileReader::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -173,4 +132,4 @@ void GTTOutputFileReader::fillDescriptions(edm::ConfigurationDescriptions& descr
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(GTTOutputFileReader);
+DEFINE_FWK_MODULE(GTTFileReader);

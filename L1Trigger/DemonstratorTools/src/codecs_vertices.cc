@@ -3,6 +3,30 @@
 
 namespace l1t::demo::codecs {
 
+  ap_uint<64> encodeVertex(const l1t::VertexWord& v) { return v.vertexWord(); }
+
+  // Encodes vertex collection onto 1 output link
+  std::array<l1t::demo::BoardData::Channel, 1> encodeVertices(const edm::View<l1t::VertexWord>& vertices) {
+    std::vector<ap_uint<64>> vertexWords;
+
+    for (const auto& vertex : vertices)
+      vertexWords.push_back(encodeVertex(vertex));
+
+    std::array<l1t::demo::BoardData::Channel, 1> linkData;
+
+    for (size_t i = 0; i < linkData.size(); i++) {
+      // Pad vertex vectors -> full packet length (10 frames = 10 vertices)
+      vertexWords.resize(10, 0);
+      linkData.at(i).resize(vertexWords.size(), {0});
+
+      for (size_t j = 0; (j < vertexWords.size()); j++) {
+        linkData.at(i).at(j).data = vertexWords.at(j)(63, 0);
+      }
+    }
+
+    return linkData;
+  }
+
   std::vector<l1t::VertexWord> decodeVertices(const l1t::demo::BoardData::Channel& frames) {
     std::vector<l1t::VertexWord> vertices;
 

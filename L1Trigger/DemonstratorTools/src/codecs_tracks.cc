@@ -3,26 +3,7 @@
 
 namespace l1t::demo::codecs {
 
-  ap_uint<96> encodeTrack(const TTTrack_TrackWord& t) {
-    // FIXME: Update to actually encode track parameters (just hardcoding values
-    //        right now to verify file-writing and packing of 96-bit words).
-
-    ap_uint<96> word(0);
-    word.set(0);   // valid
-    word.set(1);   // pt
-    word.set(16);  // phi
-    word.set(28);  // tanLambda
-    word.set(44);  // z0
-    word.set(56);  // d0
-    word.set(69);  // chi2 (r-phi)
-    word.set(73);  // chi2 (r-z)
-    word.set(77);  // bend chi2
-    word.set(80);  // hit pattern
-    word.set(87);  // MVA track quality
-    word.set(90);  // Other MVAs
-
-    return word;
-  }
+  ap_uint<96> encodeTrack(const TTTrack_TrackWord& t) { return t.getTrackWord(); }
 
   // Encodes track collection onto 18 output links (2x9 eta-phi sectors; first 9 negative eta)
   std::array<l1t::demo::BoardData::Channel, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>& tracks) {
