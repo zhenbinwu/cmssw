@@ -55,12 +55,52 @@ public:
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
+  // ----------constants, enums and typedefs ---------
+  // NOTE: At least some of the info from these constants will eventually come from config files
+  static constexpr size_t kFramesPerTMUXPeriod = 9;
+  static constexpr size_t kGapLength = 6;
+  static constexpr size_t kTrackTMUX = 18;
+  static constexpr size_t kGTTBoardTMUX = 6;
+  static constexpr size_t kMaxLinesPerFile = 1024;
+
+  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsInput = {
+      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
+      {0, {kTrackTMUX, 0, kGapLength}},   {1, {kTrackTMUX, 0, kGapLength}},   {2, {kTrackTMUX, 0, kGapLength}},
+      {3, {kTrackTMUX, 0, kGapLength}},   {4, {kTrackTMUX, 0, kGapLength}},   {5, {kTrackTMUX, 0, kGapLength}},
+      {6, {kTrackTMUX, 0, kGapLength}},   {7, {kTrackTMUX, 0, kGapLength}},   {8, {kTrackTMUX, 0, kGapLength}},
+
+      {9, {kTrackTMUX, 0, kGapLength}},   {10, {kTrackTMUX, 0, kGapLength}},  {11, {kTrackTMUX, 0, kGapLength}},
+      {12, {kTrackTMUX, 0, kGapLength}},  {13, {kTrackTMUX, 0, kGapLength}},  {14, {kTrackTMUX, 0, kGapLength}},
+      {15, {kTrackTMUX, 0, kGapLength}},  {16, {kTrackTMUX, 0, kGapLength}},  {17, {kTrackTMUX, 0, kGapLength}},
+
+      {18, {kTrackTMUX, 6, kGapLength}},  {19, {kTrackTMUX, 6, kGapLength}},  {20, {kTrackTMUX, 6, kGapLength}},
+      {21, {kTrackTMUX, 6, kGapLength}},  {22, {kTrackTMUX, 6, kGapLength}},  {23, {kTrackTMUX, 6, kGapLength}},
+      {24, {kTrackTMUX, 6, kGapLength}},  {25, {kTrackTMUX, 6, kGapLength}},  {26, {kTrackTMUX, 6, kGapLength}},
+
+      {27, {kTrackTMUX, 6, kGapLength}},  {28, {kTrackTMUX, 6, kGapLength}},  {29, {kTrackTMUX, 6, kGapLength}},
+      {30, {kTrackTMUX, 6, kGapLength}},  {31, {kTrackTMUX, 6, kGapLength}},  {32, {kTrackTMUX, 6, kGapLength}},
+      {33, {kTrackTMUX, 6, kGapLength}},  {34, {kTrackTMUX, 6, kGapLength}},  {35, {kTrackTMUX, 6, kGapLength}},
+
+      {36, {kTrackTMUX, 12, kGapLength}}, {37, {kTrackTMUX, 12, kGapLength}}, {38, {kTrackTMUX, 12, kGapLength}},
+      {39, {kTrackTMUX, 12, kGapLength}}, {40, {kTrackTMUX, 12, kGapLength}}, {41, {kTrackTMUX, 12, kGapLength}},
+      {42, {kTrackTMUX, 12, kGapLength}}, {43, {kTrackTMUX, 12, kGapLength}}, {44, {kTrackTMUX, 12, kGapLength}},
+
+      {45, {kTrackTMUX, 12, kGapLength}}, {46, {kTrackTMUX, 12, kGapLength}}, {47, {kTrackTMUX, 12, kGapLength}},
+      {48, {kTrackTMUX, 12, kGapLength}}, {49, {kTrackTMUX, 12, kGapLength}}, {50, {kTrackTMUX, 12, kGapLength}},
+      {51, {kTrackTMUX, 12, kGapLength}}, {52, {kTrackTMUX, 12, kGapLength}}, {53, {kTrackTMUX, 12, kGapLength}}};
+
+  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator = {
+      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
+      {0, {kGTTBoardTMUX, 0, kGapLength}}};
+
   typedef TTTrack<Ref_Phase2TrackerDigi_> Track_t;
 
+  // ----------member functions ----------------------
   void beginJob() override;
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
+  // ----------member data ---------------------------
   edm::EDGetTokenT<edm::View<Track_t>> tracksToken_;
   edm::EDGetTokenT<edm::View<Track_t>> convertedTracksToken_;
   edm::EDGetTokenT<edm::View<l1t::VertexWord>> verticesToken_;
@@ -69,48 +109,6 @@ private:
   l1t::demo::BoardDataWriter fileWriterConvertedTracks_;
   l1t::demo::BoardDataWriter fileWriterOutputToCorrelator_;
 };
-
-//
-// constants, enums and typedefs
-//
-
-// NOTE: At least some of the info from these constants will eventually come from config files
-constexpr size_t kGapLength(6);
-constexpr size_t kTrackTMUX(18);
-
-const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsInput = {
-    /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-    {0, {kTrackTMUX, 0, kGapLength}},   {1, {kTrackTMUX, 0, kGapLength}},   {2, {kTrackTMUX, 0, kGapLength}},
-    {3, {kTrackTMUX, 0, kGapLength}},   {4, {kTrackTMUX, 0, kGapLength}},   {5, {kTrackTMUX, 0, kGapLength}},
-    {6, {kTrackTMUX, 0, kGapLength}},   {7, {kTrackTMUX, 0, kGapLength}},   {8, {kTrackTMUX, 0, kGapLength}},
-
-    {9, {kTrackTMUX, 0, kGapLength}},   {10, {kTrackTMUX, 0, kGapLength}},  {11, {kTrackTMUX, 0, kGapLength}},
-    {12, {kTrackTMUX, 0, kGapLength}},  {13, {kTrackTMUX, 0, kGapLength}},  {14, {kTrackTMUX, 0, kGapLength}},
-    {15, {kTrackTMUX, 0, kGapLength}},  {16, {kTrackTMUX, 0, kGapLength}},  {17, {kTrackTMUX, 0, kGapLength}},
-
-    {18, {kTrackTMUX, 6, kGapLength}},  {19, {kTrackTMUX, 6, kGapLength}},  {20, {kTrackTMUX, 6, kGapLength}},
-    {21, {kTrackTMUX, 6, kGapLength}},  {22, {kTrackTMUX, 6, kGapLength}},  {23, {kTrackTMUX, 6, kGapLength}},
-    {24, {kTrackTMUX, 6, kGapLength}},  {25, {kTrackTMUX, 6, kGapLength}},  {26, {kTrackTMUX, 6, kGapLength}},
-
-    {27, {kTrackTMUX, 6, kGapLength}},  {28, {kTrackTMUX, 6, kGapLength}},  {29, {kTrackTMUX, 6, kGapLength}},
-    {30, {kTrackTMUX, 6, kGapLength}},  {31, {kTrackTMUX, 6, kGapLength}},  {32, {kTrackTMUX, 6, kGapLength}},
-    {33, {kTrackTMUX, 6, kGapLength}},  {34, {kTrackTMUX, 6, kGapLength}},  {35, {kTrackTMUX, 6, kGapLength}},
-
-    {36, {kTrackTMUX, 12, kGapLength}}, {37, {kTrackTMUX, 12, kGapLength}}, {38, {kTrackTMUX, 12, kGapLength}},
-    {39, {kTrackTMUX, 12, kGapLength}}, {40, {kTrackTMUX, 12, kGapLength}}, {41, {kTrackTMUX, 12, kGapLength}},
-    {42, {kTrackTMUX, 12, kGapLength}}, {43, {kTrackTMUX, 12, kGapLength}}, {44, {kTrackTMUX, 12, kGapLength}},
-
-    {45, {kTrackTMUX, 12, kGapLength}}, {46, {kTrackTMUX, 12, kGapLength}}, {47, {kTrackTMUX, 12, kGapLength}},
-    {48, {kTrackTMUX, 12, kGapLength}}, {49, {kTrackTMUX, 12, kGapLength}}, {50, {kTrackTMUX, 12, kGapLength}},
-    {51, {kTrackTMUX, 12, kGapLength}}, {52, {kTrackTMUX, 12, kGapLength}}, {53, {kTrackTMUX, 12, kGapLength}}};
-
-const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator = {
-    /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-    {0, {kTrackTMUX, 0, kGapLength}}};
-
-//
-// static data member definitions
-//
 
 //
 // constructors and destructor
@@ -124,21 +122,21 @@ GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
       eventCount_(0),
       fileWriterInputTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                              iConfig.getUntrackedParameter<std::string>("inputFilename"),
-                             9,
-                             6,
-                             1024,
+                             kFramesPerTMUXPeriod,
+                             kGTTBoardTMUX,
+                             kMaxLinesPerFile,
                              kChannelSpecsInput),
       fileWriterConvertedTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                                  iConfig.getUntrackedParameter<std::string>("inputConvertedFilename"),
-                                 9,
-                                 6,
-                                 1024,
+                                 kFramesPerTMUXPeriod,
+                                 kGTTBoardTMUX,
+                                 kMaxLinesPerFile,
                                  kChannelSpecsInput),
       fileWriterOutputToCorrelator_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                                     iConfig.getUntrackedParameter<std::string>("outputFilename"),
-                                    9,
-                                    6,
-                                    1024,
+                                    kFramesPerTMUXPeriod,
+                                    kGTTBoardTMUX,
+                                    kMaxLinesPerFile,
                                     kChannelSpecsOutputToCorrelator) {
   //now do what ever initialization is needed
 }

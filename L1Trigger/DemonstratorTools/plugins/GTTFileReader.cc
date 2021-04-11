@@ -48,35 +48,26 @@ public:
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
+  // ----------constants, enums and typedefs ---------
+  // NOTE: At least some of the info from these constants will eventually come from config files
+  static constexpr size_t kFramesPerTMUXPeriod = 9;
+  static constexpr size_t kGapLength = 44;
+  static constexpr size_t kVertexTMUX = 6;
+  static constexpr size_t kVertexChanIndex = 0;
+  static constexpr size_t kEmptyFrames = 10;
+
+  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
+      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
+      {kVertexChanIndex, {kVertexTMUX, 0, kGapLength}}};
+
+  // ----------member functions ----------------------
   void beginStream(edm::StreamID) override;
   void produce(edm::Event&, const edm::EventSetup&) override;
   void endStream() override;
 
-  //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
-  //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
-  //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-  //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-
   // ----------member data ---------------------------
   l1t::demo::BoardDataReader fileReader_;
 };
-
-//
-// constants, enums and typedefs
-//
-
-// NOTE: At least some of the info from these constants will eventually come from config files
-constexpr size_t kGapLength(44);
-constexpr size_t kVertexTMUX(6);
-constexpr size_t kVertexChanIndex(0);
-
-const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
-    /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-    {kVertexChanIndex, {kVertexTMUX, 0, kGapLength}}};
-
-//
-// static data member definitions
-//
 
 //
 // constructors and destructor
@@ -85,9 +76,9 @@ const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
 GTTFileReader::GTTFileReader(const edm::ParameterSet& iConfig)
     : fileReader_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                   iConfig.getParameter<std::vector<std::string>>("files"),
-                  9,
-                  6,
-                  10,
+                  kFramesPerTMUXPeriod,
+                  kVertexTMUX,
+                  kEmptyFrames,
                   kChannelSpecs) {
   produces<l1t::VertexWordCollection>();
 }
@@ -130,38 +121,6 @@ void GTTFileReader::beginStream(edm::StreamID) {
 void GTTFileReader::endStream() {
   // please remove this method if not needed
 }
-
-// ------------ method called when starting to processes a run  ------------
-/*
-void
-GTTFileReader::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when ending the processing of a run  ------------
-/*
-void
-GTTFileReader::endRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when starting to processes a luminosity block  ------------
-/*
-void
-GTTFileReader::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when ending the processing of a luminosity block  ------------
-/*
-void
-GTTFileReader::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void GTTFileReader::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
