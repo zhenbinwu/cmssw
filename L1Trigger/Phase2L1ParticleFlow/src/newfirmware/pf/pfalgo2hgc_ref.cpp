@@ -83,7 +83,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
         continue;
       printf(
           "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt %8.2f [ "
-          "%6d ]   isEM %d  packed %s \n",
+          "%6d ]   emID %2d  packed %s \n",
           i,
           in.hadcalo[i].floatPt(),
           in.hadcalo[i].intPt(),
@@ -93,7 +93,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
           in.hadcalo[i].intPhi(),
           in.hadcalo[i].floatEmPt(),
           in.hadcalo[i].intEmPt(),
-          int(in.hadcalo[i].hwIsEM),
+          in.hadcalo[i].hwEmID.to_int(),
           in.hadcalo[i].pack().to_string(16).c_str());
     }
     for (unsigned int i = 0; i < nMU; ++i) {
@@ -164,7 +164,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
                  ibest,
                  in.hadcalo[ibest].floatPt());
         track_good[it] = true;
-        isEle[it] = in.hadcalo[ibest].hwIsEM;
+        isEle[it] = in.hadcalo[ibest].hwIsEM();
         calo_sumtk[ibest] += in.track[it].hwPt;
         calo_sumtkErr2[ibest] += tkCaloPtErr * tkCaloPtErr;
       }
@@ -220,9 +220,9 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
     outne_all[ipf].clear();
   for (unsigned int ic = 0; ic < nCALO; ++ic) {
     if (calo_subpt[ic] > 0) {
-      fillPFCand(in.hadcalo[ic], outne_all[ic], in.hadcalo[ic].hwIsEM);
+      fillPFCand(in.hadcalo[ic], outne_all[ic], in.hadcalo[ic].hwIsEM());
       outne_all[ic].hwPt = calo_subpt[ic];
-      outne_all[ic].hwEmPt = in.hadcalo[ic].hwIsEM ? calo_subpt[ic] : pt_t(0);  // FIXME
+      outne_all[ic].hwEmPt = in.hadcalo[ic].hwIsEM() ? calo_subpt[ic] : pt_t(0);  // FIXME
     }
   }
 

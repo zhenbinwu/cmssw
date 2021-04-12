@@ -213,7 +213,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
              em2calo[ic],
              (em2calo[ic] >= 0 ? in.hadcalo[em2calo[ic]].floatPt() : -1),
              (em2calo[ic] >= 0 ? in.hadcalo[em2calo[ic]].floatEmPt() : -1),
-             (em2calo[ic] >= 0 ? int(in.hadcalo[em2calo[ic]].hwIsEM) : 0));
+             (em2calo[ic] >= 0 ? int(in.hadcalo[em2calo[ic]].hwIsEM()) : 0));
     }
   }
 
@@ -239,7 +239,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
              Scales::floatPt(alldiff),
              in.hadcalo[ih].floatEmPt(),
              Scales::floatPt(emdiff),
-             int(in.hadcalo[ih].hwIsEM),
+             int(in.hadcalo[ih].hwIsEM()),
              keep);
     }
     if (alldiff <= (in.hadcalo[ih].hwPt >> 4)) {
@@ -247,7 +247,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
       hadcalo_out[ih].hwEmPt = 0;  // kill
       if (debug_ && (in.hadcalo[ih].hwPt > 0))
         printf("FW  \t calo   %3d pt %8.2f --> discarded (zero pt)\n", ih, in.hadcalo[ih].floatPt());
-    } else if ((in.hadcalo[ih].hwIsEM && emdiff <= (in.hadcalo[ih].hwEmPt >> 3)) && !keep) {
+    } else if ((in.hadcalo[ih].hwIsEM() && emdiff <= (in.hadcalo[ih].hwEmPt >> 3)) && !keep) {
       hadcalo_out[ih].hwPt = 0;    // kill
       hadcalo_out[ih].hwEmPt = 0;  // kill
       if (debug_ && (in.hadcalo[ih].hwPt > 0))
@@ -320,7 +320,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
         continue;
       printf(
           "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt  %8.2f [ "
-          "%6d ]   isEM %d \n",
+          "%6d ]   emID %2d \n",
           i,
           in.hadcalo[i].floatPt(),
           in.hadcalo[i].intPt(),
@@ -330,7 +330,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.hadcalo[i].intPhi(),
           in.hadcalo[i].floatEmPt(),
           in.hadcalo[i].intEmPt(),
-          int(in.hadcalo[i].hwIsEM));
+          in.hadcalo[i].hwEmID.to_int());
     }
     for (unsigned int i = 0; i < nMU; ++i) {
       if (in.muon[i].hwPt == 0)
@@ -461,7 +461,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
     if (calo_subpt[ic] > 0) {
       fillPFCand(hadcalo_subem[ic], outne_all[ic]);
       outne_all[ic].hwPt = calo_subpt[ic];
-      outne_all[ic].hwEmPt = hadcalo_subem[ic].hwIsEM ? calo_subpt[ic] : pt_t(0);  // FIXME
+      outne_all[ic].hwEmPt = hadcalo_subem[ic].hwIsEM() ? calo_subpt[ic] : pt_t(0);  // FIXME
     }
   }
 

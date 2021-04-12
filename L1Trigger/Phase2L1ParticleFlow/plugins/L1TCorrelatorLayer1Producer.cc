@@ -534,7 +534,7 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
   calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwEmPt = l1ct::Scales::makePtFromFloat(c.emEt());
-  calo.hwIsEM = c.isEM();
+  calo.hwEmID = c.hwEmID();
   calo.src = &c;
   sec.obj.push_back(calo);
 }
@@ -546,7 +546,7 @@ void L1TCorrelatorLayer1Producer::addDecodedEmCalo(l1ct::DetectorSector<l1ct::Em
   calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwPtErr = l1ct::Scales::makePtFromFloat(c.ptError());
-  calo.hwFlags = c.hwQual();
+  calo.hwEmID = c.hwEmID();
   calo.src = &c;
   sec.obj.push_back(calo);
 }
@@ -638,8 +638,9 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchHa
       if (p.hwPt == 0 || !reg.isFiducial(p))
         continue;
       reco::Particle::PolarLorentzVector p4(p.floatPt(), reg.floatGlbEtaOf(p), reg.floatGlbPhiOf(p), 0.13f);
-      l1t::PFCandidate::ParticleType type = p.hwIsEM ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
+      l1t::PFCandidate::ParticleType type = p.hwIsEM() ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
       ret->emplace_back(type, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
+      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -654,6 +655,7 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchEm
         continue;
       reco::Particle::PolarLorentzVector p4(p.floatPt(), reg.floatGlbEtaOf(p), reg.floatGlbPhiOf(p), 0.13f);
       ret->emplace_back(l1t::PFCandidate::Photon, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
+      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -704,6 +706,7 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchPF
       l1t::PFCandidate::ParticleType type =
           p.hwId.isPhoton() ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
       ret->emplace_back(type, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
+      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -746,6 +749,7 @@ void L1TCorrelatorLayer1Producer::putPuppi(edm::Event &iEvent) const {
         coll->back().setHwTkQuality(p.hwTkQuality());
       } else {
         coll->back().setHwPuppiWeight(p.hwPuppiW());
+        coll->back().setHwEmID(p.hwEmID());
       }
       coll->back().setEncodedPuppi64(p.pack().to_uint64());
       nobj.push_back(coll->size() - 1);
