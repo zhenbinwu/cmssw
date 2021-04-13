@@ -65,19 +65,19 @@ l1tpf::PFClusterProducerFromHGC3DClusters::PFClusterProducerFromHGC3DClusters(co
 
   std::string scenario = iConfig.getParameter<std::string>("useEMInterpretation");
   if (scenario == "emOnly") {
-      scenario_ = UseEmInterp::EmOnly;
+    scenario_ = UseEmInterp::EmOnly;
   } else if (scenario == "allKeepHad") {
-      scenario_ = UseEmInterp::AllKeepHad;
-      if (emOnly_) {
-          throw cms::Exception("Configuration", "Unsupported emOnly = True when useEMInterpretation is "+scenario);
-      }
+    scenario_ = UseEmInterp::AllKeepHad;
+    if (emOnly_) {
+      throw cms::Exception("Configuration", "Unsupported emOnly = True when useEMInterpretation is " + scenario);
+    }
   } else if (scenario == "allKeepTot") {
-      scenario_ = UseEmInterp::AllKeepTot;
-      if (emOnly_) {
-          throw cms::Exception("Configuration", "Unsupported emOnly = True when useEMInterpretation is "+scenario);
-      }
+    scenario_ = UseEmInterp::AllKeepTot;
+    if (emOnly_) {
+      throw cms::Exception("Configuration", "Unsupported emOnly = True when useEMInterpretation is " + scenario);
+    }
   } else if (scenario != "no") {
-      throw cms::Exception("Configuration", "Unsupported useEMInterpretation scenario "+scenario);
+    throw cms::Exception("Configuration", "Unsupported useEMInterpretation scenario " + scenario);
   }
 }
 
