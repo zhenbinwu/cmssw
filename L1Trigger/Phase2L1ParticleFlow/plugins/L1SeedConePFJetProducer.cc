@@ -14,7 +14,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 // bitwise emulation headers
-#include "L1Trigger/Phase2L1ParticleFlow/interface/L1SeedConePFJetEmulator.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/jetmet/L1SeedConePFJetEmulator.h"
 
 class L1SeedConePFJetProducer : public edm::global::EDProducer<> {
 public:
@@ -156,9 +156,7 @@ std::vector<L1SCJetEmu::Particle> L1SeedConePFJetProducer::convertEDMToHW(std::v
   using namespace L1SCJetEmu;
   std::vector<Particle> hwParticles;
   std::for_each(edmParticles.begin(), edmParticles.end(), [&](edm::Ptr<l1t::PFCandidate>& edmParticle){
-    hwParticles.push_back(L1SCJetEmu::Particle(edmParticle->pt(),
-                                               edmParticle->eta() * etaphi_base,
-                                               edmParticle->phi() * etaphi_base));
+    hwParticles.push_back(L1SCJetEmu::Particle::unpack(edmParticle->encodedPuppi64()));
   });
   return hwParticles;
 }
@@ -168,8 +166,8 @@ std::vector<l1t::PFJet> L1SeedConePFJetProducer::convertHWToEDM(std::vector<L1SC
   std::vector<l1t::PFJet> edmJets;
   std::for_each(hwJets.begin(), hwJets.end(), [&](Jet jet){
     edmJets.push_back(l1t::PFJet(jet.hwPt,
-                                 float(jet.hwEta) / etaphi_base,
-                                 float(jet.hwPhi) / etaphi_base));
+                                 float(jet.hwEta) * l1ct::Scales::ETAPHI_LSB,
+                                 float(jet.hwPhi) * l1ct::Scales::ETAPHI_LSB));
   });
   return edmJets;
 }
