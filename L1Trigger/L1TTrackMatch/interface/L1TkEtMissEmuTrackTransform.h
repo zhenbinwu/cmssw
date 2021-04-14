@@ -37,28 +37,24 @@ struct InternalEtWord {
   float phi;  // Used to debug cos phi LUT
 };
 
-
 class L1TkEtMissEmuTrackTransform {
- public:
+public:
   L1TkEtMissEmuTrackTransform() = default;
   ~L1TkEtMissEmuTrackTransform(){};
 
   void generateLUTs();  // Generate internal LUTs needed for track transfrom
 
   // Transform track and vertex
-  InternalEtWord transformTrack(TTTrack<Ref_Phase2TrackerDigi_>& track_ref,
-                                l1t::Vertex& PV);
+  InternalEtWord transformTrack(TTTrack<Ref_Phase2TrackerDigi_>& track_ref, l1t::Vertex& PV);
 
   // Converts local int phi to global int phi
-  global_phi_t localToGlobalPhi(TTTrack_TrackWord::phi_t local_phi,
-                                global_phi_t sector_shift);
+  global_phi_t localToGlobalPhi(TTTrack_TrackWord::phi_t local_phi, global_phi_t sector_shift);
 
   // Function to count stubs in hitpattern
   nstub_t countNStub(TTTrack_TrackWord::hit_t Hitpattern);
 
   // Function to take float phi to local integer phi
-  TTTrack_TrackWord::phi_t floatGlobalPhiToSectorPhi(float phi,
-                                                     unsigned int sector);
+  TTTrack_TrackWord::phi_t floatGlobalPhiToSectorPhi(float phi, unsigned int sector);
 
   std::vector<global_phi_t> generatePhiSliceLUT(unsigned int N);
 
@@ -68,7 +64,7 @@ class L1TkEtMissEmuTrackTransform {
   void setGTTinput(bool input) { GTTinput_ = input; }
   void setVtxEmulator(bool vtx) { VtxEmulator_ = vtx; }
 
- private:
+private:
   std::vector<global_phi_t> phiQuadrants;
   std::vector<global_phi_t> phiShift;
 
