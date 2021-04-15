@@ -90,6 +90,7 @@ namespace l1ct {
 
   struct PFRegionEmu : public PFRegion {
     PFRegionEmu() : PFRegion() {}
+    PFRegionEmu(float etaCenter, float phicenter);
     PFRegionEmu(float etamin, float etamax, float phicenter, float phiwidth, float etaextra, float phiextra);
 
     // global coordinates

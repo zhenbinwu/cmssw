@@ -435,8 +435,7 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     }
   }
 
-  event_.decoded.muon.region = l1ct::PFRegionEmu(
-      -l1ct::Scales::maxAbsGlbEta(), l1ct::Scales::maxAbsGlbEta(), 0.f, 2 * l1ct::Scales::maxAbsGlbPhi(), 0.f, 0.f);
+  event_.decoded.muon.region = l1ct::PFRegionEmu(0., 0.);  // centered at (0,0)
 
   event_.pfinputs.clear();
   for (const edm::ParameterSet &preg : iConfig.getParameter<std::vector<edm::ParameterSet>>("regions")) {
