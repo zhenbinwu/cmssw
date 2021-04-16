@@ -322,7 +322,7 @@ l1ctLayer1 = cms.EDProducer("L1TPFCandMultiMerger",
         cms.InputTag("l1ctLayer1HGCalNoTK"),
         cms.InputTag("l1ctLayer1HF")
     ),
-    labelsToMerge = cms.vstring("PF", "Puppi"),
+    labelsToMerge = cms.vstring("PF", "Puppi", "Calo", "TK"),
     regionalLabelsToMerge = cms.vstring("Puppi"),
 )
 
@@ -366,4 +366,13 @@ l1ctLayer1EG = cms.EDProducer(
             )
         )    
     )
+)
+
+l1ctLayer1Task = cms.Task(
+     l1ctLayer1Barrel,
+     l1ctLayer1HGCal,
+     l1ctLayer1HGCalNoTK,
+     l1ctLayer1HF,
+     l1ctLayer1,
+     l1ctLayer1EG
 )
