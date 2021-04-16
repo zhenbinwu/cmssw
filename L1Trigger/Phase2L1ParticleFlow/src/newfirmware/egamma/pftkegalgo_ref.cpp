@@ -75,7 +75,7 @@ void PFTkEGAlgoEmulator::link_emCalo2emCalo(const std::vector<EmCaloObjEmu> &emc
   // NOTE: we assume the input to be sorted!!!
   for (int ic = 0, nc = emcalo.size(); ic < nc; ++ic) {
     auto &calo = emcalo[ic];
-    if (cfg.filterHwQuality && calo.hwFlags != cfg.caloHwQual)
+    if (cfg.filterHwQuality && calo.hwEmID != cfg.caloHwQual)
       continue;
 
     if (emCalo2emCalo[ic] != -1)
@@ -86,7 +86,7 @@ void PFTkEGAlgoEmulator::link_emCalo2emCalo(const std::vector<EmCaloObjEmu> &emc
         continue;
 
       auto &otherCalo = emcalo[jc];
-      if (cfg.filterHwQuality && otherCalo.hwFlags != cfg.caloHwQual)
+      if (cfg.filterHwQuality && otherCalo.hwEmID != cfg.caloHwQual)
         continue;
 
       if (fabs(otherCalo.floatEta() - calo.floatEta()) < cfg.dEtaMaxBrem &&
@@ -104,7 +104,7 @@ void PFTkEGAlgoEmulator::link_emCalo2tk(const PFRegionEmu &r,
   for (int ic = 0, nc = emcalo.size(); ic < nc; ++ic) {
     auto &calo = emcalo[ic];
 
-    if (cfg.filterHwQuality && calo.hwFlags != cfg.caloHwQual)
+    if (cfg.filterHwQuality && calo.hwEmID != cfg.caloHwQual)
       continue;
 
     float dPtMin = 999;
@@ -143,7 +143,7 @@ void PFTkEGAlgoEmulator::sel_emCalo(unsigned int nmax_sel,
 
   for (int ic = 0, nc = emcalo.size(); ic < nc; ++ic) {
     const auto &calo = emcalo[ic];
-    if ((cfg.filterHwQuality && calo.hwFlags != cfg.caloHwQual) || (calo.floatPt() < cfg.emClusterPtMin))
+    if ((cfg.filterHwQuality && calo.hwEmID != cfg.caloHwQual) || (calo.floatPt() < cfg.emClusterPtMin))
       continue;
     emcalo_tmp.push_back(calo);
   }
@@ -198,11 +198,11 @@ void PFTkEGAlgoEmulator::eg_algo(const std::vector<EmCaloObjEmu> &emcalo,
   for (int ic = 0, nc = emcalo.size(); ic < nc; ++ic) {
     auto &calo = emcalo[ic];
 
-    if (cfg.filterHwQuality && calo.hwFlags != cfg.caloHwQual)
+    if (cfg.filterHwQuality && calo.hwEmID != cfg.caloHwQual)
       continue;
 
     if (debug_ > 3)
-      std::cout << "[REF] SEL emcalo with pt: " << calo.hwPt << " qual: " << calo.hwFlags << " eta: " << calo.hwEta
+      std::cout << "[REF] SEL emcalo with pt: " << calo.hwPt << " qual: " << calo.hwEmID << " eta: " << calo.hwEta
                 << " phi " << calo.hwPhi << std::endl;
 
     int itk = emCalo2tk[ic];
@@ -210,7 +210,7 @@ void PFTkEGAlgoEmulator::eg_algo(const std::vector<EmCaloObjEmu> &emcalo,
     // check if brem recovery is on
     if (!cfg.doBremRecovery || cfg.writeBeforeBremRecovery) {
       // 1. create EG objects before brem recovery
-      addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwFlags, calo.hwPt, itk);
+      addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID, calo.hwPt, itk);
     }
 
     if (!cfg.doBremRecovery)
@@ -233,7 +233,7 @@ void PFTkEGAlgoEmulator::eg_algo(const std::vector<EmCaloObjEmu> &emcalo,
 
     // 2. create EG objects with brem recovery
     // NOTE: duplicating the object is suboptimal but this is done for keeping things as in TDR code...
-    addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwFlags + 1, ptBremReco, itk, components);
+    addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID + 1, ptBremReco, itk, components);
   }
 }
 

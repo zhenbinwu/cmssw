@@ -381,7 +381,7 @@ void l1ct::LinPuppiEmulator::fwdlinpuppi_ref(const PFRegionEmu &region,
       }
     }
     unsigned int ieta = find_ieta(region, caloin[in].hwEta);
-    std::pair<pt_t, puppiWgt_t> ptAndW = sum2puppiPt_ref(sum, caloin[in].hwPt, ieta, caloin[in].hwIsEM, in);
+    std::pair<pt_t, puppiWgt_t> ptAndW = sum2puppiPt_ref(sum, caloin[in].hwPt, ieta, caloin[in].hwIsEM(), in);
 
     outallne_nocut[in].fill(region, caloin[in], ptAndW.first, ptAndW.second);
     if (region.isFiducial(caloin[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
@@ -527,7 +527,7 @@ void l1ct::LinPuppiEmulator::fwdlinpuppi_flt(const PFRegionEmu &region,
     }
 
     unsigned int ieta = find_ieta(region, caloin[in].hwEta);
-    std::pair<float, float> ptAndW = sum2puppiPt_flt(sum, caloin[in].floatPt(), ieta, caloin[in].hwIsEM, in);
+    std::pair<float, float> ptAndW = sum2puppiPt_flt(sum, caloin[in].floatPt(), ieta, caloin[in].hwIsEM(), in);
     outallne_nocut[in].fill(region, caloin[in], Scales::makePtFromFloat(ptAndW.first), int(ptAndW.second * 256));
     if (region.isFiducial(caloin[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
       outallne[in] = outallne_nocut[in];

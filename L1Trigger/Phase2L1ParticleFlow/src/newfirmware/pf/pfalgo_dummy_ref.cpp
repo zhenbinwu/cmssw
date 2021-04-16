@@ -25,7 +25,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
         continue;
       printf(
           "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  calo emPt %8.2f [ "
-          "%6d ]   isEM %d \n",
+          "%6d ]   emID %2d \n",
           i,
           in.hadcalo[i].floatPt(),
           in.hadcalo[i].intPt(),
@@ -35,7 +35,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
           in.hadcalo[i].intPhi(),
           in.hadcalo[i].floatEmPt(),
           in.hadcalo[i].intEmPt(),
-          int(in.hadcalo[i].hwIsEM));
+          in.hadcalo[i].hwEmID.to_int());
     }
     for (unsigned int i = 0; i < nMU; ++i) {
       if (in.muon[i].hwPt == 0)
@@ -54,7 +54,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
   out.pfneutral.resize(nCALO);
   for (unsigned int ic = 0; ic < nCALO; ++ic) {
     if (in.hadcalo[ic].hwPt > 0) {
-      fillPFCand(in.hadcalo[ic], out.pfneutral[ic], in.hadcalo[ic].hwIsEM);
+      fillPFCand(in.hadcalo[ic], out.pfneutral[ic], in.hadcalo[ic].hwIsEM());
     } else {
       out.pfneutral[ic].clear();
     }

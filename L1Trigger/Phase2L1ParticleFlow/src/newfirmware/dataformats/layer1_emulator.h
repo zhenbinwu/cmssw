@@ -90,6 +90,7 @@ namespace l1ct {
 
   struct PFRegionEmu : public PFRegion {
     PFRegionEmu() : PFRegion() {}
+    PFRegionEmu(float etaCenter, float phicenter);
     PFRegionEmu(float etamin, float etamax, float phicenter, float phiwidth, float etaextra, float phiextra);
 
     // global coordinates
@@ -293,7 +294,7 @@ namespace l1ct {
   };
 
   struct Event {
-    static const int VERSION = 6;
+    static const int VERSION = 7;
     uint32_t run, lumi;
     uint64_t event;
     RegionizerDecodedInputs decoded;
