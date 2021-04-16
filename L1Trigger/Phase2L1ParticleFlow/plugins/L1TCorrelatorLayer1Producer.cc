@@ -514,8 +514,8 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
 void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t) {
   l1ct::MuObjEmu mu;
   mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  mu.hwEta = l1ct::Scales::makeEta(t.eta());
-  mu.hwPhi = l1ct::Scales::makePhi(t.phi());
+  mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
+  mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
   mu.hwCharge = t.charge() > 0;
   mu.hwQuality = t.hwQual();
   mu.hwDEta = 0;
@@ -751,6 +751,7 @@ void L1TCorrelatorLayer1Producer::putPuppi(edm::Event &iEvent) const {
         coll->back().setHwEmID(p.hwEmID());
       }
       coll->back().setEncodedPuppi64(p.pack().to_uint64());
+      setRefs_(coll->back(), p);
       nobj.push_back(coll->size() - 1);
     }
     reg->addRegion(nobj);
