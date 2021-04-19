@@ -5,6 +5,9 @@
 #include <regex>
 #include <unordered_map>
 
+#ifdef CMSSW_GIT_HASH
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#endif
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
 
 namespace {
@@ -266,9 +269,14 @@ namespace l1t::demo {
 
   void write(const BoardData& data, const std::string& filePath, const FileFormat format) {
     // Open file
-    std::cout << "Writing board data (" << std::distance(data.begin(), data.end()) << " channels, "
-              << data.begin()->second.size() << " frames) to file '" << filePath << "' (format: " << format << ")"
-              << std::endl;
+#ifdef CMSSW_GIT_HASH
+    edm::LogInfo("L1TDemonstratorTools")
+#else
+    std::cout
+#endif
+        << "Writing board data (" << std::distance(data.begin(), data.end()) << " channels, "
+        << data.begin()->second.size() << " frames) to file '" << filePath << "' (format: " << format << ")"
+        << std::endl;
     std::ofstream file(filePath);
 
     if (not file.is_open())

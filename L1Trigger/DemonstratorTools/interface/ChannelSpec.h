@@ -9,11 +9,9 @@ namespace l1t::demo {
   public:
     // Time multiplexing period of data on link
     size_t tmux;
-    // Index of events handled on link (divided by board's TMUX)
-    size_t tmuxIndex;
     // Number of invalid frames between packets (i.e. following each event)
     size_t interpacketGap;
-    // Number of invalid frames before first valid packet, beyond tmuxIndex * framesPerBX
+    // Number of invalid frames before first valid packet
     size_t offset{0};
   };
 

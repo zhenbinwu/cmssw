@@ -17,9 +17,9 @@ namespace l1t::demo::codecs {
   ap_uint<64> encodeVertex(const l1t::VertexWord& v);
 
   // Encodes vertex collection onto 1 'logical' output link
-  std::array<l1t::demo::BoardData::Channel, 1> encodeVertices(const edm::View<l1t::VertexWord>&);
+  std::array<std::vector<ap_uint<64>>, 1> encodeVertices(const edm::View<l1t::VertexWord>&);
 
-  std::vector<l1t::VertexWord> decodeVertices(const l1t::demo::BoardData::Channel&);
+  std::vector<l1t::VertexWord> decodeVertices(const std::vector<ap_uint<64>>&);
 
 }  // namespace l1t::demo::codecs
 

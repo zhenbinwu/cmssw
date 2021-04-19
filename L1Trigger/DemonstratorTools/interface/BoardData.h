@@ -38,7 +38,7 @@ namespace l1t::demo {
 
     const Channel& at(size_t) const;
 
-    bool has(size_t);
+    bool has(size_t) const;
 
     // Returns number of channels
     size_t size();

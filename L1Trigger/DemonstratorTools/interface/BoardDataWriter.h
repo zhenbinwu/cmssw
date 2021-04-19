@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
+#include "L1Trigger/DemonstratorTools/interface/EventData.h"
 #include "L1Trigger/DemonstratorTools/interface/ChannelSpec.h"
 #include "L1Trigger/DemonstratorTools/interface/FileFormat.h"
 
@@ -18,19 +19,32 @@ namespace l1t::demo {
   // the length of the board's I/O buffers
   class BoardDataWriter {
   public:
+    typedef std::map<LinkId, std::pair<ChannelSpec, std::vector<size_t>>> ChannelMap_t;
+
     BoardDataWriter(FileFormat,
                     const std::string& filePath,
                     const size_t framesPerBX,
                     const size_t tmux,
                     const size_t maxFramesPerFile,
-                    const std::map<size_t, ChannelSpec>&);
+                    const ChannelMap_t&);
 
-    void addEvent(const BoardData& data);
+    BoardDataWriter(FileFormat,
+                    const std::string& filePath,
+                    const size_t framesPerBX,
+                    const size_t tmux,
+                    const size_t maxFramesPerFile,
+                    const std::map<LinkId, std::vector<size_t>>&,
+                    const std::map<std::string, ChannelSpec>&);
+
+    void addEvent(const EventData& data);
 
     // If there are events that have not been written to file, forces creation of a board data file containing them
     void flush();
 
   private:
+    static ChannelMap_t mergeMaps(const std::map<LinkId, std::vector<size_t>>&,
+                                  const std::map<std::string, ChannelSpec>&);
+
     void resetBoardData();
 
     FileFormat fileFormat_;
@@ -54,8 +68,8 @@ namespace l1t::demo {
 
     BoardData boardData_;
 
-    // map of link channel index -> TMUX period, TMUX index, interpacket-gap & offset
-    std::map<size_t, ChannelSpec> channelSpecs_;
+    // map of logical channel ID -> [TMUX period, interpacket-gap & offset; channel indices]
+    ChannelMap_t channelMap_;
   };
 
 }  // namespace l1t::demo

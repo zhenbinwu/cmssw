@@ -8,6 +8,7 @@
 
 #include "L1Trigger/DemonstratorTools/interface/BoardData.h"
 #include "L1Trigger/DemonstratorTools/interface/ChannelSpec.h"
+#include "L1Trigger/DemonstratorTools/interface/EventData.h"
 #include "L1Trigger/DemonstratorTools/interface/FileFormat.h"
 
 namespace l1t::demo {
@@ -19,16 +20,29 @@ namespace l1t::demo {
   // files as needed
   class BoardDataReader {
   public:
+    typedef std::map<LinkId, std::pair<ChannelSpec, std::vector<size_t>>> ChannelMap_t;
+
     BoardDataReader(FileFormat,
                     const std::vector<std::string>&,
                     const size_t framesPerBX,
                     const size_t tmux,
                     const size_t emptyFramesAtStart,
-                    const std::map<size_t, ChannelSpec>&);
+                    const ChannelMap_t&);
 
-    BoardData getNextEvent();
+    BoardDataReader(FileFormat,
+                    const std::vector<std::string>&,
+                    const size_t framesPerBX,
+                    const size_t tmux,
+                    const size_t emptyFramesAtStart,
+                    const std::map<LinkId, std::vector<size_t>>&,
+                    const std::map<std::string, ChannelSpec>&);
+
+    EventData getNextEvent();
 
   private:
+    static ChannelMap_t mergeMaps(const std::map<LinkId, std::vector<size_t>>&,
+                                  const std::map<std::string, ChannelSpec>&);
+
     FileFormat fileFormat_;
 
     std::vector<std::string> fileNames_;
@@ -39,11 +53,12 @@ namespace l1t::demo {
 
     size_t emptyFramesAtStart_;
 
-    std::map<size_t, ChannelSpec> channelSpecs_;
+    // map of logical channel ID -> [TMUX period, interpacket-gap & offset; channel indices]
+    ChannelMap_t channelMap_;
 
-    std::vector<BoardData> events_;
+    std::vector<EventData> events_;
 
-    std::vector<BoardData>::const_iterator eventIt_;
+    std::vector<EventData>::const_iterator eventIt_;
   };
 
 }  // namespace l1t::demo

@@ -56,9 +56,9 @@ private:
   static constexpr size_t kVertexChanIndex = 0;
   static constexpr size_t kEmptyFrames = 10;
 
-  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecs = {
-      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-      {kVertexChanIndex, {kVertexTMUX, 0, kGapLength}}};
+  const l1t::demo::BoardDataReader::ChannelMap_t kChannelSpecs = {
+      /* logical channel within time slice -> {{link TMUX, inter-packet gap}, vector of channel indices} */
+      {{"vertices", 0}, {{kVertexTMUX, kGapLength}, {kVertexChanIndex}}}};
 
   // ----------member functions ----------------------
   void beginStream(edm::StreamID) override;
@@ -97,19 +97,15 @@ GTTFileReader::~GTTFileReader() {
 // ------------ method called to produce the data  ------------
 void GTTFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
+  using namespace l1t::demo::codecs;
 
-  l1t::demo::BoardData eventData(fileReader_.getNextEvent());
+  l1t::demo::EventData eventData(fileReader_.getNextEvent());
 
-  l1t::VertexWordCollection vertices(l1t::demo::codecs::decodeVertices(eventData.at(kVertexChanIndex)));
+  l1t::VertexWordCollection vertices(decodeVertices(eventData.at({"vertices", 0})));
 
   std::cout << vertices.size() << " vertices found" << std::endl;
 
   iEvent.put(std::make_unique<l1t::VertexWordCollection>(vertices));
-
-  /* this is an EventSetup example
-  //Read SetupData from the SetupRecord in the EventSetup
-  SetupData& setup = iSetup.getData(setupToken_);
-*/
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

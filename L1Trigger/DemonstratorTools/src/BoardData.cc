@@ -36,7 +36,7 @@ namespace l1t::demo {
 
   const BoardData::Channel& BoardData::at(size_t i) const { return data_.at(i); }
 
-  bool BoardData::has(size_t i) { return data_.count(i) > 0; }
+  bool BoardData::has(size_t i) const { return data_.count(i) > 0; }
 
   size_t BoardData::size() { return data_.size(); }
 

@@ -63,35 +63,35 @@ private:
   static constexpr size_t kGTTBoardTMUX = 6;
   static constexpr size_t kMaxLinesPerFile = 1024;
 
-  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsInput = {
-      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-      {0, {kTrackTMUX, 0, kGapLength}},   {1, {kTrackTMUX, 0, kGapLength}},   {2, {kTrackTMUX, 0, kGapLength}},
-      {3, {kTrackTMUX, 0, kGapLength}},   {4, {kTrackTMUX, 0, kGapLength}},   {5, {kTrackTMUX, 0, kGapLength}},
-      {6, {kTrackTMUX, 0, kGapLength}},   {7, {kTrackTMUX, 0, kGapLength}},   {8, {kTrackTMUX, 0, kGapLength}},
+  const std::map<l1t::demo::LinkId, std::vector<size_t>> kChannelIdsInput = {
+      /* logical channel within time slice -> vector of channel indices (one entry per time slice) */
+      {{"tracks", 0}, {0, 18, 36}},
+      {{"tracks", 1}, {1, 19, 37}},
+      {{"tracks", 2}, {2, 20, 38}},
+      {{"tracks", 3}, {3, 21, 39}},
+      {{"tracks", 4}, {4, 22, 40}},
+      {{"tracks", 5}, {5, 23, 41}},
+      {{"tracks", 6}, {6, 24, 42}},
+      {{"tracks", 7}, {7, 25, 43}},
+      {{"tracks", 8}, {8, 26, 44}},
+      {{"tracks", 9}, {9, 27, 45}},
+      {{"tracks", 10}, {10, 28, 46}},
+      {{"tracks", 11}, {11, 29, 47}},
+      {{"tracks", 12}, {12, 30, 48}},
+      {{"tracks", 13}, {13, 31, 49}},
+      {{"tracks", 14}, {14, 32, 50}},
+      {{"tracks", 15}, {15, 33, 51}},
+      {{"tracks", 16}, {16, 34, 52}},
+      {{"tracks", 17}, {17, 35, 53}}};
 
-      {9, {kTrackTMUX, 0, kGapLength}},   {10, {kTrackTMUX, 0, kGapLength}},  {11, {kTrackTMUX, 0, kGapLength}},
-      {12, {kTrackTMUX, 0, kGapLength}},  {13, {kTrackTMUX, 0, kGapLength}},  {14, {kTrackTMUX, 0, kGapLength}},
-      {15, {kTrackTMUX, 0, kGapLength}},  {16, {kTrackTMUX, 0, kGapLength}},  {17, {kTrackTMUX, 0, kGapLength}},
+  const std::map<std::string, l1t::demo::ChannelSpec> kChannelSpecsInput = {
+      /* interface name -> {link TMUX, inter-packet gap} */
+      {"tracks", {kTrackTMUX, kGapLength}}};
 
-      {18, {kTrackTMUX, 6, kGapLength}},  {19, {kTrackTMUX, 6, kGapLength}},  {20, {kTrackTMUX, 6, kGapLength}},
-      {21, {kTrackTMUX, 6, kGapLength}},  {22, {kTrackTMUX, 6, kGapLength}},  {23, {kTrackTMUX, 6, kGapLength}},
-      {24, {kTrackTMUX, 6, kGapLength}},  {25, {kTrackTMUX, 6, kGapLength}},  {26, {kTrackTMUX, 6, kGapLength}},
-
-      {27, {kTrackTMUX, 6, kGapLength}},  {28, {kTrackTMUX, 6, kGapLength}},  {29, {kTrackTMUX, 6, kGapLength}},
-      {30, {kTrackTMUX, 6, kGapLength}},  {31, {kTrackTMUX, 6, kGapLength}},  {32, {kTrackTMUX, 6, kGapLength}},
-      {33, {kTrackTMUX, 6, kGapLength}},  {34, {kTrackTMUX, 6, kGapLength}},  {35, {kTrackTMUX, 6, kGapLength}},
-
-      {36, {kTrackTMUX, 12, kGapLength}}, {37, {kTrackTMUX, 12, kGapLength}}, {38, {kTrackTMUX, 12, kGapLength}},
-      {39, {kTrackTMUX, 12, kGapLength}}, {40, {kTrackTMUX, 12, kGapLength}}, {41, {kTrackTMUX, 12, kGapLength}},
-      {42, {kTrackTMUX, 12, kGapLength}}, {43, {kTrackTMUX, 12, kGapLength}}, {44, {kTrackTMUX, 12, kGapLength}},
-
-      {45, {kTrackTMUX, 12, kGapLength}}, {46, {kTrackTMUX, 12, kGapLength}}, {47, {kTrackTMUX, 12, kGapLength}},
-      {48, {kTrackTMUX, 12, kGapLength}}, {49, {kTrackTMUX, 12, kGapLength}}, {50, {kTrackTMUX, 12, kGapLength}},
-      {51, {kTrackTMUX, 12, kGapLength}}, {52, {kTrackTMUX, 12, kGapLength}}, {53, {kTrackTMUX, 12, kGapLength}}};
-
-  const std::map<size_t, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator = {
-      /* channel index -> {link TMUX, TMUX index, inter-packet gap} */
-      {0, {kGTTBoardTMUX, 0, kGapLength}}};
+  const std::map<l1t::demo::LinkId, std::pair<l1t::demo::ChannelSpec, std::vector<size_t>>>
+      kChannelSpecsOutputToCorrelator = {
+          /* logical channel within time slice -> {{link TMUX, inter-packet gap}, vector of channel indices} */
+          {{"vertices", 0}, {{kGTTBoardTMUX, kGapLength}, {0}}}};
 
   typedef TTTrack<Ref_Phase2TrackerDigi_> Track_t;
 
@@ -104,7 +104,7 @@ private:
   edm::EDGetTokenT<edm::View<Track_t>> tracksToken_;
   edm::EDGetTokenT<edm::View<Track_t>> convertedTracksToken_;
   edm::EDGetTokenT<edm::View<l1t::VertexWord>> verticesToken_;
-  size_t eventCount_;
+
   l1t::demo::BoardDataWriter fileWriterInputTracks_;
   l1t::demo::BoardDataWriter fileWriterConvertedTracks_;
   l1t::demo::BoardDataWriter fileWriterOutputToCorrelator_;
@@ -119,18 +119,19 @@ GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
       convertedTracksToken_(
           consumes<edm::View<Track_t>>(iConfig.getUntrackedParameter<edm::InputTag>("convertedTracks"))),
       verticesToken_(consumes<edm::View<l1t::VertexWord>>(iConfig.getUntrackedParameter<edm::InputTag>("vertices"))),
-      eventCount_(0),
       fileWriterInputTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                              iConfig.getUntrackedParameter<std::string>("inputFilename"),
                              kFramesPerTMUXPeriod,
                              kGTTBoardTMUX,
                              kMaxLinesPerFile,
+                             kChannelIdsInput,
                              kChannelSpecsInput),
       fileWriterConvertedTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                                  iConfig.getUntrackedParameter<std::string>("inputConvertedFilename"),
                                  kFramesPerTMUXPeriod,
                                  kGTTBoardTMUX,
                                  kMaxLinesPerFile,
+                                 kChannelIdsInput,
                                  kChannelSpecsInput),
       fileWriterOutputToCorrelator_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                                     iConfig.getUntrackedParameter<std::string>("outputFilename"),
@@ -150,39 +151,27 @@ GTTFileWriter::~GTTFileWriter() {
 
 void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
-
-  // Select links for correct time slice (18 input links per time slice)
-  // TODO: Find nicer solution - e.g. having BoardDataWriter automatically shuffle
-  //       data between channels based on event-independent 'logical' ID
-  //       (at least nicer solution than storing event count as member var)
-  const size_t baseIdx = (eventCount_ % 3) * 18;
-  eventCount_++;
+  using namespace l1t::demo::codecs;
 
   // 1) Encode track information onto vectors containing link data
-  const std::array<l1t::demo::BoardData::Channel, 18> trackData(
-      l1t::demo::codecs::encodeTracks(iEvent.get(tracksToken_)));
-  const std::array<l1t::demo::BoardData::Channel, 18> convertedTrackData(
-      l1t::demo::codecs::encodeTracks(iEvent.get(convertedTracksToken_)));
+  const auto trackData(encodeTracks(iEvent.get(tracksToken_)));
+  const auto convertedTrackData(encodeTracks(iEvent.get(convertedTracksToken_)));
+  const auto outputData(encodeVertices(iEvent.get(verticesToken_)));
 
-  const std::array<l1t::demo::BoardData::Channel, 1> outputData(
-      l1t::demo::codecs::encodeVertices(iEvent.get(verticesToken_)));
-
-  // 2) Pack track information into 'board data' object, and pass that to file writer
-  l1t::demo::BoardData boardDataTracks;
-  l1t::demo::BoardData boardDataConvertedTracks;
+  // 2) Pack track information into 'event data' object, and pass that to file writer
+  l1t::demo::EventData eventDataTracks;
+  l1t::demo::EventData eventDataConvertedTracks;
   for (size_t i = 0; i < 18; i++) {
-    boardDataTracks.add(baseIdx + i, trackData.at(i));
-    boardDataConvertedTracks.add(baseIdx + i, convertedTrackData.at(i));
+    eventDataTracks.add({"tracks", i}, trackData.at(i));
+    eventDataConvertedTracks.add({"tracks", i}, convertedTrackData.at(i));
   }
 
-  l1t::demo::BoardData boardDataVertices;
-  for (size_t i = 0; i < 1; i++) {
-    boardDataVertices.add(i, outputData.at(i));
-  }
+  l1t::demo::EventData eventDataVertices;
+  eventDataVertices.add({"vertices", 0}, outputData.at(0));
 
-  fileWriterInputTracks_.addEvent(boardDataTracks);
-  fileWriterConvertedTracks_.addEvent(boardDataConvertedTracks);
-  fileWriterOutputToCorrelator_.addEvent(boardDataVertices);
+  fileWriterInputTracks_.addEvent(eventDataTracks);
+  fileWriterConvertedTracks_.addEvent(eventDataConvertedTracks);
+  fileWriterOutputToCorrelator_.addEvent(eventDataVertices);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
