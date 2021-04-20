@@ -8,7 +8,6 @@ namespace l1t::demo {
 
   //! Logical ID for link within any given time slice (e.g. ["tracks", 0] -> ["tracks", 17] for links from TF)
   struct LinkId {
-    // Possible names: Link, LinkLabel, LogicalLinkId, LogicalLink or LogicalChannel
     std::string interface;
     size_t channel{0};
   };

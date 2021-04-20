@@ -21,7 +21,7 @@ namespace l1t::demo {
    *   using that class for boards whose TMUX period is less than any of their upstream systems. 
    *   One logical channel ID corresponds to different I/O channel indices from one event to the
    *   next for the input channels of a board have a higher TMUX period than the board (e.g. for
-   *   tracks sent to the correlator/GTT, or for the GMT, GTT and correlator links into GT); the
+   *   tracks sent to the correlator/GMT/GTT, or for the GMT, GTT and correlator links into GT); the
    *   mapping of logical channel IDs to I/O channel indices is implemented in the BoardDataWriter
    *   and BoardDataReader classes.
    */

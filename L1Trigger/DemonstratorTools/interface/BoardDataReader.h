@@ -20,6 +20,7 @@ namespace l1t::demo {
   // files as needed
   class BoardDataReader {
   public:
+    // map of logical channel ID -> [TMUX period, interpacket-gap & offset; channel indices]
     typedef std::map<LinkId, std::pair<ChannelSpec, std::vector<size_t>>> ChannelMap_t;
 
     BoardDataReader(FileFormat,

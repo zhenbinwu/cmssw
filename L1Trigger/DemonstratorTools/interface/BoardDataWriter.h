@@ -19,6 +19,7 @@ namespace l1t::demo {
   // the length of the board's I/O buffers
   class BoardDataWriter {
   public:
+    // map of logical channel ID -> [TMUX period, interpacket-gap & offset; channel indices]
     typedef std::map<LinkId, std::pair<ChannelSpec, std::vector<size_t>>> ChannelMap_t;
 
     BoardDataWriter(FileFormat,

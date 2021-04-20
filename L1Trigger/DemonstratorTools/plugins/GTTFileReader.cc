@@ -43,7 +43,6 @@
 class GTTFileReader : public edm::stream::EDProducer<> {
 public:
   explicit GTTFileReader(const edm::ParameterSet&);
-  ~GTTFileReader() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -61,16 +60,14 @@ private:
       {{"vertices", 0}, {{kVertexTMUX, kGapLength}, {kVertexChanIndex}}}};
 
   // ----------member functions ----------------------
-  void beginStream(edm::StreamID) override;
   void produce(edm::Event&, const edm::EventSetup&) override;
-  void endStream() override;
 
   // ----------member data ---------------------------
   l1t::demo::BoardDataReader fileReader_;
 };
 
 //
-// constructors and destructor
+// class implementation
 //
 
 GTTFileReader::GTTFileReader(const edm::ParameterSet& iConfig)
@@ -82,17 +79,6 @@ GTTFileReader::GTTFileReader(const edm::ParameterSet& iConfig)
                   kChannelSpecs) {
   produces<l1t::VertexWordCollection>();
 }
-
-GTTFileReader::~GTTFileReader() {
-  // do anything here that needs to be done at destruction time
-  // (e.g. close files, deallocate resources etc.)
-  //
-  // please remove this method altogether if it would be left empty
-}
-
-//
-// member functions
-//
 
 // ------------ method called to produce the data  ------------
 void GTTFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -106,16 +92,6 @@ void GTTFileReader::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::cout << vertices.size() << " vertices found" << std::endl;
 
   iEvent.put(std::make_unique<l1t::VertexWordCollection>(vertices));
-}
-
-// ------------ method called once each stream before processing any runs, lumis or events  ------------
-void GTTFileReader::beginStream(edm::StreamID) {
-  // please remove this method if not needed
-}
-
-// ------------ method called once each stream after processing all runs, lumis and events  ------------
-void GTTFileReader::endStream() {
-  // please remove this method if not needed
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------

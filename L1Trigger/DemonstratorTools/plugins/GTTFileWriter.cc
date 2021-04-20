@@ -5,7 +5,8 @@
 //
 /**\class GTTFileWriter GTTFileWriter.cc L1Trigger/DemonstratorTools/plugins/GTTFileWriter.cc
 
- Description: Example EDAnalyzer class, illustrating how BoardDataWriter can be used to write I/O buffer files for hardware/firmware tests
+ Description: Example EDAnalyzer class, illustrating how BoardDataWriter can be used to
+   write I/O buffer files for hardware/firmware tests
 
  Implementation:
      [Notes on implementation]
@@ -42,15 +43,13 @@
 #include "L1Trigger/DemonstratorTools/interface/codecs/vertices.h"
 #include "L1Trigger/DemonstratorTools/interface/utilities.h"
 
-// If the analyzer does not use TFileService, please remove
-// the template argument to the base class so the class inherits
-// from  edm::one::EDAnalyzer<>
-// This will improve performance in multithreaded jobs.
+//
+// class declaration
+//
 
 class GTTFileWriter : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit GTTFileWriter(const edm::ParameterSet&);
-  ~GTTFileWriter() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -96,7 +95,6 @@ private:
   typedef TTTrack<Ref_Phase2TrackerDigi_> Track_t;
 
   // ----------member functions ----------------------
-  void beginJob() override;
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
@@ -111,7 +109,7 @@ private:
 };
 
 //
-// constructors and destructor
+// class implementation
 //
 
 GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
@@ -138,16 +136,7 @@ GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
                                     kFramesPerTMUXPeriod,
                                     kGTTBoardTMUX,
                                     kMaxLinesPerFile,
-                                    kChannelSpecsOutputToCorrelator) {
-  //now do what ever initialization is needed
-}
-
-GTTFileWriter::~GTTFileWriter() {
-  // do anything here that needs to be done at desctruction time
-  // (e.g. close files, deallocate resources etc.)
-  //
-  // please remove this method altogether if it would be left empty
-}
+                                    kChannelSpecsOutputToCorrelator) {}
 
 void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
@@ -172,11 +161,6 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   fileWriterInputTracks_.addEvent(eventDataTracks);
   fileWriterConvertedTracks_.addEvent(eventDataConvertedTracks);
   fileWriterOutputToCorrelator_.addEvent(eventDataVertices);
-}
-
-// ------------ method called once each job just before starting event loop  ------------
-void GTTFileWriter::beginJob() {
-  // please remove this method if not needed
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
