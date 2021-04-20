@@ -58,6 +58,7 @@ l1tpf::PFClusterProducerFromHGC3DClusters::PFClusterProducerFromHGC3DClusters(co
   }
 
   produces<l1t::PFClusterCollection>();
+  produces<l1t::PFClusterCollection>("egamma");
   if (hasEmId_) {
     produces<l1t::PFClusterCollection>("em");
     produces<l1t::PFClusterCollection>("had");
@@ -83,6 +84,7 @@ l1tpf::PFClusterProducerFromHGC3DClusters::PFClusterProducerFromHGC3DClusters(co
 
 void l1tpf::PFClusterProducerFromHGC3DClusters::produce(edm::Event &iEvent, const edm::EventSetup &) {
   auto out = std::make_unique<l1t::PFClusterCollection>();
+  auto outEgamma = std::make_unique<l1t::PFClusterCollection>();
   std::unique_ptr<l1t::PFClusterCollection> outEm, outHad;
   if (hasEmId_) {
     outEm.reset(new l1t::PFClusterCollection());
@@ -108,11 +110,9 @@ void l1tpf::PFClusterProducerFromHGC3DClusters::produce(edm::Event &iEvent, cons
       // we use the EM interpretation of the cluster energy
       l1t::PFCluster egcluster(
           it->iPt(l1t::HGCalMulticluster::EnergyInterpretation::EM), it->eta(), it->phi(), hoe, false);
-      // NOTE: we use HW qual = 4 to identify the EG candidates and set isEM to false not to interfere with the rest of the PF...
-      // we start from 4 not to intefere with flags used elesewhere
-      egcluster.setHwQual(4);
+      egcluster.setHwQual(it->hwQual());
       egcluster.addConstituent(edm::Ptr<l1t::L1Candidate>(multiclusters, multiclusters->key(it)));
-      outEm->push_back(egcluster);
+      outEgamma->push_back(egcluster);
     }
 
     l1t::PFCluster cluster(pt, it->eta(), it->phi(), hoe);
@@ -162,6 +162,7 @@ void l1tpf::PFClusterProducerFromHGC3DClusters::produce(edm::Event &iEvent, cons
   }
 
   iEvent.put(std::move(out));
+  iEvent.put(std::move(outEgamma), "egamma");
   if (hasEmId_) {
     iEvent.put(std::move(outEm), "em");
     iEvent.put(std::move(outHad), "had");

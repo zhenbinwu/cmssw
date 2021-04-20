@@ -88,7 +88,6 @@ l1ParticleFlow_calo = cms.Sequence(l1ParticleFlow_calo_Task)
 
 l1TkEgConfigBarrel = tkEgConfig.clone(
     doBremRecovery=False,
-    filterHwQuality=False,
     writeEgSta=False
 )
 
@@ -156,7 +155,7 @@ l1pfProducerHGCal = l1pfProducer.clone(
     pfAlgo = "PFAlgo2HGC",
     # inputs
     tracks = cms.InputTag('pfTracksFromL1TracksHGCal'),
-    emClusters  = [ cms.InputTag("pfClustersFromHGC3DClusters:em")],  # EM clusters are not used (only added to NTuple for calibration/monitoring)
+    emClusters  = [ cms.InputTag("pfClustersFromHGC3DClusters:egamma")],  # used only for E/gamma
     hadClusters = [ cms.InputTag("pfClustersFromHGC3DClusters") ],
     # track-based PUPPI
     puppiDrMin = 0.04,

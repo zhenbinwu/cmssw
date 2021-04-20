@@ -98,7 +98,7 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     muons = cms.InputTag('simGmtStage2Digis',),
     useStandaloneMuons = cms.bool(True),
     useTrackerMuons = cms.bool(False),
-    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:em')),
+    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
     vtxCollection = cms.InputTag("L1TkPrimaryVertex",""),
     emPtCut  = cms.double(0.5),
@@ -151,7 +151,6 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
         doBremRecovery=True,
-        filterHwQuality=True,
         writeEGSta=True),
     caloSectors = _hgcalSectors,
     regions = cms.VPSet(
@@ -177,7 +176,7 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     muons = cms.InputTag('simGmtStage2Digis',),
     useStandaloneMuons = cms.bool(False),
     useTrackerMuons = cms.bool(False),
-    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:em')),
+    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
     vtxCollection = cms.InputTag("L1TkPrimaryVertex",""),
     emPtCut  = cms.double(0.5),
@@ -219,7 +218,6 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
         doBremRecovery=True,
-        filterHwQuality=True,
         writeEGSta=True),
     caloSectors = _hgcalSectors,
     regions = cms.VPSet(
@@ -286,7 +284,6 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
         doBremRecovery=True,
-        filterHwQuality=True,
         writeEGSta=True),
     caloSectors = cms.VPSet(
         cms.PSet( 
