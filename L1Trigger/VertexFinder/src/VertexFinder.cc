@@ -751,12 +751,12 @@ namespace l1tVertexFinder {
       edm::LogInfo log("VertexProducer");
       log << "FastHisto::Checking the output parameters ... \n";
       std::vector<double> tmp;
-      std::transform(std::begin(sums), std::end(sums), std::back_inserter(tmp),
-                 [](const RecoVertex<>& v) -> double { return v.pt(); });
+      std::transform(std::begin(sums), std::end(sums), std::back_inserter(tmp), [](const RecoVertex<>& v) -> double {
+        return v.pt();
+      });
       printHistogram<double, edm::LogInfo>(log, tmp, 80, 0, -1, "FastHisto::sums", "\e[92m");
       for (unsigned int i = 0; i < found.size(); i++) {
-        log << "RecoVertex " << i << ": bin index = " << found[i]
-            << "\tsumPt = " << sums.at(imax).pt()
+        log << "RecoVertex " << i << ": bin index = " << found[i] << "\tsumPt = " << sums.at(imax).pt()
             << "\tz0 = " << sums.at(imax).z0();
       }
     }
@@ -911,7 +911,7 @@ namespace l1tVertexFinder {
 
       // Add the starting index plus half an index to shift the z position to its weighted position (still in inxex space) within all of the bins
       zvtx_sliding += b_max;
-      zvtx_sliding += ap_ufixed<1,0>(0.5);
+      zvtx_sliding += ap_ufixed<1, 0>(0.5);
       if (settings_->debug() >= 1) {
         *log << "zvtx_sliding + b_max = " << zvtx_sliding << "\n";
       }
@@ -1004,8 +1004,9 @@ namespace l1tVertexFinder {
         if (hist_window_sums.at(i) > max_pt) {
           b_max = i;
           max_pt = hist_window_sums.at(b_max);
-          std::copy(
-              std::begin(hist) + b_max, std::begin(hist) + b_max + HistogramBitWidths::kWindowSize, std::begin(binpt_max));
+          std::copy(std::begin(hist) + b_max,
+                    std::begin(hist) + b_max + HistogramBitWidths::kWindowSize,
+                    std::begin(binpt_max));
 
           // Find the weighted position only for the highest sum pt window
           zvtx_sliding = weighted_position(b_max, binpt_max, max_pt, nbins);
