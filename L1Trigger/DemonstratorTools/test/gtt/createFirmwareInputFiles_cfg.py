@@ -17,9 +17,11 @@ inputFiles = []
 for filePath in options.inputFiles:
     if filePath.endswith(".root"):
         inputFiles.append(filePath)
+    elif filePath.endswith("_cff.py"):
+        inputFilesImport = getattr(__import__(filePath.strip(".py"),fromlist=["readFiles"]),"readFiles")
+        inputFiles.extend( inputFilesImport )
     else:
         inputFiles += FileUtils.loadListFromFile(filePath)
-
 
 # PART 2: SETUP MAIN CMSSW PROCESS 
 
