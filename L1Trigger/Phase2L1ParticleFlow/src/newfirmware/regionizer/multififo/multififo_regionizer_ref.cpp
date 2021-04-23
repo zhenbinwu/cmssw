@@ -1,4 +1,9 @@
 #include "multififo_regionizer_ref.h"
+#ifdef CMSSW_GIT_HASH
+#include "../../egamma/pfeginput_ref.h"
+#else
+#include "../../egamma/l1-input/ref/pfeginput_ref.h"
+#endif
 
 #include <iostream>
 
@@ -40,6 +45,7 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
       nmu_(nmu),
       outii_(outii),
       streaming_(streaming),
+      emInterceptMode_(noIntercept),
       init_(false),
       tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, useAlsoVtxCoords),
       hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii),
@@ -80,6 +86,12 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
 
 l1ct::MultififoRegionizerEmulator::~MultififoRegionizerEmulator() {}
 
+void l1ct::MultififoRegionizerEmulator::setEgInterceptMode(bool afterFifo,
+                                                           const l1ct::EGInputSelectorEmuConfig& interceptorConfig) {
+  emInterceptMode_ = afterFifo ? interceptPostFifo : interceptPreFifo;
+  interceptor_.reset(new EGInputSelectorEmulator(interceptorConfig));
+}
+
 void l1ct::MultififoRegionizerEmulator::initSectorsAndRegions(const RegionizerDecodedInputs& in,
                                                               const std::vector<PFInputRegion>& out) {
   assert(!init_);
@@ -118,23 +130,81 @@ bool l1ct::MultififoRegionizerEmulator::step(bool newEvent,
                                              bool mux) {
   return ntk_ ? tkRegionizer_.step(newEvent, links, out, mux) : false;
 }
+
 bool l1ct::MultififoRegionizerEmulator::step(bool newEvent,
                                              const std::vector<l1ct::EmCaloObjEmu>& links,
                                              std::vector<l1ct::EmCaloObjEmu>& out,
                                              bool mux) {
+  assert(emInterceptMode_ == noIntercept);  // otherwise the em & had calo can't be stepped independently
   return nem_ ? emCaloRegionizer_.step(newEvent, links, out, mux) : false;
 }
+
 bool l1ct::MultififoRegionizerEmulator::step(bool newEvent,
                                              const std::vector<l1ct::HadCaloObjEmu>& links,
                                              std::vector<l1ct::HadCaloObjEmu>& out,
                                              bool mux) {
   return ncalo_ ? hadCaloRegionizer_.step(newEvent, links, out, mux) : false;
 }
+
 bool l1ct::MultififoRegionizerEmulator::step(bool newEvent,
                                              const std::vector<l1ct::MuObjEmu>& links,
                                              std::vector<l1ct::MuObjEmu>& out,
                                              bool mux) {
   return nmu_ ? muRegionizer_.step(newEvent, links, out, mux) : false;
+}
+
+bool l1ct::MultififoRegionizerEmulator::step(bool newEvent,
+                                             const std::vector<l1ct::TkObjEmu>& links_tk,
+                                             const std::vector<l1ct::HadCaloObjEmu>& links_hadCalo,
+                                             const std::vector<l1ct::EmCaloObjEmu>& links_emCalo,
+                                             const std::vector<l1ct::MuObjEmu>& links_mu,
+                                             std::vector<l1ct::TkObjEmu>& out_tk,
+                                             std::vector<l1ct::HadCaloObjEmu>& out_hadCalo,
+                                             std::vector<l1ct::EmCaloObjEmu>& out_emCalo,
+                                             std::vector<l1ct::MuObjEmu>& out_mu,
+                                             bool mux) {
+  bool ret = false;
+  if (ntk_)
+    ret = tkRegionizer_.step(newEvent, links_tk, out_tk, mux);
+  if (nmu_)
+    ret = muRegionizer_.step(newEvent, links_mu, out_mu, mux);
+  switch (emInterceptMode_) {
+    case noIntercept:
+      if (ncalo_)
+        ret = hadCaloRegionizer_.step(newEvent, links_hadCalo, out_hadCalo, mux);
+      if (nem_)
+        ret = emCaloRegionizer_.step(newEvent, links_emCalo, out_emCalo, mux);
+      break;
+    case interceptPreFifo:
+      // we actually intercept at the links, in the software it's equivalent and it's easier
+      assert(nem_ > 0 && ncalo_ > 0 && !links_hadCalo.empty() && links_emCalo.empty());
+      assert(interceptor_.get());
+      {
+        std::vector<l1ct::EmCaloObjEmu> intercepted_links;
+        interceptor_->select_or_clear(links_hadCalo, intercepted_links);
+        ret = hadCaloRegionizer_.step(newEvent, links_hadCalo, out_hadCalo, mux);
+        emCaloRegionizer_.step(newEvent, intercepted_links, out_emCalo, mux);
+      }
+      break;
+    case interceptPostFifo:
+      assert(nem_ > 0 && ncalo_ > 0 && !links_hadCalo.empty() && links_emCalo.empty());
+      assert(interceptor_.get());
+      {
+        if (mux) {
+          std::vector<l1ct::HadCaloObjEmu> hadNoMux;
+          hadCaloRegionizer_.step(newEvent, links_hadCalo, hadNoMux, /*mux=*/false);
+          std::vector<l1ct::EmCaloObjEmu> emNoMux(hadNoMux.size());
+          interceptor_->select_or_clear(hadNoMux, emNoMux);
+          ret = hadCaloRegionizer_.muxonly_step(newEvent, /*flush=*/false, hadNoMux, out_hadCalo);
+          emCaloRegionizer_.muxonly_step(newEvent, /*flush=*/true, emNoMux, out_emCalo);
+        } else {
+          ret = hadCaloRegionizer_.step(newEvent, links_hadCalo, out_hadCalo, /*mux=*/false);
+          interceptor_->select_or_clear(out_hadCalo, out_emCalo);
+        }
+      }
+      break;
+  }
+  return ret;
 }
 
 void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
@@ -184,7 +254,7 @@ void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
 void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
                                                   const l1ct::RegionizerDecodedInputs& in,
                                                   std::vector<l1ct::EmCaloObjEmu>& links) {
-  if (nem_ == 0)
+  if (nem_ == 0 || emInterceptMode_ != noIntercept)
     return;
   fillCaloLinks_(iclock, in.emcalo, links);
 }
@@ -287,10 +357,7 @@ void l1ct::MultififoRegionizerEmulator::run(const RegionizerDecodedInputs& in, s
     fillLinks(iclock, in, mu_links_in);
 
     bool newevt = (iclock == 0), mux = true;
-    step(newevt, tk_links_in, tk_out, mux);
-    step(newevt, em_links_in, em_out, mux);
-    step(newevt, calo_links_in, calo_out, mux);
-    step(newevt, mu_links_in, mu_out, mux);
+    step(newevt, tk_links_in, calo_links_in, em_links_in, mu_links_in, tk_out, calo_out, em_out, mu_out, mux);
   }
 
   // set up an empty event
@@ -307,10 +374,7 @@ void l1ct::MultififoRegionizerEmulator::run(const RegionizerDecodedInputs& in, s
   assert(out.size() == nregions_);
   for (unsigned int iclock = 0; iclock < nclocks_; ++iclock) {
     bool newevt = (iclock == 0), mux = true;
-    step(newevt, tk_links_in, tk_out, mux);
-    step(newevt, em_links_in, em_out, mux);
-    step(newevt, calo_links_in, calo_out, mux);
-    step(newevt, mu_links_in, mu_out, mux);
+    step(newevt, tk_links_in, calo_links_in, em_links_in, mu_links_in, tk_out, calo_out, em_out, mu_out, mux);
 
     unsigned int ireg = iclock / outii_;
     if (ireg >= nregions_)
