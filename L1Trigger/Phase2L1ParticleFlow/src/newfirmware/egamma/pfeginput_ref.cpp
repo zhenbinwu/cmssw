@@ -9,7 +9,7 @@ l1ct::EGInputSelectorEmuConfig::EGInputSelectorEmuConfig(const edm::ParameterSet
     : idMask(pset.getParameter<uint32_t>("emIDMask")),
       nHADCALO_IN(pset.getParameter<uint32_t>("nHADCALO_IN")),
       nEMCALO_OUT(pset.getParameter<uint32_t>("nEMCALO_OUT")),
-      debug(pset.getUntrackedParameter<uint32_t>("debug", 0)){}
+      debug(pset.getUntrackedParameter<uint32_t>("debug", 0)) {}
 
 #endif
 
@@ -22,8 +22,8 @@ void EGInputSelectorEmulator::toFirmware(const std::vector<EmCaloObjEmu> &emcalo
 }
 
 void EGInputSelectorEmulator::select_eginput(const l1ct::HadCaloObjEmu &in,
-                                               l1ct::EmCaloObjEmu &out,
-                                               bool &valid_out) const {
+                                             l1ct::EmCaloObjEmu &out,
+                                             bool &valid_out) const {
   out.src = in.src;
   out.hwPt = in.hwEmPt;
   out.hwEta = in.hwEta;
@@ -34,7 +34,7 @@ void EGInputSelectorEmulator::select_eginput(const l1ct::HadCaloObjEmu &in,
 }
 
 void EGInputSelectorEmulator::select_eginputs(const std::vector<HadCaloObjEmu> &hadcalo_in,
-                                                std::vector<EmCaloObjEmu> &emcalo_sel) const {
+                                              std::vector<EmCaloObjEmu> &emcalo_sel) const {
   for (int ic = 0, nc = hadcalo_in.size(); ic < nc; ++ic) {
     if (emcalo_sel.size() == cfg.nEMCALO_OUT)
       break;
@@ -47,17 +47,17 @@ void EGInputSelectorEmulator::select_eginputs(const std::vector<HadCaloObjEmu> &
   }
 }
 
-void EGInputSelectorEmulator::select_or_clear(const HadCaloObjEmu &hadcalo_in,
-                                                EmCaloObjEmu &emcalo_out) const {
+void EGInputSelectorEmulator::select_or_clear(const HadCaloObjEmu &hadcalo_in, EmCaloObjEmu &emcalo_out) const {
   bool valid = false;
   select_eginput(hadcalo_in, emcalo_out, valid);
-  if (!valid) emcalo_out.clear();
+  if (!valid)
+    emcalo_out.clear();
 }
 
 void EGInputSelectorEmulator::select_or_clear(const std::vector<HadCaloObjEmu> &hadcalo_in,
-                                                std::vector<EmCaloObjEmu> &emcalo_out) const {
+                                              std::vector<EmCaloObjEmu> &emcalo_out) const {
   emcalo_out.resize(hadcalo_in.size());
   for (int ic = 0, nc = hadcalo_in.size(); ic < nc; ++ic) {
-      select_or_clear(hadcalo_in[ic], emcalo_out[ic]);
+    select_or_clear(hadcalo_in[ic], emcalo_out[ic]);
   }
 }

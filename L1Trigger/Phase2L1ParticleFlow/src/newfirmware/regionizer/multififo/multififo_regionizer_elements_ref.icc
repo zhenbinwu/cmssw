@@ -303,31 +303,32 @@ bool l1ct::multififo_regionizer::Regionizer<T>::step(bool newEvent,
     out[i] = buffers_[i].pop();
   }
   if (mux) {
-    std::vector<T> work; 
+    std::vector<T> work;
     std::swap(work, out);
-    return muxonly_step(newEvent, /*flush=*/false, work, out); // don't flush twice
+    return muxonly_step(newEvent, /*flush=*/false, work, out);  // don't flush twice
   } else {
     return true;
   }
 }
 
 template <typename T>
-bool l1ct::multififo_regionizer::Regionizer<T>::muxonly_step(bool newEvent, bool mayFlush, const std::vector<T>& nomux_out,
-                                                     std::vector<T>& out) {
-    if (newEvent && mayFlush) {
-        flush();
-        nevt_++;
-    }
-    assert(nomux_out.size() == nregions_);
-    out.resize(nout_);
-    for (unsigned int i = 0; i < nregions_; ++i) {
-        if (newEvent)
-            builders_[i].pop(bigmux_);
-        builders_[i].push(nomux_out[i]);
-    }
-    return bigmux_.stream(newEvent && (nevt_ > 1), out);
+bool l1ct::multififo_regionizer::Regionizer<T>::muxonly_step(bool newEvent,
+                                                             bool mayFlush,
+                                                             const std::vector<T>& nomux_out,
+                                                             std::vector<T>& out) {
+  if (newEvent && mayFlush) {
+    flush();
+    nevt_++;
+  }
+  assert(nomux_out.size() == nregions_);
+  out.resize(nout_);
+  for (unsigned int i = 0; i < nregions_; ++i) {
+    if (newEvent)
+      builders_[i].pop(bigmux_);
+    builders_[i].push(nomux_out[i]);
+  }
+  return bigmux_.stream(newEvent && (nevt_ > 1), out);
 }
-
 
 template <typename T>
 void l1ct::multififo_regionizer::Regionizer<T>::destream(int iclock,

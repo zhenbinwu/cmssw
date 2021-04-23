@@ -25,7 +25,7 @@ namespace l1ct {
     emid_t idMask;
     unsigned int nHADCALO_IN;
     unsigned int nEMCALO_OUT;
-    
+
     int debug;
   };
 
@@ -43,13 +43,11 @@ namespace l1ct {
                          std::vector<l1ct::EmCaloObjEmu> &emcalo_sel) const;
 
     /// if the hadcalo passes the EM selection, do the conversion, otherwise zero-out the result
-    void select_or_clear(const l1ct::HadCaloObjEmu &hadcalo_in,
-                         l1ct::EmCaloObjEmu &emcalo_out) const;
+    void select_or_clear(const l1ct::HadCaloObjEmu &hadcalo_in, l1ct::EmCaloObjEmu &emcalo_out) const;
 
     /// apply select_or_clear on all elements of the input vector
     void select_or_clear(const std::vector<l1ct::HadCaloObjEmu> &hadcalo_in,
                          std::vector<l1ct::EmCaloObjEmu> &emcalo_out) const;
-
 
     // void run(const PFInputRegion &in, OutputRegion &out) const;
 

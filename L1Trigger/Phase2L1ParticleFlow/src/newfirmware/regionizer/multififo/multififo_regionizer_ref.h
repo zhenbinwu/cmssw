@@ -13,7 +13,7 @@ namespace edm {
 namespace l1ct {
   class EGInputSelectorEmulator;
   class EGInputSelectorEmuConfig;
-}
+}  // namespace l1ct
 
 namespace l1ct {
   class MultififoRegionizerEmulator : public RegionizerEmulator {
@@ -37,7 +37,7 @@ namespace l1ct {
     static const int NCALO_SECTORS = 3, NCALO_LINKS = 4;
     static const int NMU_LINKS = 2;
 
-    void setEgInterceptMode(bool afterFifo, const l1ct::EGInputSelectorEmuConfig & interceptorConfig) ; 
+    void setEgInterceptMode(bool afterFifo, const l1ct::EGInputSelectorEmuConfig& interceptorConfig);
     void initSectorsAndRegions(const RegionizerDecodedInputs& in, const std::vector<PFInputRegion>& out) override;
 
     // TODO: implement
