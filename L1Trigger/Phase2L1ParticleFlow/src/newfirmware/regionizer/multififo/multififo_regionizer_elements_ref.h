@@ -152,6 +152,9 @@ namespace l1ct {
       // single clock emulation
       bool step(bool newEvent, const std::vector<T>& links, std::vector<T>& out, bool mux = true);
 
+      // single clock emulation
+      bool muxonly_step(bool newEvent, bool mayFlush, const std::vector<T>& nomux_out, std::vector<T>& out);
+
       void destream(int iclock, const std::vector<T>& streams, std::vector<T>& out);
 
     private:
