@@ -31,6 +31,7 @@ private:
   unsigned _nJets;
   bool _HW;
   bool _debug;
+  L1SCJetEmu _emulator;
   edm::EDGetTokenT<std::vector<l1t::PFCandidate>> _l1PFToken;
 
   std::vector<l1t::PFJet> processEvent_SW(std::vector<edm::Ptr<l1t::PFCandidate>>& parts) const;
@@ -47,6 +48,7 @@ L1SeedConePFJetProducer::L1SeedConePFJetProducer(const edm::ParameterSet& cfg)
       _nJets(cfg.getParameter<unsigned>("nJets")),
       _HW(cfg.getParameter<bool>("HW")),
       _debug(cfg.getParameter<bool>("debug")),
+      _emulator(L1SCJetEmu(_debug, _coneSize, _nJets)),
       _l1PFToken(consumes<std::vector<l1t::PFCandidate>>(cfg.getParameter<edm::InputTag>("L1PFObjects"))) {
   produces<l1t::PFJetCollection>();
 }
@@ -145,16 +147,13 @@ std::vector<l1t::PFJet> L1SeedConePFJetProducer::processEvent_SW(std::vector<edm
 std::vector<l1t::PFJet> L1SeedConePFJetProducer::processEvent_HW(std::vector<edm::Ptr<l1t::PFCandidate>>& work) const {
   // The fixed point emulator
   // Convert the EDM format to the hardware format, and call the standalone emulator
-  using namespace L1SCJetEmu;
-  Config config(_debug, _coneSize, _nJets);
-  std::vector<Particle> particles = convertEDMToHW(work);
-  std::vector<Jet> jets = emulateEvent(particles, config);
+  std::vector<L1SCJetEmu::Particle> particles = convertEDMToHW(work);
+  std::vector<L1SCJetEmu::Jet> jets = _emulator.emulateEvent(particles);
   return convertHWToEDM(jets);
 }
 
 std::vector<L1SCJetEmu::Particle> L1SeedConePFJetProducer::convertEDMToHW(std::vector<edm::Ptr<l1t::PFCandidate>>& edmParticles){
-  using namespace L1SCJetEmu;
-  std::vector<Particle> hwParticles;
+  std::vector<L1SCJetEmu::Particle> hwParticles;
   std::for_each(edmParticles.begin(), edmParticles.end(), [&](edm::Ptr<l1t::PFCandidate>& edmParticle){
     hwParticles.push_back(L1SCJetEmu::Particle::unpack(edmParticle->encodedPuppi64()));
   });
@@ -162,12 +161,9 @@ std::vector<L1SCJetEmu::Particle> L1SeedConePFJetProducer::convertEDMToHW(std::v
 }
 
 std::vector<l1t::PFJet> L1SeedConePFJetProducer::convertHWToEDM(std::vector<L1SCJetEmu::Jet> hwJets){
-  using namespace L1SCJetEmu;
   std::vector<l1t::PFJet> edmJets;
-  std::for_each(hwJets.begin(), hwJets.end(), [&](Jet jet){
-    edmJets.push_back(l1t::PFJet(jet.hwPt,
-                                 float(jet.hwEta) * l1ct::Scales::ETAPHI_LSB,
-                                 float(jet.hwPhi) * l1ct::Scales::ETAPHI_LSB));
+  std::for_each(hwJets.begin(), hwJets.end(), [&](L1SCJetEmu::Jet jet){
+    edmJets.push_back(l1t::PFJet(jet.floatPt(), jet.floatEta(), jet.floatPhi(), /*mass=*/0., jet.intPt(), jet.intEta(), jet.intPhi()));
   });
   return edmJets;
 }

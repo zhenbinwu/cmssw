@@ -10,11 +10,11 @@
 #include <numeric>
 #include <algorithm>
 
-namespace L1SCJetEmu {
+class L1SCJetEmu {
+  public:
   // Data types and constants used in the FPGA and FPGA-optimized functions
   // This header file is also for use in the standalone FPGA-tools simulation
   // and thus contains no CMSSW/EDM specific content
-
   typedef l1ct::pt_t pt_t;
   typedef l1ct::glbeta_t etaphi_t;     // Type for eta & phi
   typedef ap_int<13> detaphi_t;        // Type for deta & dphi
@@ -23,31 +23,26 @@ namespace L1SCJetEmu {
   typedef l1ct::PuppiObj Particle;
   typedef l1ct::Jet Jet;
 
-  struct Config {
-  public:
-    bool debug;
-    float coneSize;
-    unsigned nJets;
-    Config(bool debug, float coneSize, unsigned nJets) : debug(debug), coneSize(coneSize), nJets(nJets) {}
-  };
+  private:
+  // Configuration settings
+  bool _debug;
+  float _coneSize;
+  unsigned _nJets;
+  detaphi2_t rCone2;
 
   // constants for the axis update
   typedef ap_ufixed<18, -2> inv_pt_t;
   static constexpr int N_table_inv_pt = 1024;
-  static const detaphi_t TWOPI = detaphi_t(l1ct::Scales::INTPHI_TWOPI);
-  static const detaphi_t PI = detaphi_t(l1ct::Scales::INTPHI_PI);
+  inv_pt_t inv_pt_table[N_table_inv_pt];
 
-  static const etaphi_t FIDUCIAL_ETA_PHI = 5.11 / l1ct::Scales::ETAPHI_LSB;
-  static const pt_t JET_PT_CUT = 5;
+  static constexpr int ceillog2(int x) { return (x <= 2) ? 1 : 1 + ceillog2((x + 1) / 2); }
 
-  constexpr int ceillog2(int x) { return (x <= 2) ? 1 : 1 + ceillog2((x + 1) / 2); }
+  static constexpr int floorlog2(int x) { return (x < 2) ? 0 : 1 + floorlog2(x / 2); }
 
-  constexpr int floorlog2(int x) { return (x < 2) ? 0 : 1 + floorlog2(x / 2); }
-
-  constexpr int pow2(int x) { return x == 0 ? 1 : 2 * pow2(x - 1); }
+  static constexpr int pow2(int x) { return x == 0 ? 1 : 2 * pow2(x - 1); }
 
   template <class data_T, int N>
-  inline float real_val_from_idx(unsigned i) {
+  static inline float real_val_from_idx(unsigned i) {
     // Treat the index as the top N bits
     static constexpr int NB = ceillog2(N);  // number of address bits for table
     data_T x(0);
@@ -59,7 +54,7 @@ namespace L1SCJetEmu {
   }
 
   template <class data_T, int N>
-  inline unsigned idx_from_real_val(data_T x) {
+  static inline unsigned idx_from_real_val(data_T x) {
     // Slice the top N bits to get an index into the table
     static constexpr int NB = ceillog2(N);  // number of address bits for table
     // Slice the top-1 NB bits of the value
@@ -69,7 +64,7 @@ namespace L1SCJetEmu {
   }
 
   template <class data_T, class table_T, int N>
-  void init_invert_table(table_T table_out[N]) {
+  static void init_invert_table(table_T table_out[N]) {
     // The template data_T is the data type used to address the table
     for (unsigned i = 0; i < N; i++) {
       float x = real_val_from_idx<data_T, N>(i);
@@ -79,10 +74,7 @@ namespace L1SCJetEmu {
   }
 
   template <class in_t, class table_t, int N>
-  table_t invert_with_shift(in_t in, bool debug = false) {
-    table_t inv_table[N];
-    init_invert_table<in_t, table_t, N>(inv_table);
-
+  static table_t invert_with_shift(const in_t in, const table_t inv_table[N], bool debug = false) {
     // find the first '1' in the denominator
     int msb = 0;
     for (int b = 0; b < in.width; b++) {
@@ -105,34 +97,33 @@ namespace L1SCJetEmu {
     return out;
   }
 
-  detaphi_t deltaPhi(Particle a, Particle b) {
+  static detaphi_t deltaPhi(Particle a, Particle b) {
     detaphi_t dphi = detaphi_t(a.hwPhi) - detaphi_t(b.hwPhi);
     // phi wrap
-    detaphi_t dphi0 = dphi > PI ? detaphi_t(TWOPI - dphi) : detaphi_t(dphi);
-    detaphi_t dphi1 = dphi < -PI ? detaphi_t(TWOPI + dphi) : detaphi_t(dphi);
+    detaphi_t dphi0 = dphi > detaphi_t(l1ct::Scales::INTPHI_PI) ? detaphi_t(l1ct::Scales::INTPHI_TWOPI - dphi) : detaphi_t(dphi);
+    detaphi_t dphi1 = dphi < detaphi_t(-l1ct::Scales::INTPHI_PI) ? detaphi_t(l1ct::Scales::INTPHI_TWOPI + dphi) : detaphi_t(dphi);
     detaphi_t dphiw = dphi > detaphi_t(0) ? dphi0 : dphi1;
     return dphiw;
   }
 
-  bool inCone(Particle seed, Particle part, detaphi2_t cone2, bool debug) {
+  bool inCone(Particle seed, Particle part) const {
     // scale the particle eta, phi to hardware units
     detaphi_t deta = detaphi_t(seed.hwEta) - detaphi_t(part.hwEta);
     detaphi_t dphi = deltaPhi(seed, part);
-    bool ret = deta * deta + dphi * dphi < cone2;
+    bool ret = deta * deta + dphi * dphi < rCone2;
     //bool ret = r2 < cone2;
-    if (debug) {
+    if (_debug) {
       detaphi2_t r2 = detaphi2_t(deta) * detaphi2_t(deta) + detaphi2_t(dphi) * detaphi2_t(dphi);
       std::cout << "  part eta, seed eta: " << part.hwEta << ", " << seed.hwEta << std::endl;
       std::cout << "  part phi, seed phi: " << part.hwPhi << ", " << seed.hwPhi << std::endl;
       std::cout << "  pt, deta, dphi, r2, cone2, lt: " << part.hwPt << ", " << deta << ", " << dphi << ", " << deta * deta + dphi * dphi << ", "
-                << cone2 << ", " << ret << std::endl;
+                << rCone2 << ", " << ret << std::endl;
     }
     return ret;
   }
 
-Jet makeJet_HW(const std::vector<Particle>& parts, Config config) {
+Jet makeJet_HW(const std::vector<Particle>& parts) const {
   // Seed Cone Jet algorithm with ap_fixed types and hardware emulation
-  using namespace L1SCJetEmu;
   Particle seed = parts.at(0);
 
   // Fine unless we start using saturation, in which case order matters
@@ -140,7 +131,7 @@ Jet makeJet_HW(const std::vector<Particle>& parts, Config config) {
 
   // Sum the pt
   pt_t pt = std::accumulate(parts.begin(), parts.end(), pt_t(0), sumpt);
-  inv_pt_t inv_pt = invert_with_shift<pt_t, inv_pt_t, N_table_inv_pt>(pt, false);
+  inv_pt_t inv_pt = invert_with_shift<pt_t, inv_pt_t, N_table_inv_pt>(pt, inv_pt_table, false);
 
   // pt weighted d eta
   std::vector<pt_etaphi_t> pt_deta;
@@ -173,7 +164,7 @@ Jet makeJet_HW(const std::vector<Particle>& parts, Config config) {
     jet.addConstituent(*it);
   }*/
 
-  if (config.debug) {
+  if (_debug) {
     std::for_each(pt_dphi.begin(), pt_dphi.end(), [](pt_etaphi_t& x) { std::cout << "pt_dphi: " << x << std::endl; });
     std::for_each(pt_deta.begin(), pt_deta.end(), [](pt_etaphi_t& x) { std::cout << "pt_deta: " << x << std::endl; });
     std::cout << " sum_pt_eta: " << sum_pt_eta << ", 1/pt: " << inv_pt << ", sum_pt_eta * 1/pt: " << etaphi_t(sum_pt_eta * inv_pt) << std::endl;
@@ -186,46 +177,50 @@ Jet makeJet_HW(const std::vector<Particle>& parts, Config config) {
   return jet;
 }
 
-std::vector<Jet> emulateEvent(std::vector<Particle>& parts, Config config) {
+public:
+  L1SCJetEmu(bool debug, float coneSize, unsigned nJets) : _debug(debug), _coneSize(coneSize), _nJets(nJets){
+    rCone2 = detaphi2_t(coneSize * coneSize / l1ct::Scales::ETAPHI_LSB / l1ct::Scales::ETAPHI_LSB);
+    init_invert_table<pt_t, inv_pt_t, N_table_inv_pt>(inv_pt_table);
+  }
+
+std::vector<Jet> emulateEvent(std::vector<Particle>& parts) const {
   // The fixed point algorithm emulation
-  using namespace L1SCJetEmu;
   std::vector<Particle> work;
   work.resize(parts.size());
   std::transform(parts.begin(), parts.end(), work.begin(), [](const Particle& part) { return part; });
   std::sort(work.begin(), work.end(), [](Particle i, Particle j) {
     return (i.hwPt > j.hwPt);
   });
-  detaphi2_t rCone2 = detaphi2_t(config.coneSize * config.coneSize / l1ct::Scales::ETAPHI_LSB / l1ct::Scales::ETAPHI_LSB);
 
   std::vector<Jet> jets;
-  jets.reserve(config.nJets);
-  while (!work.empty() && jets.size() < config.nJets) {
+  jets.reserve(_nJets);
+  while (!work.empty() && jets.size() < _nJets) {
     // Take the first (highest pt) candidate as a seed
     Particle seed = work.at(0);
     // Get the particles within a _coneSize of the seed
     std::vector<Particle> particlesInCone;
     std::copy_if(
         work.begin(), work.end(), std::back_inserter(particlesInCone), [&](const Particle& part) {
-          return inCone(seed, part, rCone2, false);
+          return inCone(seed, part);
         });
-    if (config.debug) {
+    if (_debug) {
       std::cout << "Seed: " << seed.hwPt << ", " << seed.hwEta << ", " << seed.hwPhi << std::endl;
       std::for_each(particlesInCone.begin(), particlesInCone.end(), [&](Particle& part) {
         std::cout << "  Part: " << part.hwPt << ", " << part.hwEta << ", " << part.hwPhi << std::endl;
-        inCone(seed, part, rCone2, true);
+        inCone(seed, part);
       });
     }
-    jets.push_back(makeJet_HW(particlesInCone, config));
+    jets.push_back(makeJet_HW(particlesInCone));
     // remove the clustered particles
     work.erase(
         std::remove_if(work.begin(),
                        work.end(),
-                       [&](const Particle& part) { return inCone(seed, part, rCone2, false); }),
+                       [&](const Particle& part) { return inCone(seed, part); }),
         work.end());
   }
   return jets;
 }
 
-};  // namespace L1SCJetEmu
+};  // class L1SCJetEmu
 
 #endif
