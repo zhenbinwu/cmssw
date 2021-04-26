@@ -163,7 +163,9 @@ std::vector<L1SCJetEmu::Particle> L1SeedConePFJetProducer::convertEDMToHW(std::v
 std::vector<l1t::PFJet> L1SeedConePFJetProducer::convertHWToEDM(std::vector<L1SCJetEmu::Jet> hwJets){
   std::vector<l1t::PFJet> edmJets;
   std::for_each(hwJets.begin(), hwJets.end(), [&](L1SCJetEmu::Jet jet){
-    edmJets.push_back(l1t::PFJet(jet.floatPt(), jet.floatEta(), jet.floatPhi(), /*mass=*/0., jet.intPt(), jet.intEta(), jet.intPhi()));
+    l1t::PFJet edmJet(jet.floatPt(), jet.floatEta(), jet.floatPhi(), /*mass=*/0., jet.intPt(), jet.intEta(), jet.intPhi());
+    edmJet.setEncodedJet(jet.pack());
+    edmJets.push_back(edmJet);
   });
   return edmJets;
 }
