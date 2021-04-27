@@ -167,6 +167,8 @@ namespace l1ct {
       hwIsoVars[3] = 0;
     }
 
+    using EGIsoObj::floatIso;
+
     enum IsoType { TkIso = 0, PfIso = 1, TkIsoPV = 2, PfIsoPV = 3 };
 
     float floatIso(IsoType type) const { return Scales::floatIso(hwIsoVars[type]); }
@@ -196,6 +198,8 @@ namespace l1ct {
       hwIsoVars[0] = 0;
       hwIsoVars[1] = 0;
     }
+
+    using EGIsoEleObj::floatIso;
 
     enum IsoType { TkIso = 0, PfIso = 1 };
 
