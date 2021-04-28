@@ -33,7 +33,7 @@ namespace l1tVertexFinder {
     // Vertex Reconstruction algo
     Algorithm vx_algo() const { return vx_algo_; }
     Precision vx_precision() const { return vx_precision_; }
-    /// For Agglomerative cluster algorithm, select a definition of distance between clusters
+    // For Agglomerative cluster algorithm, select a definition of distance between clusters
     unsigned int vx_distanceType() const { return vx_distanceType_; }
     // Assumed Vertex Distance
     float vx_distance() const { return vx_distance_; }
@@ -43,23 +43,23 @@ namespace l1tVertexFinder {
     unsigned int vx_minTracks() const { return vx_minTracks_; }
     // Compute the z0 position of the vertex with a mean weighted with track momenta
     unsigned int vx_weightedmean() const { return vx_weightedmean_; }
-    /// Chi2 cut for the Adaptive Vertex Recostruction Algorithm
+    // Chi2 cut for the Adaptive Vertex Recostruction Algorithm
     float vx_chi2cut() const { return vx_chi2cut_; }
-    /// Do track quality cuts in emulation algorithms
+    // Do track quality cuts in emulation algorithms
     bool vx_DoQualityCuts() const { return vx_DoQualityCuts_; }
-    /// Window size of the sliding window
+    // Window size of the sliding window
     unsigned int vx_windowSize() const { return vx_windowSize_; }
-    /// FastHisto histogram parameters (min, max, width)
+    // FastHisto histogram parameters (min, max, width)
     std::vector<double> vx_histogram_parameters() const { return vx_histogram_parameters_; }
     double vx_histogram_min() const { return vx_histogram_parameters_.at(0); }
     double vx_histogram_max() const { return vx_histogram_parameters_.at(1); }
     double vx_histogram_binwidth() const { return vx_histogram_parameters_.at(2); }
-    /// FastHisto assumed vertex width
+    // FastHisto assumed vertex width
     float vx_width() const { return vx_width_; }
-    /// FastHisto track selection control
+    // FastHisto track selection control
     bool vx_DoPtComp() const { return vx_DoPtComp_; }
     bool vx_DoTightChi2() const { return vx_DoTightChi2_; }
-    /// Number of vertices to return for FastHisto
+    // Number of vertices to return for FastHisto
     unsigned int vx_nvtx() const { return vx_nvtx_; }
     float vx_dbscan_pt() const { return vx_dbscan_pt_; }
     unsigned int vx_dbscan_mintracks() const { return vx_dbscan_mintracks_; }

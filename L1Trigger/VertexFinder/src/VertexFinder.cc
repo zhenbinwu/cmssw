@@ -8,7 +8,7 @@ namespace l1tVertexFinder {
                                                    const std::vector<float>& bin_centers,
                                                    const std::vector<unsigned int>& counts) {
     double pt = 0.;
-    double z0 = 0.;
+    double z0 = -999.;
     double z0width = 0.;
     bool highPt = false;
     double highestPt = 0.;
@@ -25,6 +25,11 @@ namespace l1tVertexFinder {
     for (const L1Track* track : vertex.tracks()) {
       itrack++;
       trackPt = track->pt();
+
+      // Skip the bins with no tracks
+      while (ibin < counts.size() && counts[ibin] == 0)
+        ibin++;
+
       if (trackPt > settings_->vx_TrackMaxPt()) {
         highPt = true;
         numHighPtTracks++;
@@ -572,7 +577,7 @@ namespace l1tVertexFinder {
       std::sort(
           verticesEmulation_.begin(),
           verticesEmulation_.end(),
-          [](const l1t::VertexWord& vertex0, const l1t::VertexWord& vertex1) { return (vertex0.pt() < vertex1.pt()); });
+          [](const l1t::VertexWord& vertex0, const l1t::VertexWord& vertex1) { return (vertex0.pt() > vertex1.pt()); });
     } else {
       std::sort(vertices_.begin(), vertices_.end(), [](const RecoVertex<>& vertex0, const RecoVertex<>& vertex1) {
         return (vertex0.pt() > vertex1.pt());
@@ -737,11 +742,24 @@ namespace l1tVertexFinder {
           imax = i;
         }
       }
-
       found.push_back(imax);
       vertices_.emplace_back(sums.at(imax));
     }
     pvIndex_ = 0;
+
+    if (settings_->debug() >= 1) {
+      edm::LogInfo log("VertexProducer");
+      log << "FastHisto::Checking the output parameters ... \n";
+      std::vector<double> tmp;
+      std::transform(std::begin(sums), std::end(sums), std::back_inserter(tmp), [](const RecoVertex<>& v) -> double {
+        return v.pt();
+      });
+      printHistogram<double, edm::LogInfo>(log, tmp, 80, 0, -1, "FastHisto::sums", "\e[92m");
+      for (unsigned int i = 0; i < found.size(); i++) {
+        log << "RecoVertex " << i << ": bin index = " << found[i] << "\tsumPt = " << sums.at(imax).pt()
+            << "\tz0 = " << sums.at(imax).z0();
+      }
+    }
   }  // end of FastHisto
 
   void VertexFinder::FastHistoEmulation() {
@@ -870,6 +888,7 @@ namespace l1tVertexFinder {
       slidingsum_t zvtx_sliding_sum = 0;
       inverse_t inv = 0;
 
+      // Find the weighted position within the window in index space (width = 1)
       for (ap_uint<BitsToRepresent(HistogramBitWidths::kWindowSize)> w = 0; w < HistogramBitWidths::kWindowSize; ++w) {
         zvtx_sliding_sum += (binpt.at(w) * w);
       }
@@ -889,10 +908,15 @@ namespace l1tVertexFinder {
       if (settings_->debug() >= 1) {
         *log << "inv = " << inv << "\nzvtx_sliding = " << zvtx_sliding << "\n";
       }
+
+      // Add the starting index plus half an index to shift the z position to its weighted position (still in inxex space) within all of the bins
       zvtx_sliding += b_max;
+      zvtx_sliding += ap_ufixed<1, 0>(0.5);
       if (settings_->debug() >= 1) {
         *log << "zvtx_sliding + b_max = " << zvtx_sliding << "\n";
       }
+
+      // Shift the z position from index space into z [cm] space
       zvtx_sliding = bin_center(zvtx_sliding, nbins);
       if (settings_->debug() >= 1) {
         *log << "bin_center(zvtx_sliding + b_max) = " << zvtx_sliding;
@@ -911,20 +935,17 @@ namespace l1tVertexFinder {
     for (const L1Track& track : fitTracks_) {
       // Get the track pt and z0
       // Convert them to an appropriate data format
+      // Truncation and saturdation taken care of by the data type specification
       pt_t tkpt = 0;
       tkpt.V = track.getTTTrackPtr()->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kRinvMSB - 1,
                                                      TTTrack_TrackWord::TrackBitLocations::kRinvLSB);
+      track_pt_fixed_t pt_tmp = tkpt;
       //z0_t tkZ0 = track.getTTTrackPtr()->getZ0();
       z0_t tkZ0 = 0;
       tkZ0.V = track.getTTTrackPtr()->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kZ0MSB,
                                                      TTTrack_TrackWord::TrackBitLocations::kZ0LSB);
       ap_ufixed<32, 1> kZ0Scale_fixed = kZ0Scale;
       tkZ0 *= kZ0Scale_fixed;
-
-      // Divide the pt by 2, which reduces the precision, but save space
-      // Store in a more space efficient container
-      // Truncation and saturdation taken care of by the data type specification
-      track_pt_fixed_t pt_tmp = (tkpt >> 1);
 
       if ((settings_->vx_DoQualityCuts() && track_quality_check(tkpt)) || (!settings_->vx_DoQualityCuts())) {
         //
@@ -956,17 +977,9 @@ namespace l1tVertexFinder {
       }
     }  // end loop over tracks
 
-    // Compute the sums
-    // sliding windows ... sum_i_i+(w-1) where i in (0,nbins-w) and w is the window size
-
-    // Setup the intermediate and final storage objects
-    histbin_t b_max = 0;
-    window_pt_sum_fixed_t maximums = 0;
-    zsliding_t zvtx_sliding = -999;
-    std::vector<link_pt_sum_fixed_t> binpt_max(HistogramBitWidths::kWindowSize, 0);
+    // Loop through all bins, taking into account the fact that the last bin is nbins-window_width+1,
+    // and compute the sums using sliding windows ... sum_i_i+(w-1) where i in (0,nbins-w) and w is the window size
     std::vector<window_pt_sum_fixed_t> hist_window_sums(nsums, 0);
-
-    // Loop through all bins, taking into account the fact that the last bin is nbins-window_width+1
     for (unsigned int b = 0; b < nsums; ++b) {
       for (unsigned int w = 0; w < HistogramBitWidths::kWindowSize; ++w) {
         unsigned int index = b + w;
@@ -974,35 +987,54 @@ namespace l1tVertexFinder {
       }
     }
 
-    // Find the maxima of the sums
-    b_max = std::distance(hist_window_sums.begin(), std::max_element(hist_window_sums.begin(), hist_window_sums.end()));
-    maximums = hist_window_sums.at(b_max);
-    std::copy(
-        std::begin(hist) + b_max, std::begin(hist) + b_max + HistogramBitWidths::kWindowSize, std::begin(binpt_max));
+    // Find the top N vertices
+    std::vector<int> found;
+    found.reserve(settings_->vx_nvtx());
+    for (unsigned int ivtx = 0; ivtx < settings_->vx_nvtx(); ivtx++) {
+      histbin_t b_max = 0;
+      window_pt_sum_fixed_t max_pt = 0;
+      zsliding_t zvtx_sliding = -999;
+      std::vector<link_pt_sum_fixed_t> binpt_max(HistogramBitWidths::kWindowSize, 0);
 
-    // Find the weighted position only for the highest sum pt window
-    zvtx_sliding = weighted_position(b_max, binpt_max, maximums, nbins);
+      // Find the maxima of the sums
+      for (unsigned int i = 0; i < hist_window_sums.size(); i++) {
+        // Skip this window if it will already be returned
+        if (find(found.begin(), found.end(), i) != found.end())
+          continue;
+        if (hist_window_sums.at(i) > max_pt) {
+          b_max = i;
+          max_pt = hist_window_sums.at(b_max);
+          std::copy(std::begin(hist) + b_max,
+                    std::begin(hist) + b_max + HistogramBitWidths::kWindowSize,
+                    std::begin(binpt_max));
 
-    if (settings_->debug() >= 1) {
-      edm::LogInfo log("VertexProducer");
-      log << "FastHistoEmulation::Checking the output parameters ... \n";
-      printHistogram<link_pt_sum_fixed_t, edm::LogInfo>(log, hist, 80, 0, -1, "FastHistoEmulation::hist", "\e[92m");
-      printHistogram<window_pt_sum_fixed_t, edm::LogInfo>(
-          log, hist_window_sums, 80, 0, -1, "FastHistoEmulation::hist_window_sums", "\e[92m");
-      printHistogram<link_pt_sum_fixed_t, edm::LogInfo>(
-          log, binpt_max, 80, 0, -1, "FastHistoEmulation::binpt_max", "\e[92m");
-      log << "bin index (not a VertexWord parameter) = " << b_max << "\n"
-          << "sumPt = " << maximums.to_double() << "\n"
-          << "z0 = " << zvtx_sliding.to_double();
+          // Find the weighted position only for the highest sum pt window
+          zvtx_sliding = weighted_position(b_max, binpt_max, max_pt, nbins);
+        }
+      }
+      if (settings_->debug() >= 1) {
+        edm::LogInfo log("VertexProducer");
+        log << "FastHistoEmulation::Checking the output parameters ... \n";
+        if (found.empty()) {
+          printHistogram<link_pt_sum_fixed_t, edm::LogInfo>(log, hist, 80, 0, -1, "FastHistoEmulation::hist", "\e[92m");
+          printHistogram<window_pt_sum_fixed_t, edm::LogInfo>(
+              log, hist_window_sums, 80, 0, -1, "FastHistoEmulation::hist_window_sums", "\e[92m");
+        }
+        printHistogram<link_pt_sum_fixed_t, edm::LogInfo>(
+            log, binpt_max, 80, 0, -1, "FastHistoEmulation::binpt_max", "\e[92m");
+        log << "bin index (not a VertexWord parameter) = " << b_max << "\n"
+            << "sumPt = " << max_pt.to_double() << "\n"
+            << "z0 = " << zvtx_sliding.to_double();
+      }
+      found.push_back(b_max);
+      verticesEmulation_.emplace_back(l1t::VertexWord::vtxvalid_t(1),
+                                      l1t::VertexWord::vtxz0_t(zvtx_sliding),
+                                      l1t::VertexWord::vtxmultiplicity_t(0),
+                                      l1t::VertexWord::vtxsumpt_t(max_pt),
+                                      l1t::VertexWord::vtxquality_t(0),
+                                      l1t::VertexWord::vtxinversemult_t(0),
+                                      l1t::VertexWord::vtxunassigned_t(0));
     }
-
-    verticesEmulation_.emplace_back(l1t::VertexWord::vtxvalid_t(1),
-                                    l1t::VertexWord::vtxz0_t(zvtx_sliding),
-                                    l1t::VertexWord::vtxmultiplicity_t(0),
-                                    l1t::VertexWord::vtxsumpt_t(maximums),
-                                    l1t::VertexWord::vtxquality_t(0),
-                                    l1t::VertexWord::vtxinversemult_t(0),
-                                    l1t::VertexWord::vtxunassigned_t(0));
     pvIndex_ = 0;
   }  // end of FastHistoEmulation
 
