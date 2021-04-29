@@ -28,6 +28,38 @@ namespace Phase2L1GMT {
       return 1;
     }
 
+    uint ptLookup(uint  absCurv)
+    {
+
+      for(auto i : ptShifts)
+      {
+        if( absCurv >= uint(i[0]) && absCurv < uint(i[1]))
+        {
+          if (i[2] < 0 )  
+            return i[4];
+          else
+            return (absCurv >> i[2]) + i[3];
+        }
+      }
+      return 0;
+    }
+
+    uint etaLookup(uint absTanL )
+    {
+
+      for(auto i : etaShifts)
+      {
+        if( absTanL >= uint(i[0]) && absTanL < uint(i[1]) )
+        {
+          if (i[2] < 0 )  
+            return i[4];
+          else
+            return (absTanL >> i[2]) + i[3];
+        }
+      }
+      return 0;
+    }
+
     ConvertedTTTrack convert(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& track) {
       uint                charge      = (track->rInv()<0) ? 1 : 0;
       int                 curvature   = track->rInv()*(1<<(BITSTTCURV-1))/maxCurv_;
@@ -37,11 +69,17 @@ namespace Phase2L1GMT {
       int                 d0          = track->d0()*(1<<(BITSD0-1))/maxD0_;
       //calculate pt
       uint  absCurv  = curvature>0 ? (curvature) : (-curvature);
-      uint pt = ptLUT[absCurv>>3];
+      uint pt = ptLUT[ptLookup(absCurv)];
+      //if ((pt * 0.025 -track->momentum().transverse()) > 0.025)
+        //std::cout << "pt offline " << track->momentum().transverse() << " online " << pt*0.025 << " diff " << pt * 0.025 -track->momentum().transverse() << std::endl;
       uint quality = generateQuality(track);
       uint absTanL = tanLambda >0 ? (tanLambda) : (-tanLambda);
-      uint absEta = etaLUT[absTanL>>4];
+      uint absEta = etaLUT[etaLookup(absTanL)];
       int eta = tanLambda >0 ?  (absEta) : (-absEta);
+      //const double lsb_eta = 2.*M_PI/pow(2, BITSETA);
+      //if ((eta * lsb_eta - track->eta()) > lsb_eta)
+        //std::cout << "eta offline " << track->eta() << " online " << eta*lsb_eta << " diff " << eta * lsb_eta - track->eta()<< std::endl;
+
 
       ap_uint<96> word = twos_complement(curvature,BITSTTCURV);
       ap_int<BITSPHI> phiSec = ap_int<BITSPHI>(phi)-ap_int<BITSPHI>((track->phiSector()*40*M_PI/180.)*(1<<(BITSPHI-1))/(M_PI));

@@ -211,7 +211,7 @@ def ProducedFinalLUT(LUT, k, isPT=False, bounderidx=False):
         if np.any(k[:,2] == -1):
             y.insert(0, str(k[k[:,2] == -1, 4][0]))
             k[k[:,2] == -1, 4] = 0
-            k[k[:, 2] > 0, 3] +=1
+            k[k[:, 2] >= 0, 3] +=1
         if np.any(k[:,2] == -2):
             y.append(str(k[k[:,2] == -2, 4][0]))
             k[k[:,2] == -2, 4] = len(y)-1
@@ -235,11 +235,12 @@ def ptChecks(shiftmap, LUT, bounderidx=False):
         k = (maxCurv*i)/(1<<BITSABSCURV)
         pOB=0.3*3.8*0.01/(k)
         pINT = LookUp(i, shiftmap, LUT, bounderidx)
-        if pOB <= 2:
+        ## We don't need to check beyond the boundary
+        if pOB > (1<<BITSPT)*0.025 or pOB < 2:
             continue
         # Allow +-1 1LSB
-        # if (abs(pOB - int(pINT)*0.025) > 0.025 *2):
-            # print(i, pOB, ptLUT[i-1], pINT, int(pINT)*0.025)
+        if (abs(pOB - int(pINT)*0.025) > 0.025 *2):
+            print("pt : ", i, pOB, ptLUT[i-1], pINT, int(pINT)*0.025)
 
 def etaChecks(shiftmap, LUT, bounderidx=False):
     for i in range(0,(1<<(BITSTTTANL))):
@@ -247,12 +248,13 @@ def etaChecks(shiftmap, LUT, bounderidx=False):
         lam =math.atan(tanL)
         theta =math.pi/2.0-lam
         eta = -math.log(math.tan(theta/2.0))
-        if eta > 2.4:
+        ## We don't need to check beyond the boundary
+        if eta > 2.45:
             continue
         eINT = int(eta*(1<<BITSETA)/math.pi)
         etaINT = LookUp(i, shiftmap, LUT, bounderidx)
         if (abs(eta - int(etaINT)*etaLSB) > etaLSB *2):
-            print(i, eta, etaLUT[i], eINT, int(etaINT)*etaLSB)
+            print("eta : ", i, eta, etaLUT[i], eINT, int(etaINT)*etaLSB)
 
 
 def PrintPTLUT(k, ptLUT):
@@ -282,6 +284,7 @@ if __name__ == "__main__":
     if len(con) > 1:
         print("index is not continuous: ", con)
     ptChecks(k, y, bounderidx=bounderidx)
+    print("Total size of LUT is %d" % len(y))
     PrintPTLUT(k, y)
 
     # # ### Eta
@@ -292,9 +295,5 @@ if __name__ == "__main__":
     if len(con) > 1:
         print("index is not continuous: ", con)
     etaChecks(k, y, bounderidx=bounderidx)
+    print("Total size of LUT is %d" % len(y))
     PrintEtaLUT(k, y)
-
-
-# # print(k, x, y)
-# # x, y = GetLUTModified(etaLUT, k)
-# # print(len(x), len(y))
