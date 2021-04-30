@@ -8,6 +8,7 @@
 #
 # Description : 
 
+from __future__ import division
 import math
 import numpy as np
 from collections import defaultdict, Counter
@@ -30,25 +31,26 @@ etaLUT=[]
 etas = []
 etashifts = []
 
-def GetPtLUT(printLUT=False):
+def GetPtLUT():
     for i in range(1,(1<<BITSABSCURV)):
         k = (maxCurv*i)/(1<<BITSABSCURV)
         pOB=0.3*3.8*0.01/(k)
         pts.append(pOB)
-        pINT = int(pOB/ptLSB)
+        pINT = int(round(pOB/ptLSB))
         if pINT<(1<<BITSPT):
             ptLUT.append(str(pINT))
         else:
             ptLUT.append(str((1<<BITSPT)-1))
 
-def GetEtaLUT(printLUT=False):
+
+def GetEtaLUT():
     for i in range(0,(1<<(BITSTTTANL))):
         tanL = (maxTanL*i)/(1<<BITSTTTANL)
         lam =math.atan(tanL)
         theta =math.pi/2.0-lam
         eta = -math.log(math.tan(theta/2.0))
         etas.append(eta)
-        etaINT = int(eta*(1<<BITSETA)/math.pi)
+        etaINT = int(round(eta*(1<<BITSETA)/math.pi))
         if abs(eta<math.pi):
             etaLUT.append(str(etaINT))
 
@@ -138,33 +140,6 @@ def Modification(inval, intINT, config):
             else:
                 return cfg[2], (inval >> cfg[2] ) + cfg[3], intINT
 
-def GetPtLUTModified(ptMap):
-    tempmap = defaultdict(list)
-    x= []
-    y=[]
-    for i in range(1,(1<<BITSABSCURV)):
-        k = (maxCurv*i)/(1<<BITSABSCURV)
-        pOB=0.3*3.8*0.01/(k)
-        pts.append(pOB)
-        pINT = int(pOB/ptLSB)
-        nshift, newidx, newINT = Modification(i, pINT, ptMap)
-        tempmap[newidx].append(newINT)
-    con = consecutive(list(tempmap.keys()))
-    for k, v in tempmap.items():
-        if k == -1 or k == 9999999:
-            continue
-        setv = set(v)
-        x.append(k)
-        if len(setv) == 1:
-            y.append(v[0])
-        elif len(setv) == 2:
-            contv = Counter(v)
-            y.append(contv.most_common(1)[0][0])
-        else:
-            print("----- allow up to 2 values per bins")
-    return x, y
-
-
 def GetLUTModified(orgLUT, shiftMap, isPT=False):
     tempmap = defaultdict(list)
     x= []
@@ -186,10 +161,16 @@ def GetLUTModified(orgLUT, shiftMap, isPT=False):
             y.append(v[0])
         elif len(setv) == 2 or len(setv) ==3:
             contv = Counter(v)
-            y.append(contv.most_common(1)[0][0])
+            ## The counter was sorted, descending in python3 and asending in python2
+            ## This will result in slightly different LUT when running 
+            isallequal = (len(set(contv.values())) == 1)
+            if isallequal:
+                ## Using min for now. To be decided
+                y.append(min(contv.keys()))
+            else:
+                y.append(contv.most_common(1)[0][0])
         else:
             print("----- allow up to 3 values per bins")
-            pass
     return x, y
 
 def ProducedFinalLUT(LUT, k, isPT=False, bounderidx=False):
@@ -223,24 +204,23 @@ def LookUp(inpt, shiftmap, LUT, bounderidx):
         if inpt >=i[0] and inpt < i[1]:
             if i[2] < 0:
                 if bounderidx:
-                    return LUT[i[4]]
+                    return i[4], LUT[i[4]]
                 else:
-                    return i[4]
+                    return -1, i[4]
             else:
-                # print("----> ", inpt, i[2], i[3], (inpt >> i[2])+i[3], LUT[(inpt >> i[2])+i[3]], ptLUT[inpt])
-                return LUT[(inpt >> i[2])+i[3]]
+                return (inpt >> i[2])+i[3], LUT[(inpt >> i[2])+i[3]]
 
 def ptChecks(shiftmap, LUT, bounderidx=False):
     for i in range(1,(1<<BITSABSCURV)-1):
         k = (maxCurv*i)/(1<<BITSABSCURV)
         pOB=0.3*3.8*0.01/(k)
-        pINT = LookUp(i, shiftmap, LUT, bounderidx)
+        idx, pINT = LookUp(i, shiftmap, LUT, bounderidx)
         ## We don't need to check beyond the boundary
         if pOB > (1<<BITSPT)*0.025 or pOB < 2:
             continue
         # Allow +-1 1LSB
-        if (abs(pOB - int(pINT)*0.025) > 0.025 *2):
-            print("pt : ", i, pOB, ptLUT[i-1], pINT, int(pINT)*0.025)
+        if (abs(pOB - float(pINT)*0.025) > 0.025 ):
+            print("pt : ", i, pOB, pts[i-1], ptLUT[i-1], idx, pINT, int(pINT)*0.025)
 
 def etaChecks(shiftmap, LUT, bounderidx=False):
     for i in range(0,(1<<(BITSTTTANL))):
@@ -252,9 +232,12 @@ def etaChecks(shiftmap, LUT, bounderidx=False):
         if eta > 2.45:
             continue
         eINT = int(eta*(1<<BITSETA)/math.pi)
-        etaINT = LookUp(i, shiftmap, LUT, bounderidx)
-        if (abs(eta - int(etaINT)*etaLSB) > etaLSB *2):
-            print("eta : ", i, eta, etaLUT[i], eINT, int(etaINT)*etaLSB)
+        idx, etaINT = LookUp(i, shiftmap, LUT, bounderidx)
+        if eta < 1.59 and (abs(eta - int(etaINT)*etaLSB) > etaLSB  ):
+            print("eta : ", i, eta, eINT, idx, etaINT, int(etaINT)*etaLSB)
+        ## For high eta region, we allow up to 2LSB
+        if eta >= 1.59 and (abs(eta - int(etaINT)*etaLSB) > etaLSB * 2 ):
+            print("eta : ", i, eta, eINT, idx, etaINT, int(etaINT)*etaLSB)
 
 
 def PrintPTLUT(k, ptLUT):
@@ -278,13 +261,13 @@ def PrintEtaLUT(k, etaLUT):
 if __name__ == "__main__":
     bounderidx=True
     GetPtLUT()
-    k = GetLUTwrtLSB(pts, ptLSB, isPT=True, nbits=[ 1, 2, 3, 4, 5, 6, 7], lowerbound=2, upperbound=(1<<BITSPT)*ptLSB)
+    k = GetLUTwrtLSB(pts, ptLSB, isPT=True, nbits=[ 1, 2, 3, 4, 5, 6, 7], lowerbound=2, upperbound=((1<<BITSPT)-1)*ptLSB)
     k, x, y = ProducedFinalLUT(ptLUT, k, isPT=True, bounderidx=bounderidx)
     con = consecutive(x)
     if len(con) > 1:
         print("index is not continuous: ", con)
-    ptChecks(k, y, bounderidx=bounderidx)
-    print("Total size of LUT is %d" % len(y))
+    # ptChecks(k, y, bounderidx=bounderidx)
+    # print("Total size of LUT is %d" % len(y))
     PrintPTLUT(k, y)
 
     # # ### Eta
@@ -294,6 +277,6 @@ if __name__ == "__main__":
     con = consecutive(x)
     if len(con) > 1:
         print("index is not continuous: ", con)
-    etaChecks(k, y, bounderidx=bounderidx)
-    print("Total size of LUT is %d" % len(y))
+    # etaChecks(k, y, bounderidx=bounderidx)
+    # print("Total size of LUT is %d" % len(y))
     PrintEtaLUT(k, y)
