@@ -48,9 +48,13 @@ namespace l1t {
     const bool hwCharge() const {return hwCharge_;}
     const int hwZ0() const {return hwZ0_;}
     const int hwD0() const {return hwD0_;}
+    const int hwIsoSum() const {return hwIsoSum_;}
+    const int hwIsoSumAp() const {return hwIsoSumAp_;}
     const uint hwBeta() const {return hwBeta_;}
     void setBeta(uint beta) { hwBeta_ = beta;}
     void setMuonRef(const edm::Ref<l1t::RegionalMuonCandBxCollection>& p) { muRef_ = p; }
+    void setHwIsoSum(int isoSum) { hwIsoSum_ = isoSum; }
+    void setHwIsoSumAp(int isoSum) { hwIsoSumAp_ = isoSum; }
     
     const uint64_t word() const {return word_;}
     void setWord(uint64_t word) {word_ = word;}
@@ -75,6 +79,10 @@ namespace l1t {
     int  hwD0_;
     uint  hwBeta_;
     uint64_t word_;
+    //Store the eneryg sum for isolation
+    int hwIsoSum_; 
+    //Store the eneryg sum for isolation with ap_type
+    int hwIsoSumAp_;
     
     edm::Ref<l1t::RegionalMuonCandBxCollection> muRef_;
     MuonStubRefVector stubs_;

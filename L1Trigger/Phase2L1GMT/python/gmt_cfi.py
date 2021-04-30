@@ -70,7 +70,9 @@ gmtMuons = cms.EDProducer('Phase2L1TGMTProducer',
                        RelIsoThresholdT = cms.double(0.01),
                        verbose       = cms.int32(0),
                        IsodumpForHLS = cms.int32(1),
-                     )
+                     ),
+                    tauto3mu = cms.PSet()
+
 )
 
 

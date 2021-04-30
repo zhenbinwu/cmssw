@@ -39,6 +39,7 @@ namespace Phase2L1GMT
       void DumpOutputs( std::vector<l1t::TrackerMuon> &trkMus);
       int SetAbsIsolationBits(int accum);
       int SetRelIsolationBits(int accum, int mupt);
+      int OverlapRemoval(unsigned& ovrl, std::vector<unsigned>& overlaps);
 
       const static int c_iso_dangle_max = 260;//@ <  260 x 2pi/2^13 = 0.2 rad
       const static int c_iso_dz_max     = 17; //@ <  17 x 60/2^10 = 1   cm
@@ -116,9 +117,9 @@ namespace Phase2L1GMT
   {
 
     int iso = (
-        accum < absiso_thrT ? 3 :
-        accum < absiso_thrM ? 2 :
-        accum < absiso_thrL ? 1 :
+        accum <= absiso_thrT ? 3 :
+        accum <= absiso_thrM ? 2 :
+        accum <= absiso_thrL ? 1 :
         0);
 
     if (verbose_)
@@ -144,9 +145,9 @@ namespace Phase2L1GMT
 
 
     int iso = (
-        accum < thrT.to_int() ? 3 :
-        accum < thrM.to_int() ? 2 :
-        accum < thrL.to_int() ? 1 :
+        accum <= thrT.to_int() ? 3 :
+        accum <= thrM.to_int() ? 2 :
+        accum <= thrL.to_int() ? 1 :
         0);
 
     if (verbose_)
@@ -180,14 +181,23 @@ namespace Phase2L1GMT
     {
       int accum = 0;
       int iso_ = 0;
+      std::vector<unsigned> overlaps;
       for(auto t : convertedTracks)
       {
-        accum += compute_trk_iso(mu, t);
+        unsigned ovrl = compute_trk_iso(mu, t);
+        if (ovrl!=0)
+        {
+          accum += OverlapRemoval(ovrl, overlaps) * t.pt();
+        }
       }
 
       // Only 8 bit for accumation? 
+      mu.setHwIsoSum(accum);
+
       iso_accum_t temp(accum);
       accum = temp.to_int();
+
+      mu.setHwIsoSumAp(accum);
 
       iso_ |= SetAbsIsolationBits(accum);
       iso_ |= SetRelIsolationBits(accum, mu.hwPt());
@@ -200,6 +210,29 @@ namespace Phase2L1GMT
       DumpOutputs(trkMus);
     }
   }
+
+  // ===  FUNCTION  ============================================================
+  //         Name:  Isolation::OverlapRemoval
+  //  Description:  
+  // ===========================================================================
+  int Isolation::OverlapRemoval(unsigned& ovrl, std::vector<unsigned>& overlaps)
+  {
+    
+    for(auto i : overlaps)
+    {
+      // same tracks with Phi can be off by 1 LSB
+      unsigned diff = ovrl - i;
+      if (diff <=1 || diff == unsigned(-1))
+      {
+        // When Overlap, return 0 so that this track won't be consider
+        return 0;
+      }
+    }
+    overlaps.push_back(ovrl);
+    return 1;
+  }       // -----  end of function Isolation::OverlapRemoval  -----
+
+
 
   unsigned Isolation::compute_trk_iso(l1t::TrackerMuon  &in_mu, ConvertedTTTrack &in_trk)
   {
@@ -236,7 +269,15 @@ namespace Phase2L1GMT
         cout << " [DEBUG compute_trk_iso] : THE TRACK WAS MATCHED" << endl;
         cout << " [DEBUG compute_trk_iso] : RETURN         : " << in_trk.pt() << endl;
       }
-      return in_trk.pt();
+
+      //return in_trk.pt();
+      // Return fixed bit output for duplication removal. 
+      // dZ0(8bis) + deta(10bits)+dphi(10bits)
+      unsigned int retbits = 0;
+      retbits |= (dz0 & ((1<<9)-1) )<<20;
+      retbits |= (deta & ((1<<11)-1) )<<10;
+      retbits |=  (dphi & ((1<<11)-1) );
+      return retbits;
     }
     else{
       return 0;
