@@ -147,18 +147,20 @@ namespace l1ct {
       _pack_into_bits(ret, start, hwData);
       return ret;
     }
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, hwPt);
+      _unpack_from_bits(src, start, hwEta);
+      _unpack_from_bits(src, start, hwPhi);
+      _unpack_from_bits(src, start, hwId.bits);
+      _unpack_from_bits(src, start, hwData);
+    }
     inline static PuppiObj unpack(const ap_uint<BITWIDTH> &src) {
       PuppiObj ret;
-      unsigned int start = 0;
-      _unpack_from_bits(src, start, ret.hwPt);
-      _unpack_from_bits(src, start, ret.hwEta);
-      _unpack_from_bits(src, start, ret.hwPhi);
-      _unpack_from_bits(src, start, ret.hwId.bits);
-      _unpack_from_bits(src, start, ret.hwData);
+      ret.initFromBits(src);
       return ret;
     }
   };
-
   inline void clear(PuppiObj &c) { c.clear(); }
 
 }  // namespace l1ct

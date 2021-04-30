@@ -39,8 +39,12 @@ private:
 
   l1t::PFJet makeJet_SW(const std::vector<edm::Ptr<l1t::PFCandidate>>& parts) const;
 
-  static std::vector<L1SCJetEmu::Particle> convertEDMToHW(std::vector<edm::Ptr<l1t::PFCandidate>>& edmParticles);
-  static std::vector<l1t::PFJet> convertHWToEDM(std::vector<L1SCJetEmu::Jet> hwJets);
+  static std::pair<std::vector<L1SCJetEmu::Particle>,
+         std::unordered_map<const l1t::PFCandidate*, edm::Ptr<l1t::PFCandidate>>>
+  convertEDMToHW(std::vector<edm::Ptr<l1t::PFCandidate>>& edmParticles);
+
+  static std::vector<l1t::PFJet> convertHWToEDM(std::vector<L1SCJetEmu::Jet> hwJets,
+                                                std::unordered_map<const l1t::PFCandidate*, edm::Ptr<l1t::PFCandidate>> constituentMap);
 };
 
 L1SeedConePFJetProducer::L1SeedConePFJetProducer(const edm::ParameterSet& cfg)
@@ -147,23 +151,37 @@ std::vector<l1t::PFJet> L1SeedConePFJetProducer::processEvent_SW(std::vector<edm
 std::vector<l1t::PFJet> L1SeedConePFJetProducer::processEvent_HW(std::vector<edm::Ptr<l1t::PFCandidate>>& work) const {
   // The fixed point emulator
   // Convert the EDM format to the hardware format, and call the standalone emulator
-  std::vector<L1SCJetEmu::Particle> particles = convertEDMToHW(work);
-  std::vector<L1SCJetEmu::Jet> jets = _emulator.emulateEvent(particles);
-  return convertHWToEDM(jets);
+  std::pair<std::vector<L1SCJetEmu::Particle>,
+            std::unordered_map<const l1t::PFCandidate*, edm::Ptr<l1t::PFCandidate>>> particles = convertEDMToHW(work);
+  std::vector<L1SCJetEmu::Jet> jets = _emulator.emulateEvent(particles.first);
+  return convertHWToEDM(jets, particles.second);
 }
 
-std::vector<L1SCJetEmu::Particle> L1SeedConePFJetProducer::convertEDMToHW(std::vector<edm::Ptr<l1t::PFCandidate>>& edmParticles){
-  std::vector<L1SCJetEmu::Particle> hwParticles;
+std::pair<std::vector<L1SCJetEmu::Particle>,
+          std::unordered_map<const l1t::PFCandidate*, edm::Ptr<l1t::PFCandidate>>>
+          L1SeedConePFJetProducer::convertEDMToHW(std::vector<edm::Ptr<l1t::PFCandidate>>& edmParticles){
+  std::vector<l1ct::PuppiObjEmu> hwParticles;
+  std::unordered_map<const l1t::PFCandidate*, edm::Ptr<l1t::PFCandidate>> candidateMap;
   std::for_each(edmParticles.begin(), edmParticles.end(), [&](edm::Ptr<l1t::PFCandidate>& edmParticle){
-    hwParticles.push_back(L1SCJetEmu::Particle::unpack(edmParticle->encodedPuppi64()));
+    l1ct::PuppiObjEmu particle;
+    particle.initFromBits(edmParticle->encodedPuppi64());
+    particle.srcCand = edmParticle.get();
+    candidateMap.insert(std::make_pair(edmParticle.get(), edmParticle));
+    hwParticles.push_back(particle);
   });
-  return hwParticles;
+  return std::make_pair(hwParticles, candidateMap);
 }
 
-std::vector<l1t::PFJet> L1SeedConePFJetProducer::convertHWToEDM(std::vector<L1SCJetEmu::Jet> hwJets){
+std::vector<l1t::PFJet> L1SeedConePFJetProducer::convertHWToEDM(std::vector<L1SCJetEmu::Jet> hwJets,
+                                                                std::unordered_map<const l1t::PFCandidate*, edm::Ptr<l1t::PFCandidate>> constituentMap){
   std::vector<l1t::PFJet> edmJets;
   std::for_each(hwJets.begin(), hwJets.end(), [&](L1SCJetEmu::Jet jet){
     l1t::PFJet edmJet(jet.floatPt(), jet.floatEta(), jet.floatPhi(), /*mass=*/0., jet.intPt(), jet.intEta(), jet.intPhi());
+    // get back the references to the constituents
+    std::vector<edm::Ptr<l1t::PFCandidate>> constituents;
+    std::for_each(jet.constituents.begin(), jet.constituents.end(), [&](auto constituent){
+        edmJet.addConstituent(constituentMap[constituent.srcCand]);
+    });
     edmJet.setEncodedJet(jet.pack());
     edmJets.push_back(edmJet);
   });

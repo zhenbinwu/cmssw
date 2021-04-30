@@ -3,12 +3,19 @@
 
 #include "ap_int.h"
 #include "ap_fixed.h"
-#include "../dataformats/puppi.h"
+#include "../dataformats/layer1_emulator.h"
 #include "../dataformats/jets.h"
 #include <iostream>
 #include <vector>
 #include <numeric>
 #include <algorithm>
+
+namespace l1ct{
+    class L1SCEmulatedJet : public Jet {
+      public:
+      std::vector<PuppiObjEmu> constituents;
+    };
+};
 
 class L1SCJetEmu {
   public:
@@ -20,8 +27,8 @@ class L1SCJetEmu {
   typedef ap_int<13> detaphi_t;        // Type for deta & dphi
   typedef ap_fixed<18,23> detaphi2_t;  // Type for deta^2 & dphi^2
   typedef ap_fixed<22,22> pt_etaphi_t; // Type for product of pt with deta & dphi
-  typedef l1ct::PuppiObj Particle;
-  typedef l1ct::Jet Jet;
+  typedef l1ct::PuppiObjEmu Particle;
+  typedef l1ct::L1SCEmulatedJet Jet;
 
   private:
   // Configuration settings
@@ -159,6 +166,7 @@ Jet makeJet_HW(const std::vector<Particle>& parts) const {
   jet.hwPt = pt;
   jet.hwEta = eta;
   jet.hwPhi = phi;
+  jet.constituents = parts;
   /*Jet jet(pt, eta, phi);
   for (auto it = parts.begin(); it != parts.end(); it++) {
     jet.addConstituent(*it);
