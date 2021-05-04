@@ -30,9 +30,6 @@
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/puppi/linpuppi_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/pftkegalgo_ref.h"
 
-#include "DataFormats/L1TCorrelator/interface/TkMuon.h"
-#include "DataFormats/L1TCorrelator/interface/TkMuonFwd.h"
-
 #include "DataFormats/L1TCorrelator/interface/TkElectron.h"
 #include "DataFormats/L1TCorrelator/interface/TkElectronFwd.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
@@ -49,9 +46,6 @@ private:
   edm::ParameterSet config_;
   int debug_;
 
-  bool useStandaloneMuons_;
-  bool useTrackerMuons_;
-
   bool hasTracks_;
   edm::EDGetTokenT<l1t::PFTrackCollection> tkCands_;
   float trkPt_;
@@ -60,7 +54,6 @@ private:
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
 
   edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
-  edm::EDGetTokenT<l1t::TkMuonCollection> tkMuCands_;  // tk muons
 
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> emCands_;
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> hadCands_;
@@ -98,6 +91,8 @@ private:
   void addMuon(const l1t::Muon &t, l1t::PFCandidate::MuonRef ref);
   void addHadCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
   void addEmCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
+  // add objects in raw format
+  void addRawMuon(l1ct::DetectorSector<ap_uint<64>> &sec, const l1t::Muon &t);
   // add objects in already-decoded format
   void addDecodedTrack(l1ct::DetectorSector<l1ct::TkObjEmu> &sec, const l1t::PFTrack &t);
   void addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t);
@@ -135,14 +130,11 @@ private:
 L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet &iConfig)
     : config_(iConfig),
       debug_(iConfig.getUntrackedParameter<int>("debug", 0)),
-      useStandaloneMuons_(true),  //iConfig.getParameter<bool>("useStandaloneMuons")),
-      useTrackerMuons_(false),    //iConfig.getParameter<bool>("useTrackerMuons")),
       hasTracks_(!iConfig.getParameter<edm::InputTag>("tracks").label().empty()),
       tkCands_(hasTracks_ ? consumes<l1t::PFTrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"))
                           : edm::EDGetTokenT<l1t::PFTrackCollection>()),
       trkPt_(iConfig.getParameter<double>("trkPtCut")),
       muCands_(consumes<l1t::MuonBxCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
-      //tkMuCands_(consumes<l1t::TkMuonCollection>(iConfig.getParameter<edm::InputTag>("tkMuons"))),
       emPtCut_(iConfig.getParameter<double>("emPtCut")),
       hadPtCut_(iConfig.getParameter<double>("hadPtCut")),
       regionizer_(nullptr),
@@ -271,27 +263,15 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   }
 
   /// ------ READ MUONS ----
-  /// ------- first check that not more than one version of muons (standaloneMu or trackerMu) is set to be used in l1pflow
-  if (useStandaloneMuons_ && useTrackerMuons_) {
-    throw cms::Exception(
-        "Configuration",
-        "setting useStandaloneMuons=True && useTrackerMuons=True is not to be done, as it would duplicate all muons\n");
+  edm::Handle<l1t::MuonBxCollection> muons;
+  iEvent.getByToken(muCands_, muons);
+  for (auto it = muons->begin(0), ed = muons->end(0); it != ed; ++it) {
+    const l1t::Muon &mu = *it;
+    if (debugR_ > 0 && deltaR(mu.eta(), mu.phi(), debugEta_, debugPhi_) > debugR_)
+      continue;
+    addMuon(mu, l1t::PFCandidate::MuonRef(muons, muons->key(it)));
   }
 
-  if (useStandaloneMuons_) {
-    edm::Handle<l1t::MuonBxCollection> muons;
-    iEvent.getByToken(muCands_, muons);
-    for (auto it = muons->begin(0), ed = muons->end(0); it != ed; ++it) {
-      const l1t::Muon &mu = *it;
-      if (debugR_ > 0 && deltaR(mu.eta(), mu.phi(), debugEta_, debugPhi_) > debugR_)
-        continue;
-      addMuon(mu, l1t::PFCandidate::MuonRef(muons, muons->key(it)));
-    }
-  }
-
-  if (useTrackerMuons_) {
-    throw cms::Exception("Configuration", "Unsupported for now");
-  }
 
   // ------ READ CALOS -----
   edm::Handle<l1t::PFClusterCollection> caloHandle;
@@ -500,6 +480,7 @@ void L1TCorrelatorLayer1Producer::addTrack(const l1t::PFTrack &t, l1t::PFTrackRe
   trackRefMap_[&t] = ref;
 }
 void L1TCorrelatorLayer1Producer::addMuon(const l1t::Muon &mu, l1t::PFCandidate::MuonRef ref) {
+  addRawMuon(event_.raw.muon, mu);
   addDecodedMuon(event_.decoded.muon, mu);
   muonRefMap_[&mu] = ref;
 }
@@ -535,6 +516,29 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
   tk.hwStubs = t.nStubs();
   tk.src = &t;
   sec.obj.push_back(tk);
+}
+
+void L1TCorrelatorLayer1Producer::addRawMuon(l1ct::DetectorSector<ap_uint<64>> &sec, const l1t::Muon &t) {
+  // FIXME: this packing should be implemented in GMT code, but it's not yet available
+  ap_uint<64> mu = 0;
+  ap_uint<4> gmt_qual = t.hwQual();
+  ap_uint<3> gmt_bx = 0;  // FIXME
+  ap_uint<13> gmt_pt = round(t.pt() / 0.025);
+  ap_int<13> gmt_phi = round(t.phi() * 2 * M_PI / (1 << 13));
+  ap_int<12> gmt_eta = round(t.eta() * 2 * M_PI / (1 << 12));
+  ap_int<5> gmt_z0 = round(t.vertex().Z() / (1.8));
+  ap_int<7> gmt_d0 = round(t.vertex().Rho() / (3.0));
+  ap_uint<13> gmt_beta = 0;  // FIXME
+  mu(3, 0) = gmt_qual;
+  mu(6, 4) = gmt_bx;
+  mu[7] = (t.charge() > 0 ? 0 : 1);
+  mu(20, 8) = gmt_pt;
+  mu(33, 21) = gmt_phi;
+  mu(45, 34) = gmt_eta;
+  mu(50, 46) = gmt_z0;
+  mu(57, 51) = gmt_d0;
+  mu(61, 58) = gmt_beta;
+  sec.obj.push_back(mu);
 }
 
 void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t) {
