@@ -773,11 +773,13 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
   if (writeEgSta)
     ref_egs = iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(egLablel);
 
+  edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
+  // FIXME: in case more BXes are introduced shuld probably use egs->key(egs->end(bx));
+
   for (unsigned int ir = 0, nr = event_.pfinputs.size(); ir < nr; ++ir) {
     const auto &reg = event_.pfinputs[ir].region;
 
     std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
-    edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
 
     if (writeEgSta) {
       egsta_refs.resize(event_.out[ir].egsta.size());
