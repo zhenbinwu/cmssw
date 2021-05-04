@@ -298,13 +298,15 @@ namespace l1ct {
   };
 
   struct Event {
-    static const int VERSION = 7;
+    static const int VERSION = 8;
     uint32_t run, lumi;
     uint64_t event;
     RegionizerDecodedInputs decoded;
     std::vector<PFInputRegion> pfinputs;
     std::vector<PVObjEmu> pvs;
+    std::vector<uint64_t> pvs_emu;
     std::vector<OutputRegion> out;
+
 
     Event() : run(0), lumi(0), event(0) {}
 

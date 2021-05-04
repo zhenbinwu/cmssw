@@ -16,6 +16,7 @@
 #include "DataFormats/Common/interface/RefToPtr.h"
 #include "DataFormats/L1TParticleFlow/interface/PFCandidate.h"
 #include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 
@@ -54,7 +55,8 @@ private:
   edm::EDGetTokenT<l1t::PFTrackCollection> tkCands_;
   float trkPt_;
   edm::EDGetTokenT<std::vector<l1t::TkPrimaryVertex>> extTkVtx_;
-
+  edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
+  
   edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
   edm::EDGetTokenT<l1t::TkMuonCollection> tkMuCands_;  // tk muons
 
@@ -203,6 +205,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   produces<l1t::TkEmCollection>("L1TkEm");
 
   extTkVtx_ = consumes<std::vector<l1t::TkPrimaryVertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
+  tkVtxEmu_ = consumes<std::vector<l1t::VertexWord>>(iConfig.getParameter<edm::InputTag>("vtxCollectionEmulation"));
 
   const char *iprefix[4] = {"totNReg", "maxNReg", "totNSec", "maxNSec"};
   for (int i = 0; i <= l1muType; ++i) {
@@ -313,6 +316,7 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   iEvent.put(fetchHadCalo(), "Calo");
   iEvent.put(fetchTracks(), "TK");
 
+  std::cout << "-------------" << std::endl;
   // Then do the vertexing, and save it out
   float z0 = 0;
   double ptsum = 0;
@@ -322,14 +326,24 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
     if (ptsum == 0 || vtx.sum() > ptsum) {
       z0 = vtx.zvertex();
       ptsum = vtx.sum();
+      std::cout << "SIM z0: " << z0 << " pt: " << ptsum << std::endl;
       l1ct::PVObjEmu hwpv;
       hwpv.hwZ0 = l1ct::Scales::makeZ0(z0);
+      l1t::VertexWord vtxwd(1, z0, 1, ptsum, 1, 1, 1);
       if (event_.pvs.empty()) {
         event_.pvs.push_back(hwpv);
+        event_.pvs_emu.push_back(vtxwd.vertexWord().to_uint());
       } else {
         event_.pvs[0] = hwpv;
+        event_.pvs_emu[0] = vtxwd.vertexWord().to_uint();
       }
     }
+  }
+
+  edm::Handle<std::vector<l1t::VertexWord>> vtxEmuHandle;
+  iEvent.getByToken(tkVtxEmu_, vtxEmuHandle);
+  for(const l1t::VertexWord &evtx: *vtxEmuHandle) {
+    std::cout << "EMU z0: " << evtx.z0() << " pt: " << evtx.pt() << std::endl;
   }
 
   // Then also save the tracks with a vertex cut
