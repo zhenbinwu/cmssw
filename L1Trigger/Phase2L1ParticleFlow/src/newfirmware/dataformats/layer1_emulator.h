@@ -238,6 +238,7 @@ namespace l1ct {
   };
 
   struct RawInputs {
+    std::vector<DetectorSector<ap_uint<96>>> track;
     DetectorSector<ap_uint<64>> muon;  // muons are global
 
     bool read(std::fstream &from);

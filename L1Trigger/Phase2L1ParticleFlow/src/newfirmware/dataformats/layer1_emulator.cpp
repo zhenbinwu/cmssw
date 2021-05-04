@@ -133,6 +133,16 @@ bool l1ct::PVObjEmu::read(std::fstream& from) { return readObj<PVObj>(from, *thi
 bool l1ct::PVObjEmu::write(std::fstream& to) const { return writeObj<PVObj>(*this, to); }
 
 bool l1ct::RawInputs::read(std::fstream& from) {
+  uint32_t number;
+
+  if (!readVar(from, number))
+    return false;
+  track.resize(number);
+  for (auto& v : track) {
+    if (!(v.region.read(from) && readMany(from, v.obj)))
+      return false;
+  }
+
   if (!(muon.region.read(from) && readMany(from, muon.obj)))
     return false;
 
@@ -140,12 +150,26 @@ bool l1ct::RawInputs::read(std::fstream& from) {
 }
 
 bool l1ct::RawInputs::write(std::fstream& to) const {
+  uint32_t number;
+
+  number = track.size();
+  if (!writeVar(number, to))
+    return false;
+  for (const auto& v : track) {
+    if (!(v.region.write(to) && writeMany(v.obj, to)))
+      return false;
+  }
+
   if (!(muon.region.write(to) && writeMany(muon.obj, to)))
     return false;
 
   return true;
 }
-void l1ct::RawInputs::clear() { muon.clear(); }
+void l1ct::RawInputs::clear() {
+  for (auto& r : track)
+    r.clear();
+  muon.clear();
+}
 
 bool l1ct::RegionizerDecodedInputs::read(std::fstream& from) {
   uint32_t number;
