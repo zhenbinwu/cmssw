@@ -12,6 +12,7 @@ namespace l1tVertexFinder {
         vx_minTracks_(vertex_.getParameter<unsigned int>("MinTracks")),
         vx_weightedmean_(vertex_.getParameter<unsigned int>("WeightedMean")),
         vx_chi2cut_(vertex_.getParameter<double>("AVR_chi2cut")),
+        vx_DoQualityCuts_(vertex_.getParameter<bool>("EM_DoQualityCuts")),
         vx_DoPtComp_(vertex_.getParameter<bool>("FH_DoPtComp")),
         vx_DoTightChi2_(vertex_.getParameter<bool>("FH_DoTightChi2")),
         vx_histogram_parameters_(vertex_.getParameter<std::vector<double> >("FH_HistogramParameters")),
@@ -32,9 +33,9 @@ namespace l1tVertexFinder {
         debug_(iConfig.getParameter<unsigned int>("debug")) {
     const std::string algoName(vertex_.getParameter<std::string>("Algorithm"));
     const auto algoMapIt = algoNameMap.find(algoName);
-    if (algoMapIt != algoNameMap.end())
+    if (algoMapIt != algoNameMap.end()) {
       vx_algo_ = algoMapIt->second;
-    else {
+    } else {
       std::ostringstream validAlgoNames;
       for (auto it = algoNameMap.begin(); it != algoNameMap.end(); it++) {
         validAlgoNames << '"' << it->first << '"';
@@ -44,10 +45,18 @@ namespace l1tVertexFinder {
       throw cms::Exception("Invalid algo name '" + algoName +
                            "' specified for L1T vertex producer. Valid algo names are: " + validAlgoNames.str());
     }
+
+    const auto algoPrecisionMapIt = algoPrecisionMap.find(vx_algo_);
+    if (algoPrecisionMapIt != algoPrecisionMap.end()) {
+      vx_precision_ = algoPrecisionMapIt->second;
+    } else {
+      throw cms::Exception("Unknown precision {Simulation, Emulation} for algo name " + algoName);
+    }
   }
 
   const std::map<std::string, Algorithm> AlgoSettings::algoNameMap = {
       {"FastHisto", Algorithm::FastHisto},
+      {"FastHistoEmulation", Algorithm::FastHistoEmulation},
       {"FastHistoLooseAssociation", Algorithm::FastHistoLooseAssociation},
       {"GapClustering", Algorithm::GapClustering},
       {"Agglomerative", Algorithm::AgglomerativeHierarchical},
@@ -56,5 +65,17 @@ namespace l1tVertexFinder {
       {"Adaptive", Algorithm::AdaptiveVertexReconstruction},
       {"HPV", Algorithm::HPV},
       {"K-means", Algorithm::Kmeans}};
+
+  const std::map<Algorithm, Precision> AlgoSettings::algoPrecisionMap = {
+      {Algorithm::FastHisto, Precision::Simulation},
+      {Algorithm::FastHistoEmulation, Precision::Emulation},
+      {Algorithm::FastHistoLooseAssociation, Precision::Simulation},
+      {Algorithm::GapClustering, Precision::Simulation},
+      {Algorithm::AgglomerativeHierarchical, Precision::Simulation},
+      {Algorithm::DBSCAN, Precision::Simulation},
+      {Algorithm::PVR, Precision::Simulation},
+      {Algorithm::AdaptiveVertexReconstruction, Precision::Simulation},
+      {Algorithm::HPV, Precision::Simulation},
+      {Algorithm::Kmeans, Precision::Simulation}};
 
 }  // end namespace l1tVertexFinder

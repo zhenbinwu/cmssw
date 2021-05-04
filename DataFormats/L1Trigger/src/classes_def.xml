@@ -270,4 +270,10 @@
   <class name="std::vector<l1t::Vertex>"/>
   <class name="edm::Wrapper<std::vector<l1t::Vertex> >"/>
 
+  <class name="l1t::VertexWord" ClassVersion="10">
+    <version ClassVersion="10" checksum="3779192820"/>
+  </class>
+  <class name="std::vector<l1t::VertexWord>"/>
+  <class name="edm::Wrapper<std::vector<l1t::VertexWord> >"/>
+
 </lcgdict>

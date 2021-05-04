@@ -3,8 +3,9 @@
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/global/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -25,7 +26,7 @@ namespace l1tVertexFinder {
   class AlgoSettings;
 }
 
-class VertexProducer : public edm::EDProducer {
+class VertexProducer : public edm::global::EDProducer<> {
 public:
   explicit VertexProducer(const edm::ParameterSet&);
   ~VertexProducer() override {}
@@ -33,9 +34,7 @@ public:
 private:
   typedef edm::View<TTTrack<Ref_Phase2TrackerDigi_>> TTTrackCollectionView;
 
-  void beginRun(const edm::Run&, const edm::EventSetup&) override;
-  void produce(edm::Event&, const edm::EventSetup&) override;
-  void endJob() override;
+  void produce(edm::StreamID, edm::Event&, const edm::EventSetup&) const override;
 
 private:
   const edm::EDGetTokenT<TTTrackCollectionView> l1TracksToken_;
@@ -43,7 +42,6 @@ private:
   const std::string outputCollectionName_;
 
   l1tVertexFinder::AlgoSettings settings_;
-  std::vector<l1tVertexFinder::L1Track> l1Tracks;
 };
 
 #endif
