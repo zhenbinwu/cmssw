@@ -36,13 +36,17 @@ l1ct::TDRRegionizerEmulator::TDRRegionizerEmulator(unsigned int netaslices,
       nclocks_(nclocks),
       dosort_(dosort),
       init_(false) {
-  assert(netaslices == 3);//the setup here only works for 3 barrel boards
-  int etaoffsets[3] = {-228, 0, 228};//this could be made generic perhaps, hardcoding for now
+  assert(netaslices == 3);             //the setup here only works for 3 barrel boards
+  int etaoffsets[3] = {-228, 0, 228};  //this could be made generic perhaps, hardcoding for now
   for (unsigned int i = 0; i < netaslices_; i++) {
-    tkRegionizers_.emplace_back((unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, ntk, etaoffsets[i], 115, nclocks);
-    hadCaloRegionizers_.emplace_back((unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, ncalo, etaoffsets[i], 115, nclocks);
-    emCaloRegionizers_.emplace_back((unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, nem, etaoffsets[i], 115, nclocks);
-    muRegionizers_.emplace_back((unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, nmu, etaoffsets[i], 115, nclocks);
+    tkRegionizers_.emplace_back(
+        (unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, ntk, etaoffsets[i], 115, nclocks);
+    hadCaloRegionizers_.emplace_back(
+        (unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, ncalo, etaoffsets[i], 115, nclocks);
+    emCaloRegionizers_.emplace_back(
+        (unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, nem, etaoffsets[i], 115, nclocks);
+    muRegionizers_.emplace_back(
+        (unsigned int)NETA_SMALL, (unsigned int)NUMBER_OF_SMALL_REGIONS, nmu, etaoffsets[i], 115, nclocks);
   }
 }
 
@@ -92,7 +96,7 @@ void l1ct::TDRRegionizerEmulator::fillLinks(const l1ct::RegionizerDecodedInputs&
     const l1ct::DetectorSector<l1ct::TkObjEmu>& sec = in.track[il];
     for (unsigned int io = 0; io < sec.size(); io++) {
       links[il].push_back(sec[io]);
-      if (links[il].size()==MAX_TK_EVT) {
+      if (links[il].size() == MAX_TK_EVT) {
         break;
       }
     }
@@ -112,7 +116,7 @@ void l1ct::TDRRegionizerEmulator::fillLinks(const l1ct::RegionizerDecodedInputs&
     const l1ct::DetectorSector<l1ct::HadCaloObjEmu>& sec = in.hadcalo[il];
     for (unsigned int io = 0; io < sec.size(); io++) {
       links[il].push_back(sec[io]);
-      if (links[il].size()==MAX_CALO_EVT) {
+      if (links[il].size() == MAX_CALO_EVT) {
         break;
       }
     }
@@ -132,7 +136,7 @@ void l1ct::TDRRegionizerEmulator::fillLinks(const l1ct::RegionizerDecodedInputs&
     const l1ct::DetectorSector<l1ct::EmCaloObjEmu>& sec = in.emcalo[il];
     for (unsigned int io = 0; io < sec.size(); io++) {
       links[il].push_back(sec[io]);
-      if (links[il].size()==MAX_EMCALO_EVT) {
+      if (links[il].size() == MAX_EMCALO_EVT) {
         break;
       }
     }
@@ -145,19 +149,18 @@ void l1ct::TDRRegionizerEmulator::fillLinks(const l1ct::RegionizerDecodedInputs&
     return;
 
   links.clear();
-  links.resize(1);//muons are global
+  links.resize(1);  //muons are global
 
   const l1ct::DetectorSector<l1ct::MuObjEmu>& sec = in.muon;
   for (unsigned int io = 0; io < sec.size(); io++) {
     links[0].push_back(sec[io]);
-    if (links[0].size()==MAX_MU_EVT) {
+    if (links[0].size() == MAX_MU_EVT) {
       break;
     }
   }
 }
 
-void l1ct::TDRRegionizerEmulator::toFirmware(const std::vector<l1ct::TkObjEmu>& emu,
-                                                   TkObj fw[NTK_SECTORS][NTK_LINKS]) {
+void l1ct::TDRRegionizerEmulator::toFirmware(const std::vector<l1ct::TkObjEmu>& emu, TkObj fw[NTK_SECTORS][NTK_LINKS]) {
   if (ntk_ == 0)
     return;
   assert(emu.size() == NTK_SECTORS * NTK_LINKS * netaslices_);
@@ -168,7 +171,7 @@ void l1ct::TDRRegionizerEmulator::toFirmware(const std::vector<l1ct::TkObjEmu>& 
   }
 }
 void l1ct::TDRRegionizerEmulator::toFirmware(const std::vector<l1ct::HadCaloObjEmu>& emu,
-                                                   HadCaloObj fw[NCALO_SECTORS][NCALO_LINKS]) {
+                                             HadCaloObj fw[NCALO_SECTORS][NCALO_LINKS]) {
   if (ncalo_ == 0)
     return;
   assert(emu.size() == NCALO_SECTORS * NCALO_LINKS * netaslices_);
@@ -180,7 +183,7 @@ void l1ct::TDRRegionizerEmulator::toFirmware(const std::vector<l1ct::HadCaloObjE
 }
 
 void l1ct::TDRRegionizerEmulator::toFirmware(const std::vector<l1ct::EmCaloObjEmu>& emu,
-                                                   EmCaloObj fw[NCALO_SECTORS][NCALO_LINKS]) {
+                                             EmCaloObj fw[NCALO_SECTORS][NCALO_LINKS]) {
   if (nem_ == 0)
     return;
   assert(emu.size() == NCALO_SECTORS * NCALO_LINKS * netaslices_);
@@ -208,7 +211,7 @@ void l1ct::TDRRegionizerEmulator::run(const RegionizerDecodedInputs& in, std::ve
   std::vector<std::vector<l1ct::EmCaloObjEmu>> em_links_in;
   std::vector<std::vector<l1ct::HadCaloObjEmu>> calo_links_in;
   std::vector<std::vector<l1ct::MuObjEmu>> mu_links_in;
-  
+
   // read the inputs
   fillLinks(in, tk_links_in);
   fillLinks(in, em_links_in);
@@ -222,12 +225,13 @@ void l1ct::TDRRegionizerEmulator::run(const RegionizerDecodedInputs& in, std::ve
     tkRegionizers_[ie].setPipes(tk_links_in);
     tkRegionizers_[ie].initTimes();
     if (debug_) {
-      std::cout<<ie<<"SECTORS/LINKS "<<ie<<std::endl;
+      std::cout << ie << "SECTORS/LINKS " << ie << std::endl;
       for (unsigned int i = 0; i < tk_links_in.size(); i++) {
         for (unsigned int j = 0; j < tk_links_in[i].size(); j++) {
-          std::cout<<"\t"<<i<<" "<<j<<"\t"<<tk_links_in[i][j].hwPt.to_int()<<"\t"<<tk_links_in[i][j].hwEta.to_int()<<"\t"<<tk_links_in[i][j].hwPhi.to_int()<<std::endl;
+          std::cout << "\t" << i << " " << j << "\t" << tk_links_in[i][j].hwPt.to_int() << "\t"
+                    << tk_links_in[i][j].hwEta.to_int() << "\t" << tk_links_in[i][j].hwPhi.to_int() << std::endl;
         }
-        std::cout<<"-------------------------------"<<std::endl;
+        std::cout << "-------------------------------" << std::endl;
       }
     }
     tkRegionizers_[ie].run(debug_);
@@ -247,20 +251,19 @@ void l1ct::TDRRegionizerEmulator::run(const RegionizerDecodedInputs& in, std::ve
     muRegionizers_[ie].initTimes();
     muRegionizers_[ie].run();
   }
-  
+
   for (unsigned int ie = 0; ie < netaslices_; ie++) {
     for (unsigned int ireg = 0; ireg < nregions_; ireg++) {
       std::vector<l1ct::TkObjEmu> out_tks = tkRegionizers_[ie].getSmallRegion(ireg);
-      if (out_tks.size()>0) {
+      if (!out_tks.empty()) {
         if (dosort_) {
-          std::sort(out_tks.begin(), out_tks.end(), [](const l1ct::TkObjEmu a, const l1ct::TkObjEmu b) {
-            return a > b;
-          });
+          std::sort(
+              out_tks.begin(), out_tks.end(), [](const l1ct::TkObjEmu a, const l1ct::TkObjEmu b) { return a > b; });
         }
         out[ireg].track = out_tks;
       }
       std::vector<l1ct::EmCaloObjEmu> out_emcalos = emCaloRegionizers_[ie].getSmallRegion(ireg);
-      if (out_emcalos.size()>0) {
+      if (!out_emcalos.empty()) {
         if (dosort_) {
           std::sort(out_emcalos.begin(), out_emcalos.end(), [](const l1ct::EmCaloObjEmu a, const l1ct::EmCaloObjEmu b) {
             return a > b;
@@ -269,20 +272,19 @@ void l1ct::TDRRegionizerEmulator::run(const RegionizerDecodedInputs& in, std::ve
         out[ireg].emcalo = out_emcalos;
       }
       std::vector<l1ct::HadCaloObjEmu> out_hadcalos = hadCaloRegionizers_[ie].getSmallRegion(ireg);
-      if (out_hadcalos.size()>0) {
+      if (!out_hadcalos.empty()) {
         if (dosort_) {
-          std::sort(out_hadcalos.begin(), out_hadcalos.end(), [](const l1ct::HadCaloObjEmu a, const l1ct::HadCaloObjEmu b) {
-            return a > b;
-          });
+          std::sort(out_hadcalos.begin(),
+                    out_hadcalos.end(),
+                    [](const l1ct::HadCaloObjEmu a, const l1ct::HadCaloObjEmu b) { return a > b; });
         }
         out[ireg].hadcalo = out_hadcalos;
       }
       std::vector<l1ct::MuObjEmu> out_mus = muRegionizers_[ie].getSmallRegion(ireg);
-      if (out_mus.size()>0) {
+      if (!out_mus.empty()) {
         if (dosort_) {
-          std::sort(out_mus.begin(), out_mus.end(), [](const l1ct::MuObjEmu a, const l1ct::MuObjEmu b) {
-            return a > b;
-          });
+          std::sort(
+              out_mus.begin(), out_mus.end(), [](const l1ct::MuObjEmu a, const l1ct::MuObjEmu b) { return a > b; });
         }
         out[ireg].muon = out_mus;
       }

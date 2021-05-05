@@ -29,7 +29,8 @@ namespace l1ct {
     static const int NCALO_SECTORS = 4, NCALO_LINKS = 4;
     static const int NEMCALO_SECTORS = 4, NEMCALO_LINKS = 4;
     static const int NMU_LINKS = 2;
-    static const int MAX_TK_EVT = 108, MAX_EMCALO_EVT = 162, MAX_CALO_EVT = 162, MAX_MU_EVT = 162;//all at TMUX 6, per link
+    static const int MAX_TK_EVT = 108, MAX_EMCALO_EVT = 162, MAX_CALO_EVT = 162,
+                     MAX_MU_EVT = 162;  //all at TMUX 6, per link
     //assuming 96b for tracks, 64b for emcalo, calo, mu
     static const int NUMBER_OF_SMALL_REGIONS = 18;
     static const int NETA_SMALL = 2;
