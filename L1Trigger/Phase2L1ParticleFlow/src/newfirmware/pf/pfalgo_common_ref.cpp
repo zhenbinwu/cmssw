@@ -137,7 +137,7 @@ void l1ct::PFAlgoEmulatorBase::fillPFCand(const HadCaloObjEmu &calo, PFNeutralOb
   pf.hwPhi = calo.hwPhi;
   pf.hwId = isPhoton ? ParticleID::PHOTON : ParticleID::HADZERO;
   pf.hwEmPt = calo.hwEmPt;  // FIXME
-  pf.hwEmID = calo.hwIsEM;
+  pf.hwEmID = calo.hwEmID;
   pf.hwPUID = 0;
   // extra emulator information
   pf.srcCluster = calo.src;
@@ -149,7 +149,7 @@ void l1ct::PFAlgoEmulatorBase::fillPFCand(const EmCaloObjEmu &calo, PFNeutralObj
   pf.hwPhi = calo.hwPhi;
   pf.hwId = isPhoton ? ParticleID::PHOTON : ParticleID::HADZERO;
   pf.hwEmPt = calo.hwPt;
-  pf.hwEmID = calo.hwFlags;
+  pf.hwEmID = calo.hwEmID;
   pf.hwPUID = 0;
   // more emulator info
   pf.srcCluster = calo.src;

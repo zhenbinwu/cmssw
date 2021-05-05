@@ -439,8 +439,7 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     }
   }
 
-  event_.decoded.muon.region = l1ct::PFRegionEmu(
-      -l1ct::Scales::maxAbsGlbEta(), l1ct::Scales::maxAbsGlbEta(), 0.f, 2 * l1ct::Scales::maxAbsGlbPhi(), 0.f, 0.f);
+  event_.decoded.muon.region = l1ct::PFRegionEmu(0., 0.);  // centered at (0,0)
 
   event_.pfinputs.clear();
   for (const edm::ParameterSet &preg : iConfig.getParameter<std::vector<edm::ParameterSet>>("regions")) {
@@ -519,8 +518,8 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
 void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t) {
   l1ct::MuObjEmu mu;
   mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  mu.hwEta = l1ct::Scales::makeEta(t.eta());
-  mu.hwPhi = l1ct::Scales::makePhi(t.phi());
+  mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
+  mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
   mu.hwCharge = t.charge() > 0;
   mu.hwQuality = t.hwQual();
   mu.hwDEta = 0;
@@ -538,7 +537,7 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
   calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwEmPt = l1ct::Scales::makePtFromFloat(c.emEt());
-  calo.hwIsEM = c.isEM();
+  calo.hwEmID = c.hwEmID();
   calo.src = &c;
   sec.obj.push_back(calo);
 }
@@ -550,7 +549,7 @@ void L1TCorrelatorLayer1Producer::addDecodedEmCalo(l1ct::DetectorSector<l1ct::Em
   calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwPtErr = l1ct::Scales::makePtFromFloat(c.ptError());
-  calo.hwFlags = c.hwQual();
+  calo.hwEmID = c.hwEmID();
   calo.src = &c;
   sec.obj.push_back(calo);
 }
@@ -642,8 +641,9 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchHa
       if (p.hwPt == 0 || !reg.isFiducial(p))
         continue;
       reco::Particle::PolarLorentzVector p4(p.floatPt(), reg.floatGlbEtaOf(p), reg.floatGlbPhiOf(p), 0.13f);
-      l1t::PFCandidate::ParticleType type = p.hwIsEM ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
+      l1t::PFCandidate::ParticleType type = p.hwIsEM() ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
       ret->emplace_back(type, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
+      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -658,6 +658,7 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchEm
         continue;
       reco::Particle::PolarLorentzVector p4(p.floatPt(), reg.floatGlbEtaOf(p), reg.floatGlbPhiOf(p), 0.13f);
       ret->emplace_back(l1t::PFCandidate::Photon, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
+      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -708,6 +709,7 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchPF
       l1t::PFCandidate::ParticleType type =
           p.hwId.isPhoton() ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
       ret->emplace_back(type, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
+      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -750,8 +752,10 @@ void L1TCorrelatorLayer1Producer::putPuppi(edm::Event &iEvent) const {
         coll->back().setHwTkQuality(p.hwTkQuality());
       } else {
         coll->back().setHwPuppiWeight(p.hwPuppiW());
+        coll->back().setHwEmID(p.hwEmID());
       }
       coll->back().setEncodedPuppi64(p.pack().to_uint64());
+      setRefs_(coll->back(), p);
       nobj.push_back(coll->size() - 1);
     }
     reg->addRegion(nobj);
@@ -773,11 +777,13 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
   if (writeEgSta)
     ref_egs = iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(egLablel);
 
+  edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
+  // FIXME: in case more BXes are introduced shuld probably use egs->key(egs->end(bx));
+
   for (unsigned int ir = 0, nr = event_.pfinputs.size(); ir < nr; ++ir) {
     const auto &reg = event_.pfinputs[ir].region;
 
     std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
-    edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
 
     if (writeEgSta) {
       egsta_refs.resize(event_.out[ir].egsta.size());

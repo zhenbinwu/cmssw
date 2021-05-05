@@ -91,6 +91,14 @@ bool l1ct::EGIsoEleObjEmu::read(std::fstream& from) {
 
 bool l1ct::EGIsoEleObjEmu::write(std::fstream& to) const { return writeObj<EGIsoEleObj>(*this, to); }
 
+l1ct::PFRegionEmu::PFRegionEmu(float etaCenter, float phicenter) {
+  hwEtaCenter = Scales::makeGlbEta(etaCenter);
+  hwPhiCenter = Scales::makeGlbPhi(phicenter);
+  hwEtaHalfWidth = 0;
+  hwPhiHalfWidth = 0;
+  hwEtaExtra = 0;
+  hwPhiExtra = 0;
+}
 l1ct::PFRegionEmu::PFRegionEmu(
     float etamin, float etamax, float phicenter, float phiwidth, float etaextra, float phiextra) {
   glbeta_t hwEtaMin = Scales::makeGlbEtaRoundEven(etamin);
