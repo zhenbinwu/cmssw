@@ -53,6 +53,9 @@ pL1TkPhotonsHGC = cms.Path( L1TkPhotonsHGC )
 from L1Trigger.L1TTrackMatch.L1TkPrimaryVertexProducer_cfi import L1TkPrimaryVertex
 pL1TkPrimaryVertex = cms.Path( L1TkPrimaryVertex )
 
+from L1Trigger.VertexFinder.VertexProducer_cff import VertexProducer
+pVertexProducer = cms.Path( VertexProducer )
+
 # from L1Trigger.L1TTrackMatch.L1TrackerEtMissProducer_cfi import L1TrackerEtMiss
 # pL1TrkMET = cms.Path( L1TrackerEtMiss )
 

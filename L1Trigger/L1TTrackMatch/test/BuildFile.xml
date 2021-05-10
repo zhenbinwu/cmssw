@@ -35,5 +35,6 @@
     <use   name="SimDataFormats/TrackingAnalysis"/>
     <use   name="TrackingTools/TrackAssociator"/>
     <use   name="TrackingTools/TrajectoryState"/>
+    <use   name="hls"/>
   </library>
 </environment>

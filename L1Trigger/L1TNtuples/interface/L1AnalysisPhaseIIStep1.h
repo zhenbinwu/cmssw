@@ -96,7 +96,18 @@ namespace L1Analysis {
                  const edm::Handle<l1t::TkEmCollection> tkEMHGC,
                  unsigned maxL1Extra);
 
+    void SetMuonKF(const edm::Handle<l1t::RegionalMuonCandBxCollection> muonKF,
+                   unsigned maxL1Extra,
+                   unsigned int muonDetector);
+    void SetMuonEMTF(const edm::Handle<l1t::EMTFTrackCollection> muonKF,
+                   unsigned maxL1Extra,
+                   unsigned int muonDetector);
+
     void SetTkMuon(const edm::Handle<l1t::TkMuonCollection> TkMuon, unsigned maxL1Extra);
+
+    void SetMuon(const edm::Handle<l1t::MuonBxCollection> muon, unsigned maxL1Extra);
+
+    void SetTkGlbMuon(const edm::Handle<l1t::TkGlbMuonCollection> TkGlbMuon, unsigned maxL1Extra); 
 
     // Add new PFJet collections
     void SetL1METPF(const edm::Handle<std::vector<reco::PFMET>> l1MetPF);
@@ -104,8 +115,20 @@ namespace L1Analysis {
     // reco::caloJet collection for "Phase1L1Jets" ...
     void SetL1PfPhase1L1TJet(const edm::Handle<std::vector<reco::CaloJet>> l1L1PFPhase1L1Jet, unsigned maxL1Extra);
 
+    void SetPFJet(const edm::Handle<l1t::PFJetCollection> PFJet, unsigned maxL1Extra);
+
     // Add nntaus
     void SetNNTaus(const edm::Handle<std::vector<l1t::PFTau>> l1nnTaus, unsigned maxL1Extra);
+
+    //tkjets, tkmet, tkht
+    void SetTkJet(const edm::Handle<l1t::TkJetCollection> tkTrackerJet, unsigned maxL1Extra);
+    void SetTkJetDisplaced(const edm::Handle<l1t::TkJetCollection> tkTrackerJet, unsigned maxL1Extra);
+
+    void SetTkMET(const edm::Handle<l1t::TkEtMissCollection> trackerMets);
+    void SetTkMHT(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs);
+    void SetTkMETDisplaced(const edm::Handle<l1t::TkEtMissCollection> trackerMets);
+    void SetTkMHTDisplaced(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs);
+
 
     L1AnalysisPhaseIIStep1DataFormat* getData() { return &l1extra_; }
 
