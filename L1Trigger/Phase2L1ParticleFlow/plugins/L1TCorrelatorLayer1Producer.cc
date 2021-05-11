@@ -15,7 +15,7 @@
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
 #include "DataFormats/L1TParticleFlow/interface/PFCandidate.h"
-#include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+#include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "DataFormats/L1Trigger/interface/VertexWord.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
@@ -54,7 +54,8 @@ private:
   bool hasTracks_;
   edm::EDGetTokenT<l1t::PFTrackCollection> tkCands_;
   float trkPt_;
-  edm::EDGetTokenT<std::vector<l1t::TkPrimaryVertex>> extTkVtx_;
+  bool emuTkVtx_;
+  edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
   
   edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
@@ -125,6 +126,7 @@ private:
   typedef l1ct::OutputRegion::ObjType OutputType;
   std::unique_ptr<std::vector<unsigned>> vecOutput(OutputType i, bool usePuppi) const;
   std::pair<unsigned int, unsigned int> totAndMax(const std::vector<unsigned> &perRegion) const;
+
 };
 
 //
@@ -204,8 +206,13 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   produces<l1t::TkElectronCollection>("L1TkEle");
   produces<l1t::TkEmCollection>("L1TkEm");
 
-  extTkVtx_ = consumes<std::vector<l1t::TkPrimaryVertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
-  tkVtxEmu_ = consumes<std::vector<l1t::VertexWord>>(iConfig.getParameter<edm::InputTag>("vtxCollectionEmulation"));
+  emuTkVtx_ = iConfig.getParameter<bool>("vtxCollectionEmulation");
+  if(emuTkVtx_) {
+    tkVtxEmu_ = consumes<std::vector<l1t::VertexWord>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
+  } else {
+    extTkVtx_ = consumes<std::vector<l1t::Vertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));    
+  }
+
 
   const char *iprefix[4] = {"totNReg", "maxNReg", "totNSec", "maxNSec"};
   for (int i = 0; i <= l1muType; ++i) {
@@ -316,35 +323,38 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   iEvent.put(fetchHadCalo(), "Calo");
   iEvent.put(fetchTracks(), "TK");
 
-  std::cout << "-------------" << std::endl;
   // Then do the vertexing, and save it out
+  
   float z0 = 0;
   double ptsum = 0;
-  edm::Handle<std::vector<l1t::TkPrimaryVertex>> vtxHandle;
-  iEvent.getByToken(extTkVtx_, vtxHandle);
-  for (const l1t::TkPrimaryVertex &vtx : *vtxHandle) {
-    if (ptsum == 0 || vtx.sum() > ptsum) {
-      z0 = vtx.zvertex();
-      ptsum = vtx.sum();
-      std::cout << "SIM z0: " << z0 << " pt: " << ptsum << std::endl;
-      l1ct::PVObjEmu hwpv;
-      hwpv.hwZ0 = l1ct::Scales::makeZ0(z0);
-      l1t::VertexWord vtxwd(1, z0, 1, ptsum, 1, 1, 1);
-      if (event_.pvs.empty()) {
-        event_.pvs.push_back(hwpv);
-        event_.pvs_emu.push_back(vtxwd.vertexWord().to_uint());
-      } else {
-        event_.pvs[0] = hwpv;
-        event_.pvs_emu[0] = vtxwd.vertexWord().to_uint();
+  l1t::VertexWord pvwd;
+  // FIXME: collections seem to be already sorted
+  if(emuTkVtx_) {
+    edm::Handle<std::vector<l1t::VertexWord>> vtxEmuHandle;
+    iEvent.getByToken(tkVtxEmu_, vtxEmuHandle);
+    for (const auto &vtx : *vtxEmuHandle) {
+      if (ptsum == 0 || vtx.pt() > ptsum) {
+        ptsum = vtx.pt();
+        z0 = vtx.z0();
+        pvwd = vtx;
       }
     }
-  }
-
-  edm::Handle<std::vector<l1t::VertexWord>> vtxEmuHandle;
-  iEvent.getByToken(tkVtxEmu_, vtxEmuHandle);
-  for(const l1t::VertexWord &evtx: *vtxEmuHandle) {
-    std::cout << "EMU z0: " << evtx.z0() << " pt: " << evtx.pt() << std::endl;
-  }
+  } else {
+    edm::Handle<std::vector<l1t::Vertex>> vtxHandle;
+    iEvent.getByToken(extTkVtx_, vtxHandle);
+    for (const auto &vtx : *vtxHandle) {
+      if (ptsum == 0 || vtx.pt() > ptsum) {
+        ptsum = vtx.pt();
+        z0 = vtx.z0();
+      }
+    }
+    pvwd = l1t::VertexWord(1, z0, 1, ptsum, 1, 1, 1);
+  }    
+  
+  l1ct::PVObjEmu hwpv;
+  hwpv.hwZ0 = l1ct::Scales::makeZ0(pvwd.z0());
+  event_.pvs.push_back(hwpv);
+  event_.pvs_emu.push_back(pvwd.vertexWord().to_uint());
 
   // Then also save the tracks with a vertex cut
 #if 0
