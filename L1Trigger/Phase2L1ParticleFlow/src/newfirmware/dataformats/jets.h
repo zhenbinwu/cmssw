@@ -42,11 +42,11 @@ namespace l1ct {
     }
 
     inline std::array<uint64_t, 2> pack() const {
-        std::array<uint64_t, 2> packed;
-        ap_uint<BITWIDTH> bits = this->pack_ap();
-        packed[0] = bits;
-        //packed[1] = bits[slice]; // for when there are more than 64 bits in the word
-        return packed;
+      std::array<uint64_t, 2> packed;
+      ap_uint<BITWIDTH> bits = this->pack_ap();
+      packed[0] = bits;
+      //packed[1] = bits[slice]; // for when there are more than 64 bits in the word
+      return packed;
     }
 
     inline static Jet unpack_ap(const ap_uint<BITWIDTH> &src) {
@@ -59,9 +59,9 @@ namespace l1ct {
     }
 
     inline static Jet unpack(const std::array<uint64_t, 2> &src) {
-        // just one set while the word has fewer than 64 bits
-        ap_uint<BITWIDTH> bits = src[0];
-        return unpack_ap(bits);
+      // just one set while the word has fewer than 64 bits
+      ap_uint<BITWIDTH> bits = src[0];
+      return unpack_ap(bits);
     }
   };
 
