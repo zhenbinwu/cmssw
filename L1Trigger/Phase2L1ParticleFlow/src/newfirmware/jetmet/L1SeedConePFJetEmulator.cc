@@ -37,7 +37,7 @@ bool L1SCJetEmu::inCone(L1SCJetEmu::Particle seed, L1SCJetEmu::Particle part) co
 
 L1SCJetEmu::Jet L1SCJetEmu::makeJet_HW(const std::vector<Particle>& parts) const {
   // Seed Cone Jet algorithm with ap_fixed types and hardware emulation
-  Particle seed = parts.at(0);
+  Particle seed = reduce(parts, op_max);
 
   // Event with saturation, order of terms doesn't matter since they're all positive
   auto sumpt = [](pt_t(a), const Particle& b) { return a + b.hwPt; };
@@ -53,8 +53,8 @@ L1SCJetEmu::Jet L1SCJetEmu::makeJet_HW(const std::vector<Particle>& parts) const
     // In the firmware we calculate the per-particle pt-weighted deta
     return pt_etaphi_t(part.hwPt * detaphi_t(part.hwEta - seed.hwEta));
   });
-  // Accumulate the pt-weighted etas. Init to 0, start accumulating at begin()+1 to skip seed
-  pt_etaphi_t sum_pt_eta = std::accumulate(pt_deta.begin() + 1, pt_deta.end(), pt_etaphi_t(0));
+  // Accumulate the pt-weighted etas. Init to 0, include seed in accumulation
+  pt_etaphi_t sum_pt_eta = std::accumulate(pt_deta.begin(), pt_deta.end(), pt_etaphi_t(0));
   etaphi_t eta = seed.hwEta + etaphi_t(sum_pt_eta * inv_pt);
 
   // pt weighted d phi
@@ -64,8 +64,8 @@ L1SCJetEmu::Jet L1SCJetEmu::makeJet_HW(const std::vector<Particle>& parts) const
     // In the firmware we calculate the per-particle pt-weighted dphi
     return pt_etaphi_t(part.hwPt * deltaPhi(part, seed));
   });
-  // Accumulate the pt-weighted etas. Init to 0, start accumulating at begin()+1 to skip seed
-  pt_etaphi_t sum_pt_phi = std::accumulate(pt_dphi.begin() + 1, pt_dphi.end(), pt_etaphi_t(0));
+  // Accumulate the pt-weighted phis. Init to 0, include seed in accumulation
+  pt_etaphi_t sum_pt_phi = std::accumulate(pt_dphi.begin(), pt_dphi.end(), pt_etaphi_t(0));
   etaphi_t phi = seed.hwPhi + etaphi_t(sum_pt_phi * inv_pt);
 
   Jet jet;
@@ -94,13 +94,15 @@ std::vector<L1SCJetEmu::Jet> L1SCJetEmu::emulateEvent(std::vector<Particle>& par
   std::vector<Particle> work;
   work.resize(parts.size());
   std::transform(parts.begin(), parts.end(), work.begin(), [](const Particle& part) { return part; });
-  std::sort(work.begin(), work.end(), [](Particle i, Particle j) { return (i.hwPt > j.hwPt); });
 
   std::vector<Jet> jets;
   jets.reserve(nJets_);
   while (!work.empty() && jets.size() < nJets_) {
-    // Take the first (highest pt) candidate as a seed
-    Particle seed = work.at(0);
+    // Take the highest pt candidate as a seed
+    // Use the firmware reduce function to find the same seed as the firmware
+    // in case there are multiple seeds with the same pT
+    Particle seed = reduce(work, op_max);
+
     // Get the particles within a coneSize_ of the seed
     std::vector<Particle> particlesInCone;
     std::copy_if(work.begin(), work.end(), std::back_inserter(particlesInCone), [&](const Particle& part) {

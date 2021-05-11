@@ -49,6 +49,45 @@ private:
 
   static constexpr int ceillog2(int x) { return (x <= 2) ? 1 : 1 + ceillog2((x + 1) / 2); }
 
+  static constexpr int floorlog2(int x){ return (x < 2) ? 0 : 1 + floorlog2(x / 2); }
+
+  template<int B> static constexpr int pow(int x){ return x == 0 ? 1 : B * pow<B>(x - 1); }
+
+  static constexpr int pow2(int x){ return pow<2>(x); }
+
+  /* ---
+  * Balanced tree reduce implementation.
+  * Reduces an array of inputs to a single value using the template binary operator 'Op',
+  * for example summing all elements with Op_add, or finding the maximum with Op_max
+  * Use only when the input array is fully unrolled. Or, slice out a fully unrolled section
+  * before applying and accumulate the result over the rolled dimension.
+  * Required for emulation to guarantee equality of ordering.
+  * --- */
+  template<class T, class Op>
+  static T reduce(std::vector<T> x, Op op){
+    int N = x.size();
+    int leftN = pow2(floorlog2(N - 1)) > 0 ? pow2(floorlog2(N - 1)) : 0;
+    //static constexpr int rightN = N - leftN > 0 ? N - leftN : 0;
+    if(N == 1){
+      return x.at(0);
+    }else if(N == 2){
+      return op(x.at(0),x.at(1));
+    }else{
+      std::vector<T> left(x.begin(), x.begin() + leftN);
+      std::vector<T> right(x.begin() + leftN, x.end());
+      return op(reduce<T,Op>(left, op), reduce<T,Op>(right, op));
+    }
+  }
+
+  class OpPuppiObjMax{
+    public:
+    Particle operator()(Particle a, Particle b){
+      return a.hwPt >= b.hwPt ? a : b;
+    }
+  };
+
+  static OpPuppiObjMax op_max;
+
   template <class data_T, int N>
   static inline float real_val_from_idx(unsigned i) {
     // Treat the index as the top N bits
