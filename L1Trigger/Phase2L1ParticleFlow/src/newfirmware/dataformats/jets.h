@@ -3,6 +3,8 @@
 
 #include "datatypes.h"
 #include "bit_encoding.h"
+#include <array>
+#include <cstdint>
 
 namespace l1ct {
 
