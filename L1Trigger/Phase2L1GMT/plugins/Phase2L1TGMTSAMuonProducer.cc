@@ -97,7 +97,7 @@ void Phase2L1TGMTSAMuonProducer::produce(edm::Event& iEvent, const edm::EventSet
   // Output
   std::vector<SAMuon> muonbx;
   const int Nprompt = 18;
-  const int Ndisplayed = 18;
+  const int Ndisplaced = 18;
 
   for (int bx = muon->getFirstBX(); bx <= muon->getLastBX(); ++bx)
   {
@@ -108,36 +108,36 @@ void Phase2L1TGMTSAMuonProducer::produce(edm::Event& iEvent, const edm::EventSet
     }
 
     std::vector<SAMuon> prompt;
-    std::vector<SAMuon> displayed;
+    std::vector<SAMuon> displaced;
 
     for (uint i = 0; i < muon->size(bx); ++i)
     {
       const l1t::Muon& mu = muon->at(bx, i);
 
-      //TODO: Still looking for a way to get displayed muon
-      if (abs(mu.vertex().Z()) > 10 ) 
-        displayed.push_back(Convertl1tMuon(mu, bx));
+      //TODO: Still looking for a way to get displaced muon
+      if (abs(mu.hwDXY()) > 0 ) 
+        displaced.push_back(Convertl1tMuon(mu, bx));
       else
         prompt.push_back(Convertl1tMuon(mu, bx));
     }
 
     // Sort by hwPt
     std::sort(prompt.begin(), prompt.end(), std::greater<>());
-    std::sort(displayed.begin(), displayed.end(), std::greater<>());
+    std::sort(displaced.begin(), displaced.end(), std::greater<>());
 
     // Store into output, allow up to 18 prompt + 18 displayed
     auto promptend = prompt.end();
-    auto displayend = displayed.end();
+    auto displacend = displaced.end();
     if (prompt.size() > Nprompt)
     {
       promptend  = prompt.begin() + Nprompt;
     }
-    if (displayed.size() > Ndisplayed)
+    if (displaced.size() > Ndisplaced)
     {
-      displayend  = displayed.begin() + Ndisplayed;
+      displacend  = displaced.begin() + Ndisplaced;
     }
     muonbx.assign(prompt.begin(),promptend);
-    muonbx.insert(muonbx.end(), displayed.begin(), displayend);
+    muonbx.insert(muonbx.end(), displaced.begin(), displacend);
   }
   std::unique_ptr<std::vector<l1t::SAMuon> > out1 = std::make_unique<std::vector<l1t::SAMuon> >(muonbx);
   iEvent.put(std::move(out1));
@@ -158,9 +158,9 @@ SAMuon Phase2L1TGMTSAMuonProducer::Convertl1tMuon(const l1t::Muon& mu, const int
 	ap_int<BITSETA> eta = round(mu.eta() * (1 << (BITSETA - 1)) / (M_PI));
   // FIXME: Below are not well defined in phase1 GMT
   // Using the version from Correlator for now
-	ap_int<BITSSAZ0> z0 = round(mu.vertex().Z() / (1.8));
-	ap_int<BITSSAD0> d0 = round(mu.vertex().Rho() / (3.0));
-	ap_uint<BITSSABETA> beta = 0;  // No beta from l1t::Muon
+	ap_int<BITSSAZ0> z0 = 0;           // No tracks info in Phase 1
+  ap_int<BITSSAD0> d0 = mu.hwDXY(); // Use 2 bits with LSB = 30cm for BMTF and 25cm for EMTF currently, but subjet to change
+	ap_uint<BITSSABETA> beta = 0;     // No beta from l1t::Muon
   
   ap_uint<64> word(0);
   word = word.concat(qual);
