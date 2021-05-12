@@ -304,9 +304,8 @@ namespace l1ct {
     RegionizerDecodedInputs decoded;
     std::vector<PFInputRegion> pfinputs;
     std::vector<PVObjEmu> pvs;
-    std::vector<uint64_t> pvs_emu;
+    std::vector<ap_uint<64>> pvs_emu;
     std::vector<OutputRegion> out;
-
 
     Event() : run(0), lumi(0), event(0) {}
 
@@ -320,6 +319,12 @@ namespace l1ct {
         ret = pvs[ipv];
       else
         ret.clear();
+      return ret;
+    }
+    inline ap_uint<64> pv_emu(unsigned int ipv = 0) const {
+      ap_uint<64> ret = 0;
+      if (ipv < pvs_emu.size())
+        ret = pvs_emu[ipv];
       return ret;
     }
   };
