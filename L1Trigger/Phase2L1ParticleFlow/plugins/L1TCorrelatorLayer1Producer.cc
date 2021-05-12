@@ -57,7 +57,7 @@ private:
   bool emuTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
-  
+
   edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
   edm::EDGetTokenT<l1t::TkMuonCollection> tkMuCands_;  // tk muons
 
@@ -126,7 +126,6 @@ private:
   typedef l1ct::OutputRegion::ObjType OutputType;
   std::unique_ptr<std::vector<unsigned>> vecOutput(OutputType i, bool usePuppi) const;
   std::pair<unsigned int, unsigned int> totAndMax(const std::vector<unsigned> &perRegion) const;
-
 };
 
 //
@@ -207,12 +206,11 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   produces<l1t::TkEmCollection>("L1TkEm");
 
   emuTkVtx_ = iConfig.getParameter<bool>("vtxCollectionEmulation");
-  if(emuTkVtx_) {
+  if (emuTkVtx_) {
     tkVtxEmu_ = consumes<std::vector<l1t::VertexWord>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
   } else {
-    extTkVtx_ = consumes<std::vector<l1t::Vertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));    
+    extTkVtx_ = consumes<std::vector<l1t::Vertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
   }
-
 
   const char *iprefix[4] = {"totNReg", "maxNReg", "totNSec", "maxNSec"};
   for (int i = 0; i <= l1muType; ++i) {
@@ -324,12 +322,12 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   iEvent.put(fetchTracks(), "TK");
 
   // Then do the vertexing, and save it out
-  
+
   float z0 = 0;
   double ptsum = 0;
   l1t::VertexWord pvwd;
   // FIXME: collections seem to be already sorted
-  if(emuTkVtx_) {
+  if (emuTkVtx_) {
     edm::Handle<std::vector<l1t::VertexWord>> vtxEmuHandle;
     iEvent.getByToken(tkVtxEmu_, vtxEmuHandle);
     for (const auto &vtx : *vtxEmuHandle) {
@@ -349,12 +347,12 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
       }
     }
     pvwd = l1t::VertexWord(1, z0, 1, ptsum, 1, 1, 1);
-  }    
-  
+  }
+
   l1ct::PVObjEmu hwpv;
   hwpv.hwZ0 = l1ct::Scales::makeZ0(pvwd.z0());
   event_.pvs.push_back(hwpv);
-  event_.pvs_emu.push_back(pvwd.vertexWord().to_uint());
+  event_.pvs_emu.push_back(pvwd.vertexWord());
 
   // Then also save the tracks with a vertex cut
 #if 0
