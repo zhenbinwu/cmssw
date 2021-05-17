@@ -6,6 +6,12 @@
 #include <algorithm>
 
 #ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
+#ifdef CMSSW_GIT_HASH
 #include "DataFormats/Math/interface/deltaPhi.h"
 #else
 namespace reco {
@@ -318,9 +324,9 @@ bool l1ct::Event::read(std::fstream& from) {
   if (!readVar(from, version))
     return false;
   if (version != VERSION) {
-    std::cout << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
+    dbgCout() << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
               << std::endl;
-    std::cerr << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
+    dbgCerr() << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
               << std::endl;
     abort();
   }

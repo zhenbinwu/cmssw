@@ -225,13 +225,13 @@ void l1ct::TDRRegionizerEmulator::run(const RegionizerDecodedInputs& in, std::ve
     tkRegionizers_[ie].setPipes(tk_links_in);
     tkRegionizers_[ie].initTimes();
     if (debug_) {
-      std::cout << ie << "SECTORS/LINKS " << ie << std::endl;
+      dbgCout() << ie << "SECTORS/LINKS " << ie << std::endl;
       for (unsigned int i = 0; i < tk_links_in.size(); i++) {
         for (unsigned int j = 0; j < tk_links_in[i].size(); j++) {
-          std::cout << "\t" << i << " " << j << "\t" << tk_links_in[i][j].hwPt.to_int() << "\t"
+          dbgCout() << "\t" << i << " " << j << "\t" << tk_links_in[i][j].hwPt.to_int() << "\t"
                     << tk_links_in[i][j].hwEta.to_int() << "\t" << tk_links_in[i][j].hwPhi.to_int() << std::endl;
         }
-        std::cout << "-------------------------------" << std::endl;
+        dbgCout() << "-------------------------------" << std::endl;
       }
     }
     tkRegionizers_[ie].run(debug_);

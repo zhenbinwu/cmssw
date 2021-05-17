@@ -8,6 +8,12 @@
 #include <cassert>
 #include <algorithm>
 
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
 namespace l1ct {
   namespace tdr_regionizer {
 
@@ -161,29 +167,29 @@ namespace l1ct {
       std::vector<T> getSmallRegion(unsigned int index);
 
       void printDebug(int count) {
-        std::cout << count << "\tindex\tpt\teta\tphi" << std::endl;
-        std::cout << "PIPES" << std::endl;
+        dbgCout() << count << "\tindex\tpt\teta\tphi" << std::endl;
+        dbgCout() << "PIPES" << std::endl;
         for (unsigned int i = 0; i < getSize(); i++) {
           for (unsigned int j = 0; j < getPipeSize(i); j++) {
-            std::cout << "\t" << i << " " << j << "\t" << getPipe(i).getPt(j) << "\t" << getPipe(i).getGlbEta(j) << "\t"
+            dbgCout() << "\t" << i << " " << j << "\t" << getPipe(i).getPt(j) << "\t" << getPipe(i).getGlbEta(j) << "\t"
                       << getPipe(i).getGlbPhi(j) << std::endl;
           }
-          std::cout << "-------------------------------" << std::endl;
+          dbgCout() << "-------------------------------" << std::endl;
         }
-        std::cout << "SMALL REGIONS" << std::endl;
+        dbgCout() << "SMALL REGIONS" << std::endl;
         for (unsigned int i = 0; i < nregions_; i++) {
           for (unsigned int j = 0; j < smallRegionObjects_[i].size(); j++) {
-            std::cout << "\t" << i << " " << j << "\t" << smallRegionObjects_[i][j].hwPt.to_int() << "\t"
+            dbgCout() << "\t" << i << " " << j << "\t" << smallRegionObjects_[i][j].hwPt.to_int() << "\t"
                       << smallRegionObjects_[i][j].hwEta.to_int() + regionmap_[i].eta << "\t"
                       << smallRegionObjects_[i][j].hwPhi.to_int() + regionmap_[i].phi << std::endl;
           }
-          std::cout << "-------------------------------" << std::endl;
+          dbgCout() << "-------------------------------" << std::endl;
         }
-        std::cout << "TIMES" << std::endl;
+        dbgCout() << "TIMES" << std::endl;
         for (unsigned int i = 0; i < timeOfNextObject_.size(); i++) {
-          std::cout << "  " << timeOfNextObject_[i];
+          dbgCout() << "  " << timeOfNextObject_[i];
         }
-        std::cout << "\n-------------------------------" << std::endl;
+        dbgCout() << "\n-------------------------------" << std::endl;
       }
 
     private:

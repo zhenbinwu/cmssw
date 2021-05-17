@@ -1,3 +1,9 @@
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
 template <typename T>
 void l1ct::multififo_regionizer::maybe_push(const T& t,
                                             const l1ct::PFRegionEmu& sector,
@@ -39,7 +45,7 @@ void l1ct::multififo_regionizer::RegionBuffer<T>::initFifos(unsigned int nfifos)
     }
   }
   if (!(nfifos == 1 || nfifos == 2 || nfifos == 4 || nfifos == 6 || nfifos == 8)) {
-    std::cerr << "Error, created regionizer for nfifos == " << nfifos << ", not supported." << std::endl;
+    dbgCerr() << "Error, created regionizer for nfifos == " << nfifos << ", not supported." << std::endl;
   }
   assert(nfifos == 1 || nfifos == 2 || nfifos == 4 || nfifos == 6 || nfifos == 8);
 }

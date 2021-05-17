@@ -14,6 +14,12 @@
 #include <numeric>
 #include <algorithm>
 
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
 class L1SCJetEmu {
 public:
   // Data types and constants used in the FPGA and FPGA-optimized functions
@@ -49,11 +55,14 @@ private:
 
   static constexpr int ceillog2(int x) { return (x <= 2) ? 1 : 1 + ceillog2((x + 1) / 2); }
 
-  static constexpr int floorlog2(int x){ return (x < 2) ? 0 : 1 + floorlog2(x / 2); }
+  static constexpr int floorlog2(int x) { return (x < 2) ? 0 : 1 + floorlog2(x / 2); }
 
-  template<int B> static constexpr int pow(int x){ return x == 0 ? 1 : B * pow<B>(x - 1); }
+  template <int B>
+  static constexpr int pow(int x) {
+    return x == 0 ? 1 : B * pow<B>(x - 1);
+  }
 
-  static constexpr int pow2(int x){ return pow<2>(x); }
+  static constexpr int pow2(int x) { return pow<2>(x); }
 
   /* ---
   * Balanced tree reduce implementation.
@@ -63,27 +72,25 @@ private:
   * before applying and accumulate the result over the rolled dimension.
   * Required for emulation to guarantee equality of ordering.
   * --- */
-  template<class T, class Op>
-  static T reduce(std::vector<T> x, Op op){
+  template <class T, class Op>
+  static T reduce(std::vector<T> x, Op op) {
     int N = x.size();
     int leftN = pow2(floorlog2(N - 1)) > 0 ? pow2(floorlog2(N - 1)) : 0;
     //static constexpr int rightN = N - leftN > 0 ? N - leftN : 0;
-    if(N == 1){
+    if (N == 1) {
       return x.at(0);
-    }else if(N == 2){
-      return op(x.at(0),x.at(1));
-    }else{
+    } else if (N == 2) {
+      return op(x.at(0), x.at(1));
+    } else {
       std::vector<T> left(x.begin(), x.begin() + leftN);
       std::vector<T> right(x.begin() + leftN, x.end());
-      return op(reduce<T,Op>(left, op), reduce<T,Op>(right, op));
+      return op(reduce<T, Op>(left, op), reduce<T, Op>(right, op));
     }
   }
 
-  class OpPuppiObjMax{
-    public:
-    Particle operator()(Particle a, Particle b){
-      return a.hwPt >= b.hwPt ? a : b;
-    }
+  class OpPuppiObjMax {
+  public:
+    Particle operator()(Particle a, Particle b) { return a.hwPt >= b.hwPt ? a : b; }
   };
 
   static OpPuppiObjMax op_max;
@@ -136,10 +143,10 @@ private:
     // shift the output back
     table_t out = inv_in << (in.width - msb - 1);
     if (debug) {
-      std::cout << "           x " << in << ", msb = " << msb << ", shift = " << (in.width - msb) << ", idx = " << idx
+      dbgCout() << "           x " << in << ", msb = " << msb << ", shift = " << (in.width - msb) << ", idx = " << idx
                 << std::endl;
-      std::cout << "     pre 1 / " << in_shifted << " = " << inv_in << "(" << 1 / (float)in_shifted << ")" << std::endl;
-      std::cout << "    post 1 / " << in << " = " << out << "(" << 1 / (float)in << ")" << std::endl;
+      dbgCout() << "     pre 1 / " << in_shifted << " = " << inv_in << "(" << 1 / (float)in_shifted << ")" << std::endl;
+      dbgCout() << "    post 1 / " << in << " = " << out << "(" << 1 / (float)in << ")" << std::endl;
     }
     return out;
   }

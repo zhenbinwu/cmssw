@@ -6,6 +6,12 @@
 #include <memory>
 #include <iostream>
 
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
 using namespace l1ct;
 
 #ifdef CMSSW_GIT_HASH
@@ -54,7 +60,7 @@ void PFTkEGAlgoEmulator::toFirmware(const PFInputRegion &in,
   l1ct::toFirmware(in.track, cfg.nTRACK_EGIN, track);
   l1ct::toFirmware(in.emcalo, cfg.nEMCALO_EGIN, emcalo);
   if (debug_ > 0)
-    std::cout << "# of inpput tracks: " << in.track.size() << " (max: " << cfg.nTRACK_EGIN << ")"
+    dbgCout() << "# of inpput tracks: " << in.track.size() << " (max: " << cfg.nTRACK_EGIN << ")"
               << " emcalo: " << in.emcalo.size() << "(" << cfg.nEMCALO_EGIN << ")" << std::endl;
 }
 
@@ -62,7 +68,7 @@ void PFTkEGAlgoEmulator::toFirmware(const OutputRegion &out, EGIsoObj out_egphs[
   l1ct::toFirmware(out.egphoton, cfg.nEM_EGOUT, out_egphs);
   l1ct::toFirmware(out.egelectron, cfg.nEM_EGOUT, out_egeles);
   if (debug_ > 0)
-    std::cout << "# output photons: " << out.egphoton.size() << " electrons: " << out.egelectron.size() << std::endl;
+    dbgCout() << "# output photons: " << out.egphoton.size() << " electrons: " << out.egelectron.size() << std::endl;
 }
 
 void PFTkEGAlgoEmulator::toFirmware(
@@ -71,7 +77,7 @@ void PFTkEGAlgoEmulator::toFirmware(
   l1ct::toFirmware(in.track, cfg.nTRACK, track);
   pv = pvin;
   if (debug_ > 0)
-    std::cout << "# of inpput tracks: " << in.track.size() << " (max: " << cfg.nTRACK << ")" << std::endl;
+    dbgCout() << "# of inpput tracks: " << in.track.size() << " (max: " << cfg.nTRACK << ")" << std::endl;
 }
 
 float PFTkEGAlgoEmulator::deltaPhi(float phi1, float phi2) const {
@@ -162,7 +168,7 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
     for (int ic = 0, nc = in.emcalo.size(); ic < nc; ++ic) {
       const auto &calo = in.emcalo[ic];
       if (calo.hwPt > 0)
-        std::cout << "[REF] IN calo[" << ic << "] pt: " << calo.hwPt << " eta: " << calo.hwEta
+        dbgCout() << "[REF] IN calo[" << ic << "] pt: " << calo.hwPt << " eta: " << calo.hwEta
                   << " (glb eta: " << in.region.floatGlbEta(calo.hwEta) << ") phi: " << calo.hwPhi
                   << "(glb phi: " << in.region.floatGlbPhi(calo.hwPhi) << ") qual: " << calo.hwEmID << std::endl;
     }
@@ -205,7 +211,7 @@ void PFTkEGAlgoEmulator::eg_algo(const std::vector<EmCaloObjEmu> &emcalo,
     auto &calo = emcalo[ic];
 
     if (debug_ > 3)
-      std::cout << "[REF] SEL emcalo with pt: " << calo.hwPt << " qual: " << calo.hwEmID << " eta: " << calo.hwEta
+      dbgCout() << "[REF] SEL emcalo with pt: " << calo.hwPt << " qual: " << calo.hwEmID << " eta: " << calo.hwEta
                 << " phi " << calo.hwPhi << std::endl;
 
     int itk = emCalo2tk[ic];
@@ -269,7 +275,7 @@ EGIsoObjEmu &PFTkEGAlgoEmulator::addEGIsoToPF(std::vector<EGIsoObjEmu> &egobjs,
   egobjs.push_back(egiso);
 
   if (debug_ > 2)
-    std::cout << "[REF] EGIsoObjEmu pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi
+    dbgCout() << "[REF] EGIsoObjEmu pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi
               << " qual: " << egiso.hwQual << " packed: " << egiso.pack().to_string(16) << std::endl;
 
   return egobjs.back();
@@ -295,7 +301,7 @@ EGIsoEleObjEmu &PFTkEGAlgoEmulator::addEGIsoEleToPF(std::vector<EGIsoEleObjEmu> 
   egobjs.push_back(egiso);
 
   if (debug_ > 2)
-    std::cout << "[REF] EGIsoEleObjEmu pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi
+    dbgCout() << "[REF] EGIsoEleObjEmu pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi
               << " qual: " << egiso.hwQual << " packed: " << egiso.pack().to_string(16) << std::endl;
 
   return egobjs.back();

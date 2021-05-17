@@ -6,6 +6,12 @@
 #include <memory>
 
 #ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
+#ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 l1ct::PFAlgoDummyEmulator::PFAlgoDummyEmulator(const edm::ParameterSet& iConfig)
@@ -23,7 +29,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nCALO; ++i) {
       if (in.hadcalo[i].hwPt == 0)
         continue;
-      printf(
+      dbgPrintf(
           "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  calo emPt %8.2f [ "
           "%6d ]   emID %2d \n",
           i,
@@ -40,14 +46,14 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nMU; ++i) {
       if (in.muon[i].hwPt == 0)
         continue;
-      printf("FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]   \n",
-             i,
-             in.muon[i].floatPt(),
-             in.muon[i].intPt(),
-             in.muon[i].floatEta(),
-             in.muon[i].intEta(),
-             in.muon[i].floatPhi(),
-             in.muon[i].intPhi());
+      dbgPrintf("FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]   \n",
+                i,
+                in.muon[i].floatPt(),
+                in.muon[i].intPt(),
+                in.muon[i].floatEta(),
+                in.muon[i].intEta(),
+                in.muon[i].floatPhi(),
+                in.muon[i].intPhi());
     }
   }
 
@@ -64,15 +70,15 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nCALO; ++i) {
       if (out.pfneutral[i].hwPt == 0)
         continue;
-      printf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  pid %d\n",
-             i,
-             out.pfneutral[i].floatPt(),
-             out.pfneutral[i].intPt(),
-             out.pfneutral[i].floatEta(),
-             out.pfneutral[i].intEta(),
-             out.pfneutral[i].floatPhi(),
-             out.pfneutral[i].intPhi(),
-             out.pfneutral[i].intId());
+      dbgPrintf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  pid %d\n",
+                i,
+                out.pfneutral[i].floatPt(),
+                out.pfneutral[i].intPt(),
+                out.pfneutral[i].floatEta(),
+                out.pfneutral[i].intEta(),
+                out.pfneutral[i].floatPhi(),
+                out.pfneutral[i].intPhi(),
+                out.pfneutral[i].intId());
     }
   }
 }
