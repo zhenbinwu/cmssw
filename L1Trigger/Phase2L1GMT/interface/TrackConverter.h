@@ -23,6 +23,7 @@ namespace Phase2L1GMT {
 
   private:
     int verbose_;
+    typedef ap_uint<96> wordtype;
 
     uint generateQuality(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& track) {
       return 1;
@@ -60,6 +61,13 @@ namespace Phase2L1GMT {
       return 0;
     }
 
+    int wordconcat(wordtype &word, int bstart, long int input, int bitsize)
+    {
+      int bend = bstart+bitsize-1;
+      word.range(bend, bstart)= twos_complement(input, bitsize);
+      return bend+1;
+    }
+
     ConvertedTTTrack convert(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& track) {
       uint                charge      = (track->rInv()<0) ? 1 : 0;
       int                 curvature   = track->rInv()*(1<<(BITSTTCURV-1))/maxCurv_;
@@ -70,27 +78,25 @@ namespace Phase2L1GMT {
       //calculate pt
       uint  absCurv  = curvature>0 ? (curvature) : (-curvature);
       uint pt = ptLUT[ptLookup(absCurv)];
-      //if ((pt * 0.025 -track->momentum().transverse()) > 0.025)
-        //std::cout << "pt offline " << track->momentum().transverse() << " online " << pt*0.025 << " diff " << pt * 0.025 -track->momentum().transverse() << std::endl;
       uint quality = generateQuality(track);
       uint absTanL = tanLambda >0 ? (tanLambda) : (-tanLambda);
       uint absEta = etaLUT[etaLookup(absTanL)];
       int eta = tanLambda >0 ?  (absEta) : (-absEta);
-      //const double lsb_eta = 2.*M_PI/pow(2, BITSETA);
-      //if ((eta * lsb_eta - track->eta()) > lsb_eta)
-        //std::cout << "eta offline " << track->eta() << " online " << eta*lsb_eta << " diff " << eta * lsb_eta - track->eta()<< std::endl;
 
 
-      ap_uint<96> word = twos_complement(curvature,BITSTTCURV);
       ap_int<BITSPHI> phiSec = ap_int<BITSPHI>(phi)-ap_int<BITSPHI>((track->phiSector()*40*M_PI/180.)*(1<<(BITSPHI-1))/(M_PI));
-
-      word = word |(twos_complement(phiSec,BITSTTPHI)<<BITSTTCURV);
-      word = word |(twos_complement(tanLambda,BITSTTTANL)<<(BITSTTCURV+BITSTTPHI));
-      word = word |(twos_complement(z0,BITSZ0)<<(BITSTTCURV+BITSTTPHI+BITSTTTANL));
-      word = word |(twos_complement(d0,BITSD0)<<(BITSTTCURV+BITSTTPHI+BITSTTTANL+BITSZ0));
-      word=  word |(twos_complement(uint(track->chi2()),4)<<(BITSTTCURV+BITSTTPHI+BITSTTTANL+BITSZ0+BITSD0)); 
-
       ap_int<BITSPHI> phiCorrected = ap_int<BITSPHI>(phiSec+track->phiSector()*910);
+
+      wordtype word = 0;
+      int bstart = 0;
+      bstart = wordconcat(word, bstart, curvature, BITSTTCURV);
+      bstart = wordconcat(word, bstart, phiSec, BITSTTPHI);
+      bstart = wordconcat(word, bstart, tanLambda, BITSTTTANL);
+      bstart = wordconcat(word, bstart, z0, BITSZ0);
+      bstart = wordconcat(word, bstart, d0, BITSD0);
+      bstart = wordconcat(word, bstart, uint(track->chi2()), 4);
+
+
       ConvertedTTTrack convertedTrack(charge,curvature,absEta,pt,eta,phiCorrected.to_int(),z0,d0,quality,word);
       convertedTrack.setOfflineQuantities(track->momentum().transverse(),track->eta(),track->phi());
       if (verbose_)
