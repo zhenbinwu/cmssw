@@ -14,22 +14,20 @@
 #include "L1Trigger/L1TTwinMux/interface/RPCHitCleaner.h"
 
 class L1TPhase2GMTEndcapStubProcessor {
-
-
- public:
+public:
   L1TPhase2GMTEndcapStubProcessor();
   L1TPhase2GMTEndcapStubProcessor(const edm::ParameterSet&);
-    ~L1TPhase2GMTEndcapStubProcessor();
+  ~L1TPhase2GMTEndcapStubProcessor();
 
+  l1t::MuonStubCollection makeStubs(const MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi>& csc,
+                                    const MuonDigiCollection<RPCDetId, RPCDigi>& rpc,
+                                    const L1TMuon::GeometryTranslator* t,
+                                    const edm::EventSetup& iSetup);
 
-
-    l1t::MuonStubCollection makeStubs(const MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>& csc,const MuonDigiCollection<RPCDetId,RPCDigi>& rpc,const L1TMuon::GeometryTranslator *t,const edm::EventSetup& iSetup);
-
- private:
-    l1t::MuonStub buildCSCOnlyStub(const CSCDetId& , const CSCCorrelatedLCTDigi&,const L1TMuon::GeometryTranslator*);
-    l1t::MuonStub buildRPCOnlyStub(const RPCDetId& , const RPCDigi&,const L1TMuon::GeometryTranslator*);
-    l1t::MuonStubCollection combineStubs(const l1t::MuonStubCollection&,const l1t::MuonStubCollection&);
-    
+private:
+  l1t::MuonStub buildCSCOnlyStub(const CSCDetId&, const CSCCorrelatedLCTDigi&, const L1TMuon::GeometryTranslator*);
+  l1t::MuonStub buildRPCOnlyStub(const RPCDetId&, const RPCDigi&, const L1TMuon::GeometryTranslator*);
+  l1t::MuonStubCollection combineStubs(const l1t::MuonStubCollection&, const l1t::MuonStubCollection&);
 
   int minBX_;
   int maxBX_;
@@ -40,9 +38,6 @@ class L1TPhase2GMTEndcapStubProcessor {
   double etaMatch_;
   double phiMatch_;
   bool verbose_;
-
-
 };
-
 
 #endif

@@ -75,4 +75,6 @@ gmtMuons = cms.EDProducer('Phase2L1TGMTProducer',
 
 )
 
-
+standaloneMuons = cms.EDProducer('Phase2L1TGMTSAMuonProducer',
+	 muonToken    =cms.untracked.InputTag('simGmtStage2Digis', "", "HLT")
+)

@@ -11,20 +11,19 @@
 #include "CondFormats/DataRecord/interface/L1TMuonBarrelParamsRcd.h"
 
 class L1TPhase2GMTBarrelStubProcessor {
- public:
+public:
   L1TPhase2GMTBarrelStubProcessor();
   L1TPhase2GMTBarrelStubProcessor(const edm::ParameterSet&);
-  
+
   ~L1TPhase2GMTBarrelStubProcessor();
 
+  l1t::MuonStubCollection makeStubs(const L1Phase2MuDTPhContainer*, const L1MuDTChambThContainer*);
 
-  l1t::MuonStubCollection makeStubs(const L1Phase2MuDTPhContainer*,const L1MuDTChambThContainer*);
-  
- private:
-  l1t::MuonStub buildStub(const L1Phase2MuDTPhDigi&,const L1MuDTChambThDigi*);
+private:
+  l1t::MuonStub buildStub(const L1Phase2MuDTPhDigi&, const L1MuDTChambThDigi*);
   l1t::MuonStub buildStubNoEta(const L1Phase2MuDTPhDigi&);
 
-  int calculateEta(uint, int,uint,uint);  
+  int calculateEta(uint, int, uint, uint);
   int minPhiQuality_;
 
   int minBX_;
@@ -42,8 +41,6 @@ class L1TPhase2GMTBarrelStubProcessor {
   int verbose_;
   double phiLSB_;
   double etaLSB_;
-
 };
-
 
 #endif
