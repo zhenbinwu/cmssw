@@ -61,6 +61,8 @@ private:
 
   // ----------member data ---------------------------
   edm::EDGetTokenT<BXVector<l1t::Muon> > muonToken_;
+  unsigned int Nprompt;
+  unsigned int Ndisplaced;
 };
 
 //
@@ -75,7 +77,10 @@ private:
 // constructors and destructor
 //
 Phase2L1TGMTSAMuonProducer::Phase2L1TGMTSAMuonProducer(const edm::ParameterSet& iConfig)
-    : muonToken_(consumes<l1t::MuonBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("muonToken"))) {
+    : muonToken_(consumes<l1t::MuonBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("muonToken"))),
+      Nprompt(iConfig.getParameter<uint>("Nprompt")),
+      Ndisplaced(iConfig.getParameter<uint>("Ndisplaced"))
+{
   produces<std::vector<l1t::SAMuon> >("promptSAMuons").setBranchAlias("prompt");
   produces<std::vector<l1t::SAMuon> >("displacedSAMuons").setBranchAlias("displaced");
 }
@@ -93,8 +98,6 @@ void Phase2L1TGMTSAMuonProducer::produce(edm::Event& iEvent, const edm::EventSet
   iEvent.getByToken(muonToken_, muon);
 
   // Output
-  const int Nprompt = 18;
-  const int Ndisplaced = 18;
   std::vector<SAMuon> prompt;
   std::vector<SAMuon> displaced;
 
