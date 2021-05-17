@@ -325,12 +325,12 @@ bool l1ct::Event::read(std::fstream& from) {
     abort();
   }
   return readVar(from, run) && readVar(from, lumi) && readVar(from, event) && decoded.read(from) &&
-         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, out);
+         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, pvs_emu) && readMany(from, out);
 }
 bool l1ct::Event::write(std::fstream& to) const {
   uint32_t version = VERSION;
   return writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && decoded.write(to) &&
-         writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(out, to);
+         writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(pvs_emu, to) && writeMany(out, to);
 }
 void l1ct::Event::init(uint32_t arun, uint32_t alumi, uint64_t anevent) {
   clear();
@@ -346,6 +346,7 @@ void l1ct::Event::clear() {
   for (auto& i : pfinputs)
     i.clear();
   pvs.clear();
+  pvs_emu.clear();
   for (auto& i : out)
     i.clear();
 }

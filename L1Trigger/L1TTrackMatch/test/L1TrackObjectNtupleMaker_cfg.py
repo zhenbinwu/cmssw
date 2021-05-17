@@ -110,8 +110,8 @@ elif (L1TRKALGO == 'HYBRID_PROMPTANDDISP'):
 ############################################################
 # Primary vertex
 ############################################################
-process.load("L1Trigger.L1TTrackMatch.L1TkPrimaryVertexProducer_cfi")
-process.pPV = cms.Path(process.L1TkPrimaryVertex)
+process.load('L1Trigger.VertexFinder.VertexProducer_cff')
+process.pPV = cms.Path(process.VertexProducer)
 
 
 ############################################################
@@ -160,7 +160,7 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         TrackMHTInputTag = cms.InputTag("L1TrackerHTMiss","L1TrackerHTMiss","L1TrackJets"),
         TrackMHTExtendedInputTag = cms.InputTag("L1TrackerHTMissExtended","L1TrackerHTMiss"),
         GenParticleInputTag = cms.InputTag("genParticles",""),
-        RecoVertexInputTag=cms.InputTag("L1TkPrimaryVertex"),
+        RecoVertexInputTag=cms.InputTag("VertexProducer", process.VertexProducer.l1VertexCollectionName.value()),
 )
 
 process.ntuple = cms.Path(process.L1TrackNtuple)

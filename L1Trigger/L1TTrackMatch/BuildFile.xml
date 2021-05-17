@@ -12,6 +12,7 @@
 <use   name="clhep"/>
 <use   name="root"/>
 <use   name="rootrflx"/>
+<use   name="hls"/>
 <export>
   <lib   name="1"/>
 </export>
