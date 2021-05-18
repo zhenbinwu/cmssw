@@ -7,7 +7,7 @@
 #ifdef CMSSW_GIT_HASH
 #include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
 #else
-#include "../../../utils/dbgPrintf.h"
+#include "../utils/dbgPrintf.h"
 #endif
 
 unsigned int PowerOf2LessThan(unsigned int n) {
