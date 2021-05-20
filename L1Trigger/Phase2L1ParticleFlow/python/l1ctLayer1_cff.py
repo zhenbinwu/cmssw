@@ -70,10 +70,10 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
-        nTRACK = 50,           # to be defined
-        nTRACK_EGIN = 50,          # to be defined
-        nEMCALO_EGIN = 50,  # to be defined
-        nEM_EGOUT = 50,        # to be defined
+        nTRACK = 25,           # to be defined
+        nTRACK_EGIN = 13,          # to be defined
+        nEMCALO_EGIN = 10,  # to be defined
+        nEM_EGOUT = 10,        # to be defined
     ),
     caloSectors = cms.VPSet(
         cms.PSet( 
