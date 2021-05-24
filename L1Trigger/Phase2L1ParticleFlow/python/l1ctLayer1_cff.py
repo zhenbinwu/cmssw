@@ -70,10 +70,10 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
-        nTRACK = 50,           # to be defined
-        nTRACK_EGIN = 50,          # to be defined
-        nEMCALO_EGIN = 50,  # to be defined
-        nEM_EGOUT = 50,        # to be defined
+        nTRACK = 25,
+        nTRACK_EGIN = 13,
+        nEMCALO_EGIN = 10,
+        nEM_EGOUT = 10,
     ),
     caloSectors = cms.VPSet(
         cms.PSet( 
@@ -165,7 +165,7 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         nTRACK = 30,
         nTRACK_EGIN = 10,
         nEMCALO_EGIN = 10, 
-        nEM_EGOUT = 5, # to be tuned
+        nEM_EGOUT = 5,
         doBremRecovery=True,
         writeEGSta=True),
     caloSectors = _hgcalSectors,
@@ -237,7 +237,7 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         nTRACK = 30,
         nTRACK_EGIN = 10,
         nEMCALO_EGIN = 10, 
-        nEM_EGOUT = 5, # to be tuned
+        nEM_EGOUT = 5,
         doBremRecovery=True,
         writeEGSta=True),
     caloSectors = _hgcalSectors,
