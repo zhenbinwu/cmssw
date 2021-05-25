@@ -1251,6 +1251,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
   edm::Handle<l1t::TkJetWordCollection> TrackJetsEmulationHandle;	
   edm::Handle<l1t::TkJetWordCollection> TrackJetsExtendedEmulationHandle;
   std::vector<l1t::TkJet>::const_iterator jetIter;
+  std::vector<l1t::TkJetWord>::const_iterator jetemIter;
 
   // Track MET
   edm::Handle<std::vector<l1t::TkEtMiss> > L1TkMETHandle;
@@ -2381,40 +2382,41 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         m_pv_L1reco->push_back(vtxIter->z0());
         m_pv_L1reco_sum->push_back(vtxIter->pt());
       }
-      else {
-        edm::LogWarning("DataNotFound")<< "\nWarning: L1TkPrimaryVertexHandle not found in the event"<< std::endl;
-      }
-    } // end track jets
+    }
+    else {
+      edm::LogWarning("DataNotFound")<< "\nWarning: L1TkPrimaryVertexHandle not found in the event"<< std::endl;
+    }
+  } // end track jets
 
-    if (SaveTrackJetsEmulation) {	
-      if ( !TrackJetsEmulationHandle.isValid() && (Displaced=="Prompt" || Displaced=="Both")) {	
-        edm::LogWarning("DataNotFound")<< "\nWarning: TrackJetsEmulationHandle not found in the event"<< std::endl;	
+  if (SaveTrackJetsEmulation) {	
+    if ( !TrackJetsEmulationHandle.isValid() && (Displaced=="Prompt" || Displaced=="Both")) {	
+      edm::LogWarning("DataNotFound")<< "\nWarning: TrackJetsEmulationHandle not found in the event"<< std::endl;	
+    }	
+    else if (TrackJetsEmulationHandle.isValid() && (Displaced=="Prompt" || Displaced=="Both")) {	
+      for (jetemIter = TrackJetsEmulationHandle->begin(); jetemIter != TrackJetsEmulationHandle->end(); ++jetemIter) {	
+        m_trkjetem_ntracks->push_back(jetemIter->intNTracks());	
+        m_trkjetem_phi->push_back(jetemIter->floatPhi());	
+        m_trkjetem_eta->push_back(jetemIter->floatEta());	
+        m_trkjetem_pt->push_back(jetemIter->floatPt());
+        m_trkjetem_z->push_back(jetemIter->floatZ0());
+        m_trkjetem_nxtracks->push_back(jetemIter->intNXTracks());	
       }	
-      else if (TrackJetsEmulationHandle.isValid() && (Displaced=="Prompt" || Displaced=="Both")) {	
-        for (jetemIter = TrackJetsEmulationHandle->begin(); jetemIter != TrackJetsEmulationHandle->end(); ++jetemIter) {	
-          m_trkjetem_ntracks->push_back(jetemIter->intNTracks());	
-          m_trkjetem_phi->push_back(jetemIter->floatPhi());	
-          m_trkjetem_eta->push_back(jetemIter->floatEta());	
-          m_trkjetem_pt->push_back(jetemIter->floatPt());
-          m_trkjetem_z->push_back(jetemIter->floatZ0());
-          m_trkjetem_nxtracks->push_back(jetemIter->intNXTracks());	
-        }	
+    }	
+    if ( !TrackJetsExtendedEmulationHandle.isValid() && (Displaced=="Displaced" || Displaced=="Both") ) {	
+      edm::LogWarning("DataNotFound")<< "\nWarning: TrackJetsExtendedEmulationHandle not found in the event"<< std::endl;	
+    }	
+    else if (TrackJetsExtendedEmulationHandle.isValid() && (Displaced=="Displaced" || Displaced=="Both")) {	
+      for (jetemIter = TrackJetsExtendedEmulationHandle->begin(); jetemIter != TrackJetsExtendedEmulationHandle->end(); ++jetemIter) {	
+        m_trkjetemExt_ntracks->push_back(jetemIter->intNTracks());	
+        m_trkjetemExt_phi->push_back(jetemIter->floatPhi());	
+        m_trkjetemExt_eta->push_back(jetemIter->floatEta());	
+        m_trkjetemExt_pt->push_back(jetemIter->floatPt());
+        m_trkjetemExt_z->push_back(jetemIter->floatZ0());	
+        m_trkjetemExt_nxtracks->push_back(jetemIter->intNXTracks());	
       }	
-      if ( !TrackJetsExtendedEmulationHandle.isValid() && (Displaced=="Displaced" || Displaced=="Both") ) {	
-        edm::LogWarning("DataNotFound")<< "\nWarning: TrackJetsExtendedEmulationHandle not found in the event"<< std::endl;	
-      }	
-      else if (TrackJetsExtendedEmulationHandle.isValid() && (Displaced=="Displaced" || Displaced=="Both")) {	
-        for (jetemIter = TrackJetsExtendedEmulationHandle->begin(); jetemIter != TrackJetsExtendedEmulationHandle->end(); ++jetemIter) {	
-          m_trkjetemExt_ntracks->push_back(jetemIter->intNTracks());	
-          m_trkjetemExt_phi->push_back(jetemIter->floatPhi());	
-          m_trkjetemExt_eta->push_back(jetemIter->floatEta());	
-          m_trkjetemExt_pt->push_back(jetemIter->floatPt());
-          m_trkjetemExt_z->push_back(jetemIter->floatZ0());	
-          m_trkjetemExt_nxtracks->push_back(jetemIter->intNXTracks());	
-        }	
-      }	
+    }	
 	
-    } // end track jets emulation
+  } // end track jets emulation
 
 
   eventTree->Fill();
