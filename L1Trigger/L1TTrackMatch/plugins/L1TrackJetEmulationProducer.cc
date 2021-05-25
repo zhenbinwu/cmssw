@@ -559,7 +559,7 @@ EtaPhiBin *L1TrackJetEmulationProducer::L1_cluster(EtaPhiBin *phislice) {
     clusters[etabin].nxtracks = 0;
     clusters[etabin].phi = 0;
     clusters[etabin].eta = 0;
-    clusters[etabin].used = 0;
+    clusters[etabin].used = false;
   }
   
   if (clusters == nullptr)
