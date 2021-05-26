@@ -21,6 +21,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/l1-converters/tracks/tkinput_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/common/regionizer_base_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/multififo/multififo_regionizer_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/tdr/tdr_regionizer_ref.h"
@@ -61,6 +62,7 @@ private:
   float emPtCut_, hadPtCut_;
 
   l1ct::Event event_;
+  std::unique_ptr<l1ct::TrackInputEmulator> trackInput_;
   std::unique_ptr<l1ct::RegionizerEmulator> regionizer_;
   std::unique_ptr<l1ct::PFAlgoEmulatorBase> l1pfalgo_;
   std::unique_ptr<l1ct::LinPuppiEmulator> l1pualgo_;
@@ -163,6 +165,15 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
     hadCands_.push_back(consumes<l1t::PFClusterCollection>(tag));
   }
 
+  if (hasTracks_) {
+    const std::string &tkInAlgo = iConfig.getParameter<std::string>("trackInputConversionAlgo");
+    if (tkInAlgo == "Emulator") {
+      trackInput_ = std::make_unique<l1ct::TrackInputEmulator>(
+          iConfig.getParameter<edm::ParameterSet>("trackInputConversionParameters"));
+    } else if (tkInAlgo != "Ideal")
+      throw cms::Exception("Configuration", "Unsupported trackInputConversionAlgo");
+  }
+
   const std::string &regalgo = iConfig.getParameter<std::string>("regionizerAlgo");
   if (regalgo == "Ideal") {
     regionizer_ =
@@ -256,7 +267,7 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
       // adding objects to PF
       if (debugR_ > 0 && deltaR(tk.eta(), tk.phi(), debugEta_, debugPhi_) > debugR_)
         continue;
-      if (tk.pt() > trkPt_ && tk.quality() > 0) {
+      if (tk.pt() > trkPt_) {
         addTrack(tk, l1t::PFTrackRef(htracks, itk));
       }
     }
@@ -505,20 +516,27 @@ void L1TCorrelatorLayer1Producer::addEmCalo(const l1t::PFCluster &c, l1t::PFClus
 }
 
 void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkObjEmu> &sec, const l1t::PFTrack &t) {
-  l1ct::TkObjEmu tk;
-  tk.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  tk.hwEta = l1ct::Scales::makeEta(sec.region.localEta(t.caloEta()));
-  tk.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(t.caloPhi()));
-  tk.hwCharge = t.charge() > 0;
-  tk.hwQuality = t.quality();
-  tk.hwDEta = l1ct::Scales::makeEta(t.eta() - t.caloEta());
-  tk.hwDPhi = l1ct::Scales::makePhi(std::abs(reco::deltaPhi(t.phi(), t.caloPhi())));
-  tk.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
-  tk.hwDxy = 0;
-  tk.hwChi2 = round(t.chi2() * 10);
-  tk.hwStubs = t.nStubs();
-  tk.src = &t;
-  sec.obj.push_back(tk);
+  std::pair<l1ct::TkObjEmu, bool> tkAndSel;
+  if (trackInput_) {
+    tkAndSel = trackInput_->decodeTrack(t.trackWord().getTrackWord(), sec.region);
+  } else {
+    tkAndSel.first.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
+    tkAndSel.first.hwEta = l1ct::Scales::makeEta(sec.region.localEta(t.caloEta()));
+    tkAndSel.first.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(t.caloPhi()));
+    tkAndSel.first.hwCharge = t.charge() > 0;
+    tkAndSel.first.hwQuality = t.quality();
+    tkAndSel.first.hwDEta = l1ct::Scales::makeEta(t.eta() - t.caloEta());
+    tkAndSel.first.hwDPhi = l1ct::Scales::makePhi(std::abs(reco::deltaPhi(t.phi(), t.caloPhi())));
+    tkAndSel.first.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
+    tkAndSel.first.hwDxy = 0;
+    tkAndSel.second = t.quality() > 0;
+  }
+  // CMSSW-only extra info
+  tkAndSel.first.hwChi2 = round(t.chi2() * 10);
+  tkAndSel.first.hwStubs = t.nStubs();
+  tkAndSel.first.src = &t;
+  if (tkAndSel.second)
+    sec.obj.push_back(tkAndSel.first);
 }
 
 void L1TCorrelatorLayer1Producer::addRawMuon(l1ct::DetectorSector<ap_uint<64>> &sec, const l1t::Muon &t) {
