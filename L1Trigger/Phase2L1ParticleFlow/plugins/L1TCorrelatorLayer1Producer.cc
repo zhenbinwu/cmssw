@@ -478,7 +478,7 @@ void L1TCorrelatorLayer1Producer::addTrack(const l1t::PFTrack &t, l1t::PFTrackRe
   auto &sectors = event_.decoded.track;
   assert(sectors.size() == 18 && rawsectors.size() == 18);
   int isec = t.track()->phiSector() + (t.eta() >= 0 ? 9 : 0);
-  rawsectors[isec].obj.push_back(t.track()->getTrackWord());
+  rawsectors[isec].obj.push_back(t.trackWord().getTrackWord());
   addDecodedTrack(sectors[isec], t);
   trackRefMap_[&t] = ref;
 }
