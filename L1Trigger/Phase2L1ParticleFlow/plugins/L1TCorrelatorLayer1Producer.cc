@@ -54,7 +54,7 @@ private:
   edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
 
-  edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
+  edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;  // standalone muons
 
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> emCands_;
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> hadCands_;
@@ -282,7 +282,6 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
       continue;
     addMuon(mu, l1t::PFCandidate::MuonRef(muons, muons->key(it)));
   }
-
 
   // ------ READ CALOS -----
   edm::Handle<l1t::PFClusterCollection> caloHandle;

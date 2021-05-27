@@ -307,7 +307,7 @@ namespace l1ct {
   };
 
   struct Event {
-    enum { VERSION = 8 };
+    enum { VERSION = 9 };
     uint32_t run, lumi;
     uint64_t event;
     RawInputs raw;

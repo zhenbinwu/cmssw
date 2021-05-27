@@ -4,6 +4,12 @@
 #include <cstdio>
 
 #ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../../utils/dbgPrintf.h"
+#endif
+
+#ifdef CMSSW_GIT_HASH
 #include <cstdint>
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -158,12 +164,12 @@ l1ct::pt_t l1ct::TrackInputEmulator::convPt(ap_int<15> Rinv) const {
   ap_uint<14> absRinv = (Rinv >= 0 ? ap_uint<14>(Rinv) : ap_uint<14>(-Rinv));
   unsigned int index = absRinv.to_int() >> ptLUTShift_;
   if (index >= ptLUT_.size()) {
-    printf("WARN: Rinv %d, absRinv %d, index %d, size %lu, shift %d\n",
-           Rinv.to_int(),
-           absRinv.to_int(),
-           index,
-           ptLUT_.size(),
-           ptLUTShift_);
+    dbgPrintf("WARN: Rinv %d, absRinv %d, index %d, size %lu, shift %d\n",
+              Rinv.to_int(),
+              absRinv.to_int(),
+              index,
+              ptLUT_.size(),
+              ptLUTShift_);
     index = ptLUT_.size() - 1;
   }
   return ptLUT_[index];
@@ -193,7 +199,7 @@ l1ct::glbeta_t l1ct::TrackInputEmulator::convEta(ap_int<16> tanl) const {
     index = unsTanl.to_int() >> tanlLUTShift_;
   }
   if (index >= tanlLUT_.size()) {
-    printf(
+    dbgPrintf(
         "WARN: tanl %d, index %d, size %lu (signed %d)\n", tanl.to_int(), index, tanlLUT_.size(), int(tanlLUTSigned_));
     index = tanlLUT_.size() - 1;
   }
@@ -230,14 +236,15 @@ void l1ct::TrackInputEmulator::configEta(int lutBits, int preOffs, int shift, in
     }
   }
   if (debug_)
-    printf("Configured with glbEtaCenter = %d, bits %d, preOffs %d, shift %d, postOffs %d, lutmin = %d, lutmax = %d\n",
-           etaCenter,
-           lutBits,
-           preOffs,
-           shift,
-           postOffs,
-           etamin,
-           etamax);
+    dbgPrintf(
+        "Configured with glbEtaCenter = %d, bits %d, preOffs %d, shift %d, postOffs %d, lutmin = %d, lutmax = %d\n",
+        etaCenter,
+        lutBits,
+        preOffs,
+        shift,
+        postOffs,
+        etamin,
+        etamax);
 }
 
 float l1ct::TrackInputEmulator::floatPhi(ap_int<12> phi) const { return phiScale_ * toFloat_(phi); }
@@ -266,13 +273,13 @@ void l1ct::TrackInputEmulator::configPhi(int bits) {
       break;
   }
   if (debug_)
-    printf("Configured vtxPhi with scale %d [to_cmssw %.8f, to_l1ct %.8f, %d bits], offsets %+d (pos), %+d (neg)\n",
-           vtxPhiMult_,
-           phiScale_,
-           scale,
-           bits,
-           vtxPhiOffsPos_,
-           vtxPhiOffsNeg_);
+    dbgPrintf("Configured vtxPhi with scale %d [to_cmssw %.8f, to_l1ct %.8f, %d bits], offsets %+d (pos), %+d (neg)\n",
+              vtxPhiMult_,
+              phiScale_,
+              scale,
+              bits,
+              vtxPhiOffsPos_,
+              vtxPhiOffsNeg_);
 }
 
 float l1ct::TrackInputEmulator::floatZ0(ap_int<12> z0) const { return z0Scale_ * toFloat_(z0); }
@@ -302,13 +309,13 @@ void l1ct::TrackInputEmulator::configZ0(int bits) {
   }
 
   if (debug_)
-    printf("Configured z0 with scale %d [to_cmssw %.8f, to_l1ct %.8f, %d bits], offsets %+d (pos), %+d (neg)\n",
-           z0Mult_,
-           z0Scale_,
-           scale,
-           bits,
-           z0OffsPos_,
-           z0OffsNeg_);
+    dbgPrintf("Configured z0 with scale %d [to_cmssw %.8f, to_l1ct %.8f, %d bits], offsets %+d (pos), %+d (neg)\n",
+              z0Mult_,
+              z0Scale_,
+              scale,
+              bits,
+              z0OffsPos_,
+              z0OffsNeg_);
 }
 
 float l1ct::TrackInputEmulator::floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
@@ -324,7 +331,7 @@ float l1ct::TrackInputEmulator::floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, a
     ret = dEtaHGCalParamZ0_ * z0Scaled - dEtaHGCalParamRInv2_ * RinvScaled2 + tanlTerm;
   }
   if (debug_) {
-    printf(
+    dbgPrintf(
         "flt deta for z0 %+6d Rinv %+6d tanl %+6d:  z0term %+8.2f  Rinvterm  %+8.2f   tanlterm  %+8.2f   ret  %+8.2f\n",
         z0.to_int(),
         Rinv.to_int(),
@@ -351,7 +358,7 @@ l1ct::tkdeta_t l1ct::TrackInputEmulator::calcDEtaHGCal(ap_int<12> z0, ap_int<15>
 
   int ret0 = z0Term + rinvTerm + tanlTerm + dEtaHGCalOffs_;
   if (debug_) {
-    printf(
+    dbgPrintf(
         "int deta for z0 %+6d Rinv %+6d tanl %+6d:  z0term %+8.2f  Rinvterm  %+8.2f   tanlterm  %+8.2f   ret  %+8.2f\n",
         z0.to_int(),
         Rinv.to_int(),
@@ -410,14 +417,14 @@ void l1ct::TrackInputEmulator::configDEtaHGCal(int dEtaHGCalBits,
   dEtaHGCalOffs_ = std::round(scale * offs);
 
   if (debug_)
-    printf("Configured deta with %d bits: z0 %8d [%8.2f] Rinv %8d [%8.2f], lutmin = %d, lutmax = %d\n",
-           dEtaHGCalBits,
-           dEtaHGCalZ0_,
-           dEtaHGCalZ0_ / float(scale),
-           dEtaHGCalRInv_,
-           dEtaHGCalRInv_ / float(scale),
-           lutmin,
-           lutmax);
+    dbgPrintf("Configured deta with %d bits: z0 %8d [%8.2f] Rinv %8d [%8.2f], lutmin = %d, lutmax = %d\n",
+              dEtaHGCalBits,
+              dEtaHGCalZ0_,
+              dEtaHGCalZ0_ / float(scale),
+              dEtaHGCalRInv_,
+              dEtaHGCalRInv_ / float(scale),
+              lutmin,
+              lutmax);
 }
 
 float l1ct::TrackInputEmulator::floatDPhiHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
@@ -425,14 +432,15 @@ float l1ct::TrackInputEmulator::floatDPhiHGCal(ap_int<12> z0, ap_int<15> Rinv, a
   float ret =
       (dPhiHGCalParamC_ - dPhiHGCalParamZ0_ * z0 * dzsign) * std::abs(Rinv.to_int()) / std::abs(tanl.to_float());
   if (debug_) {
-    printf("flt dphi for z0 %+6d Rinv %+6d tanl %+6d:  preSum %+9.4f  Rinv/1k  %8.2f   1k/tanl  %8.5f   ret  %8.2f\n",
-           z0.to_int(),
-           Rinv.to_int(),
-           tanl.to_int(),
-           dPhiHGCalParamC_ - dPhiHGCalParamZ0_ * z0 * dzsign,
-           std::abs(Rinv.to_int()) / 1024.0,
-           1024.0 / std::abs(tanl.to_float()),
-           ret);
+    dbgPrintf(
+        "flt dphi for z0 %+6d Rinv %+6d tanl %+6d:  preSum %+9.4f  Rinv/1k  %8.2f   1k/tanl  %8.5f   ret  %8.2f\n",
+        z0.to_int(),
+        Rinv.to_int(),
+        tanl.to_int(),
+        dPhiHGCalParamC_ - dPhiHGCalParamZ0_ * z0 * dzsign,
+        std::abs(Rinv.to_int()) / 1024.0,
+        1024.0 / std::abs(tanl.to_float()),
+        ret);
   }
   return ret;
 }
@@ -451,7 +459,7 @@ l1ct::tkdphi_t l1ct::TrackInputEmulator::calcDPhiHGCal(ap_int<12> z0, ap_int<15>
 
   int finalShift = dPhiHGCalBits_ + dPhiHGCalTanlInvShift_ - dPhiHGCalRInvShift_;
   if (debug_) {
-    printf(
+    dbgPrintf(
         "int dphi for z0 %+6d Rinv %+6d tanl %+6d:  preSum %+9.4f  Rinv/1k  %8.2f   1k/tanl  %8.5f   ret  %8.2f: int "
         "preSum %8d  rivShift %8d  tanlTerm %8d\n",
         z0.to_int(),
@@ -512,7 +520,7 @@ void l1ct::TrackInputEmulator::configDPhiHGCal(int dPhiHGCalBits,
   dPhiHGCalOffs_ = std::round((1 << finalShift) * (0.5 + offs));
 
   if (debug_)
-    printf(
+    dbgPrintf(
         "Configured dphi with %d bits: z0 %8d [%8.2f], preoffs %8d [%8.2f], final shift %d, lutmin = %d, lutmax = %d\n",
         dPhiHGCalBits,
         dPhiHGCalZ0_,

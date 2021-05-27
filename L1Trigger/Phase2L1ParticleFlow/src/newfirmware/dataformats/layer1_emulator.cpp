@@ -374,8 +374,9 @@ bool l1ct::Event::read(std::fstream& from) {
 }
 bool l1ct::Event::write(std::fstream& to) const {
   uint32_t version = VERSION;
-  return writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && raw.write(to) && decoded.write(to) &&
-         writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(pvs_emu, to) && writeMany(out, to);
+  return writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && raw.write(to) &&
+         decoded.write(to) && writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(pvs_emu, to) &&
+         writeMany(out, to);
 }
 void l1ct::Event::init(uint32_t arun, uint32_t alumi, uint64_t anevent) {
   clear();
