@@ -161,6 +161,8 @@ namespace l1ct {
     int intPt() const { return Scales::intPt(hwPt); }
     int intEta() const { return hwEta.to_int(); }
     int intPhi() const { return hwPhi.to_int(); }
+    int intVtxEta() const { return hwVtxEta().to_int(); }
+    int intVtxPhi() const { return hwVtxPhi().to_int(); }
     int intCharge() const { return hwCharge ? +1 : -1; }
     float floatPt() const { return Scales::floatPt(hwPt); }
     float floatEta() const { return Scales::floatEta(hwEta); }
@@ -242,6 +244,8 @@ namespace l1ct {
     int intPt() const { return Scales::intPt(hwPt); }
     int intEta() const { return hwEta.to_int(); }
     int intPhi() const { return hwPhi.to_int(); }
+    int intVtxEta() const { return hwVtxEta().to_int(); }
+    int intVtxPhi() const { return hwVtxPhi().to_int(); }
     int intCharge() const { return hwCharge ? +1 : -1; }
     float floatPt() const { return Scales::floatPt(hwPt); }
     float floatEta() const { return Scales::floatEta(hwEta); }

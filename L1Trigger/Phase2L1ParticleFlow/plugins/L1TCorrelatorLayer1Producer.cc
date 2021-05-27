@@ -534,8 +534,11 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
   tkAndSel.first.hwChi2 = round(t.chi2() * 10);
   tkAndSel.first.hwStubs = t.nStubs();
   tkAndSel.first.src = &t;
-  if (tkAndSel.second)
-    sec.obj.push_back(tkAndSel.first);
+  // If the track fails, we set its pT to zero, so that the decoded tracks are still aligned with the raw tracks
+  // Downstream, the regionizer will just ignore zero-momentum tracks
+  if (!tkAndSel.second)
+    tkAndSel.first.hwPt = 0;
+  sec.obj.push_back(tkAndSel.first);
 }
 
 void L1TCorrelatorLayer1Producer::addRawMuon(l1ct::DetectorSector<ap_uint<64>> &sec, const l1t::Muon &t) {
