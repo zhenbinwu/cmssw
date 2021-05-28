@@ -81,6 +81,8 @@ private:
   float trkEtaMax_;
   float trkChi2dofMax_;
   float trkBendChi2Max_;
+  float lowpTJetMinpT_;
+  float highpTJetMinpT_;
   int trkNPSStubMin_;
   int lowpTJetMinTrackMultiplicity_;
   int highpTJetMinTrackMultiplicity_;
@@ -123,7 +125,9 @@ tGeomToken_(esConsumes<TrackerGeometry,TrackerDigiGeometryRecord>(edm::ESInputTa
   d0CutNStubs4_ = (float)iConfig.getParameter<double>("d0_cutNStubs4");
   d0CutNStubs5_ = (float)iConfig.getParameter<double>("d0_cutNStubs5");
   lowpTJetMinTrackMultiplicity_ = (int)iConfig.getParameter<int>("lowpTJetMinTrackMultiplicity");
+  lowpTJetMinpT_ = (float)iConfig.getParameter<double>("lowpTJetMinpT");
   highpTJetMinTrackMultiplicity_ = (int)iConfig.getParameter<int>("highpTJetMinTrackMultiplicity");
+  highpTJetMinpT_ = (float)iConfig.getParameter<double>("highpTJetMinpT");
   displaced_ = iConfig.getParameter<bool>("displaced");
   nStubs4DisplacedChi2Loose_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2_Loose");
   nStubs5DisplacedChi2Loose_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2_Loose");
@@ -514,9 +518,9 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
 
     l1t::pt_t ht = 0;
     for (int k = 0; k < nclust; ++k) {
-      if (L2cluster[k].pTtot > 50 && L2cluster[k].ntracks < lowpTJetMinTrackMultiplicity_)
+      if (L2cluster[k].pTtot > l1t::Scales::makePtFromFloat(lowpTJetMinpT_) && L2cluster[k].ntracks < lowpTJetMinTrackMultiplicity_)
         continue;
-      if (L2cluster[k].pTtot > 100 && L2cluster[k].ntracks < highpTJetMinTrackMultiplicity_)
+      if (L2cluster[k].pTtot > l1t::Scales::makePtFromFloat(highpTJetMinpT_) && L2cluster[k].ntracks < highpTJetMinTrackMultiplicity_)
         continue;
       if (L2cluster[k].pTtot > l1t::Scales::makePtFromFloat(minTrkJetpT_))
         ht += L2cluster[k].pTtot;
