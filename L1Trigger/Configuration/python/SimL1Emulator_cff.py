@@ -115,9 +115,14 @@ _phase2_siml1emulator.add(L1CaloJetHTT)
 # ########################################################################
 # Phase-2 L1T - TrackTrigger dependent modules
 # ########################################################################
+from L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi import *
 from L1Trigger.VertexFinder.VertexProducer_cff import *
 L1VertexFinder = VertexProducer.clone()
+L1VertexFinderEmulator = VertexProducer.clone()
+L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
 _phase2_siml1emulator.add(L1VertexFinder)
+_phase2_siml1emulator.add(L1GTTInputProducer)
+_phase2_siml1emulator.add(L1VertexFinderEmulator)
 
 # Tk + StandaloneObj, including L1TkPrimaryVertex
 # ########################################################################
