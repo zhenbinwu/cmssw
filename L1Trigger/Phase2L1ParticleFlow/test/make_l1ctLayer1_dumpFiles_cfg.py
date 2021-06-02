@@ -25,53 +25,19 @@ process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff') # needed to 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '111X_mcRun4_realistic_Candidate_2020_12_09_15_46_46', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '111X_mcRun4_realistic_T15_v3', '')
 
 process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
 process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff')
+process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
+process.load('L1Trigger.VertexFinder.VertexProducer_cff')
+process.L1VertexFinderEmulator = process.VertexProducer.clone()
+process.L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
+process.L1VertexFinderEmulator.l1TracksInputTag = cms.InputTag("L1GTTInputProducer", "Level1TTTracksConverted")
 
-
-doPVEmu = True
-
-if doPVEmu:
-    process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
-    process.load('L1Trigger.VertexFinder.VertexProducer_cff')
-    process.VertexProducer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer", "Level1TTTracksConverted")
-    process.VertexProducer.VertexReconstruction.Algorithm = cms.string("FastHistoEmulation")
-    
-    for l1ctbrd in [process.l1ctLayer1Barrel,
-                    process.l1ctLayer1HGCal,
-                    process.l1ctLayer1HGCalNoTK,
-                    process.l1ctLayer1HF]:
-        l1ctbrd.vtxCollection = cms.InputTag("VertexProducer", "l1verticesEmulation")
-        l1ctbrd.vtxCollectionEmulation = True
-        
-
-    process.runPF = cms.Path( 
+process.runPF = cms.Path( 
         process.L1GTTInputProducer +
-        process.VertexProducer +
-        process.pfTracksFromL1Tracks +
-        process.l1ParticleFlow_calo +
-        process.l1ctLayer1Barrel +
-        process.l1ctLayer1HGCal +
-        process.l1ctLayer1HGCalNoTK +
-        process.l1ctLayer1HF +
-        process.l1ctLayer1
-    )
-    
-else:
-    # FIXME: this is not working....might need to reproduce the input with the additional collections
-
-    # process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
-    process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
-    process.load('L1Trigger.VertexFinder.VertexProducer_cff')
-
-    process.L1VertexFinder = process.VertexProducer.clone()
-
-    process.runPF = cms.Path( 
-        # process.L1HybridTracks +
-        # process.L1GTTInputProducer +
-        # process.L1VertexFinder +
+        process.L1VertexFinderEmulator +
         process.pfTracksFromL1Tracks +
         process.l1ParticleFlow_calo +
         process.l1ctLayer1Barrel +

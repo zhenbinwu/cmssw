@@ -4,6 +4,12 @@
 #include <algorithm>
 #include <cassert>
 
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../utils/dbgPrintf.h"
+#endif
+
 unsigned int PowerOf2LessThan(unsigned int n) {
   unsigned int i = 1;
   unsigned int prev = 1;
@@ -37,7 +43,7 @@ void bitonicMerge(T in[], int InSize, T out[], int OutSize, bool dir) {
     int UpperSize = InSize - LowerSize;        //-- UpperSize < LowerSiz
 
     if (LowerSize < UpperSize)
-      std::cout << "[ERROR]" << __FUNCTION__ << " LowerSize (" << LowerSize << ") not > of UpperSize (" << UpperSize
+      dbgCout() << "[ERROR]" << __FUNCTION__ << " LowerSize (" << LowerSize << ") not > of UpperSize (" << UpperSize
                 << ")" << std::endl;
 
     for (int i = 0; i < UpperSize; ++i) {

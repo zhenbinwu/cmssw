@@ -27,9 +27,9 @@ bool L1SCJetEmu::inCone(L1SCJetEmu::Particle seed, L1SCJetEmu::Particle part) co
   //bool ret = r2 < cone2;
   if (debug_) {
     detaphi2_t r2 = detaphi2_t(deta) * detaphi2_t(deta) + detaphi2_t(dphi) * detaphi2_t(dphi);
-    std::cout << "  part eta, seed eta: " << part.hwEta << ", " << seed.hwEta << std::endl;
-    std::cout << "  part phi, seed phi: " << part.hwPhi << ", " << seed.hwPhi << std::endl;
-    std::cout << "  pt, deta, dphi, r2, cone2, lt: " << part.hwPt << ", " << deta << ", " << dphi << ", "
+    dbgCout() << "  part eta, seed eta: " << part.hwEta << ", " << seed.hwEta << std::endl;
+    dbgCout() << "  part phi, seed phi: " << part.hwPhi << ", " << seed.hwPhi << std::endl;
+    dbgCout() << "  pt, deta, dphi, r2, cone2, lt: " << part.hwPt << ", " << deta << ", " << dphi << ", "
               << deta * deta + dphi * dphi << ", " << rCone2_ << ", " << ret << std::endl;
   }
   return ret;
@@ -75,15 +75,15 @@ L1SCJetEmu::Jet L1SCJetEmu::makeJet_HW(const std::vector<Particle>& parts) const
   jet.constituents = parts;
 
   if (debug_) {
-    std::for_each(pt_dphi.begin(), pt_dphi.end(), [](pt_etaphi_t& x) { std::cout << "pt_dphi: " << x << std::endl; });
-    std::for_each(pt_deta.begin(), pt_deta.end(), [](pt_etaphi_t& x) { std::cout << "pt_deta: " << x << std::endl; });
-    std::cout << " sum_pt_eta: " << sum_pt_eta << ", 1/pt: " << inv_pt
+    std::for_each(pt_dphi.begin(), pt_dphi.end(), [](pt_etaphi_t& x) { dbgCout() << "pt_dphi: " << x << std::endl; });
+    std::for_each(pt_deta.begin(), pt_deta.end(), [](pt_etaphi_t& x) { dbgCout() << "pt_deta: " << x << std::endl; });
+    dbgCout() << " sum_pt_eta: " << sum_pt_eta << ", 1/pt: " << inv_pt
               << ", sum_pt_eta * 1/pt: " << etaphi_t(sum_pt_eta * inv_pt) << std::endl;
-    std::cout << " sum_pt_phi: " << sum_pt_phi << ", 1/pt: " << inv_pt
+    dbgCout() << " sum_pt_phi: " << sum_pt_phi << ", 1/pt: " << inv_pt
               << ", sum_pt_phi * 1/pt: " << etaphi_t(sum_pt_phi * inv_pt) << std::endl;
-    std::cout << " uncorr eta: " << seed.hwEta << ", phi: " << seed.hwPhi << std::endl;
-    std::cout << "   corr eta: " << eta << ", phi: " << phi << std::endl;
-    std::cout << "         pt: " << pt << std::endl;
+    dbgCout() << " uncorr eta: " << seed.hwEta << ", phi: " << seed.hwPhi << std::endl;
+    dbgCout() << "   corr eta: " << eta << ", phi: " << phi << std::endl;
+    dbgCout() << "         pt: " << pt << std::endl;
   }
 
   return jet;
@@ -109,9 +109,9 @@ std::vector<L1SCJetEmu::Jet> L1SCJetEmu::emulateEvent(std::vector<Particle>& par
       return inCone(seed, part);
     });
     if (debug_) {
-      std::cout << "Seed: " << seed.hwPt << ", " << seed.hwEta << ", " << seed.hwPhi << std::endl;
+      dbgCout() << "Seed: " << seed.hwPt << ", " << seed.hwEta << ", " << seed.hwPhi << std::endl;
       std::for_each(particlesInCone.begin(), particlesInCone.end(), [&](Particle& part) {
-        std::cout << "  Part: " << part.hwPt << ", " << part.hwEta << ", " << part.hwPhi << std::endl;
+        dbgCout() << "  Part: " << part.hwPt << ", " << part.hwEta << ", " << part.hwPhi << std::endl;
         inCone(seed, part);
       });
     }
