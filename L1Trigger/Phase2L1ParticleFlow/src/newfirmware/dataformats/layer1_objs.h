@@ -11,11 +11,11 @@ namespace l1ct {
     eta_t hwEta;  // relative to the region center, at calo
     phi_t hwPhi;  // relative to the region center, at calo
     pt_t hwEmPt;
-    bool hwIsEM;
+    emid_t hwEmID;
 
     inline bool operator==(const HadCaloObj &other) const {
       return hwPt == other.hwPt && hwEta == other.hwEta && hwPhi == other.hwPhi && hwEmPt == other.hwEmPt &&
-             hwIsEM == other.hwIsEM;
+             hwEmID == other.hwEmID;
     }
 
     inline bool operator>(const HadCaloObj &other) const { return hwPt > other.hwPt; }
@@ -26,7 +26,7 @@ namespace l1ct {
       hwEta = 0;
       hwPhi = 0;
       hwEmPt = 0;
-      hwIsEM = false;
+      hwEmID = 0;
     }
 
     int intPt() const { return Scales::intPt(hwPt); }
@@ -38,7 +38,9 @@ namespace l1ct {
     float floatEta() const { return Scales::floatEta(hwEta); }
     float floatPhi() const { return Scales::floatPhi(hwPhi); }
 
-    static const int BITWIDTH = pt_t::width + eta_t::width + phi_t::width + pt_t::width + 1;
+    bool hwIsEM() const { return hwEmID != 0; }
+
+    static const int BITWIDTH = pt_t::width + eta_t::width + phi_t::width + pt_t::width + emid_t::width;
     inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
@@ -46,7 +48,7 @@ namespace l1ct {
       _pack_into_bits(ret, start, hwEta);
       _pack_into_bits(ret, start, hwPhi);
       _pack_into_bits(ret, start, hwEmPt);
-      _pack_bool_into_bits(ret, start, hwIsEM);
+      _pack_into_bits(ret, start, hwEmID);
       return ret;
     }
     inline static HadCaloObj unpack(const ap_uint<BITWIDTH> &src) {
@@ -56,7 +58,7 @@ namespace l1ct {
       _unpack_from_bits(src, start, ret.hwEta);
       _unpack_from_bits(src, start, ret.hwPhi);
       _unpack_from_bits(src, start, ret.hwEmPt);
-      _unpack_bool_from_bits(src, start, ret.hwIsEM);
+      _unpack_from_bits(src, start, ret.hwEmID);
       return ret;
     }
   };
@@ -67,11 +69,11 @@ namespace l1ct {
     pt_t hwPt, hwPtErr;
     eta_t hwEta;  // relative to the region center, at calo
     phi_t hwPhi;  // relative to the region center, at calo
-    ap_uint<4> hwFlags;
+    emid_t hwEmID;
 
     inline bool operator==(const EmCaloObj &other) const {
       return hwPt == other.hwPt && hwEta == other.hwEta && hwPhi == other.hwPhi && hwPtErr == other.hwPtErr &&
-             hwFlags == other.hwFlags;
+             hwEmID == other.hwEmID;
     }
 
     inline bool operator>(const EmCaloObj &other) const { return hwPt > other.hwPt; }
@@ -82,7 +84,7 @@ namespace l1ct {
       hwPtErr = 0;
       hwEta = 0;
       hwPhi = 0;
-      hwFlags = 0;
+      hwEmID = 0;
     }
 
     int intPt() const { return Scales::intPt(hwPt); }
@@ -94,7 +96,7 @@ namespace l1ct {
     float floatEta() const { return Scales::floatEta(hwEta); }
     float floatPhi() const { return Scales::floatPhi(hwPhi); }
 
-    static const int BITWIDTH = pt_t::width + eta_t::width + phi_t::width + pt_t::width + 4;
+    static const int BITWIDTH = pt_t::width + eta_t::width + phi_t::width + pt_t::width + emid_t::width;
     inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
@@ -102,7 +104,7 @@ namespace l1ct {
       _pack_into_bits(ret, start, hwEta);
       _pack_into_bits(ret, start, hwPhi);
       _pack_into_bits(ret, start, hwPtErr);
-      _pack_into_bits(ret, start, hwFlags);
+      _pack_into_bits(ret, start, hwEmID);
       return ret;
     }
     inline static EmCaloObj unpack(const ap_uint<BITWIDTH> &src) {
@@ -112,7 +114,7 @@ namespace l1ct {
       _unpack_from_bits(src, start, ret.hwEta);
       _unpack_from_bits(src, start, ret.hwPhi);
       _unpack_from_bits(src, start, ret.hwPtErr);
-      _unpack_from_bits(src, start, ret.hwFlags);
+      _unpack_from_bits(src, start, ret.hwEmID);
       return ret;
     }
   };

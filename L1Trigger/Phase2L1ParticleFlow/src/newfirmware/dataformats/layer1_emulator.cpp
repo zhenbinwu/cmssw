@@ -6,6 +6,12 @@
 #include <algorithm>
 
 #ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../utils/dbgPrintf.h"
+#endif
+
+#ifdef CMSSW_GIT_HASH
 #include "DataFormats/Math/interface/deltaPhi.h"
 #else
 namespace reco {
@@ -91,6 +97,14 @@ bool l1ct::EGIsoEleObjEmu::read(std::fstream& from) {
 
 bool l1ct::EGIsoEleObjEmu::write(std::fstream& to) const { return writeObj<EGIsoEleObj>(*this, to); }
 
+l1ct::PFRegionEmu::PFRegionEmu(float etaCenter, float phicenter) {
+  hwEtaCenter = Scales::makeGlbEta(etaCenter);
+  hwPhiCenter = Scales::makeGlbPhi(phicenter);
+  hwEtaHalfWidth = 0;
+  hwPhiHalfWidth = 0;
+  hwEtaExtra = 0;
+  hwPhiExtra = 0;
+}
 l1ct::PFRegionEmu::PFRegionEmu(
     float etamin, float etamax, float phicenter, float phiwidth, float etaextra, float phiextra) {
   glbeta_t hwEtaMin = Scales::makeGlbEtaRoundEven(etamin);
@@ -310,19 +324,19 @@ bool l1ct::Event::read(std::fstream& from) {
   if (!readVar(from, version))
     return false;
   if (version != VERSION) {
-    std::cout << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
+    dbgCout() << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
               << std::endl;
-    std::cerr << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
+    dbgCerr() << "ERROR: version mismatch between this code (" << VERSION << ") and dump file (" << version << ")."
               << std::endl;
     abort();
   }
   return readVar(from, run) && readVar(from, lumi) && readVar(from, event) && decoded.read(from) &&
-         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, out);
+         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, pvs_emu) && readMany(from, out);
 }
 bool l1ct::Event::write(std::fstream& to) const {
   uint32_t version = VERSION;
   return writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && decoded.write(to) &&
-         writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(out, to);
+         writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(pvs_emu, to) && writeMany(out, to);
 }
 void l1ct::Event::init(uint32_t arun, uint32_t alumi, uint64_t anevent) {
   clear();
@@ -338,6 +352,7 @@ void l1ct::Event::clear() {
   for (auto& i : pfinputs)
     i.clear();
   pvs.clear();
+  pvs_emu.clear();
   for (auto& i : out)
     i.clear();
 }

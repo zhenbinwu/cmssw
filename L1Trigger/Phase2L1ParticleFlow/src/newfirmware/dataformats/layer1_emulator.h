@@ -90,6 +90,7 @@ namespace l1ct {
 
   struct PFRegionEmu : public PFRegion {
     PFRegionEmu() : PFRegion() {}
+    PFRegionEmu(float etaCenter, float phicenter);
     PFRegionEmu(float etamin, float etamax, float phicenter, float phiwidth, float etaextra, float phiextra);
 
     // global coordinates
@@ -166,6 +167,8 @@ namespace l1ct {
       hwIsoVars[3] = 0;
     }
 
+    using EGIsoObj::floatIso;
+
     enum IsoType { TkIso = 0, PfIso = 1, TkIsoPV = 2, PfIsoPV = 3 };
 
     float floatIso(IsoType type) const { return Scales::floatIso(hwIsoVars[type]); }
@@ -195,6 +198,8 @@ namespace l1ct {
       hwIsoVars[0] = 0;
       hwIsoVars[1] = 0;
     }
+
+    using EGIsoEleObj::floatIso;
 
     enum IsoType { TkIso = 0, PfIso = 1 };
 
@@ -293,12 +298,13 @@ namespace l1ct {
   };
 
   struct Event {
-    static const int VERSION = 6;
+    enum { VERSION = 8 };
     uint32_t run, lumi;
     uint64_t event;
     RegionizerDecodedInputs decoded;
     std::vector<PFInputRegion> pfinputs;
     std::vector<PVObjEmu> pvs;
+    std::vector<ap_uint<64>> pvs_emu;
     std::vector<OutputRegion> out;
 
     Event() : run(0), lumi(0), event(0) {}
@@ -313,6 +319,12 @@ namespace l1ct {
         ret = pvs[ipv];
       else
         ret.clear();
+      return ret;
+    }
+    inline ap_uint<64> pv_emu(unsigned int ipv = 0) const {
+      ap_uint<64> ret = 0;
+      if (ipv < pvs_emu.size())
+        ret = pvs_emu[ipv];
       return ret;
     }
   };
