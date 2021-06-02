@@ -520,7 +520,9 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
     tkAndSel = trackInput_->decodeTrack(t.trackWord().getTrackWord(), sec.region);
   } else {
     tkAndSel.first.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-    tkAndSel.first.hwEta = l1ct::Scales::makeEta(sec.region.localEta(t.caloEta()));
+    tkAndSel.first.hwEta =
+        l1ct::Scales::makeGlbEta(t.caloEta()) -
+        sec.region.hwEtaCenter;  // important to enforce that the region boundary is on a discrete value
     tkAndSel.first.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(t.caloPhi()));
     tkAndSel.first.hwCharge = t.charge() > 0;
     tkAndSel.first.hwQuality = t.quality();
@@ -533,6 +535,13 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
   // CMSSW-only extra info
   tkAndSel.first.hwChi2 = round(t.chi2() * 10);
   tkAndSel.first.hwStubs = t.nStubs();
+  tkAndSel.first.simPt = t.pt();
+  tkAndSel.first.simCaloEta = t.caloEta();
+  tkAndSel.first.simCaloPhi = t.caloPhi();
+  tkAndSel.first.simVtxEta = t.eta();
+  tkAndSel.first.simVtxPhi = t.phi();
+  tkAndSel.first.simZ0 = t.vertex().Z();
+  tkAndSel.first.simD0 = t.vertex().Rho();
   tkAndSel.first.src = &t;
   // If the track fails, we set its pT to zero, so that the decoded tracks are still aligned with the raw tracks
   // Downstream, the regionizer will just ignore zero-momentum tracks
@@ -583,7 +592,8 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
                                                     const l1t::PFCluster &c) {
   l1ct::HadCaloObjEmu calo;
   calo.hwPt = l1ct::Scales::makePtFromFloat(c.pt());
-  calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
+  calo.hwEta = l1ct::Scales::makeGlbEta(c.eta()) -
+               sec.region.hwEtaCenter;  // important to enforce that the region boundary is on a discrete value
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwEmPt = l1ct::Scales::makePtFromFloat(c.emEt());
   calo.hwEmID = c.hwEmID();
@@ -595,7 +605,8 @@ void L1TCorrelatorLayer1Producer::addDecodedEmCalo(l1ct::DetectorSector<l1ct::Em
                                                    const l1t::PFCluster &c) {
   l1ct::EmCaloObjEmu calo;
   calo.hwPt = l1ct::Scales::makePtFromFloat(c.pt());
-  calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
+  calo.hwEta = l1ct::Scales::makeGlbEta(c.eta()) -
+               sec.region.hwEtaCenter;  // important to enforce that the region boundary is on a discrete value
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwPtErr = l1ct::Scales::makePtFromFloat(c.ptError());
   calo.hwEmID = c.hwEmID();

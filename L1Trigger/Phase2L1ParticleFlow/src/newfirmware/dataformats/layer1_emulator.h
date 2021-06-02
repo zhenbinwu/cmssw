@@ -39,6 +39,7 @@ namespace l1ct {
 
   struct TkObjEmu : public TkObj {
     uint16_t hwChi2, hwStubs;
+    float simPt, simCaloEta, simCaloPhi, simVtxEta, simVtxPhi, simZ0, simD0;
     const l1t::PFTrack *src;
     bool read(std::fstream &from);
     bool write(std::fstream &to) const;
@@ -47,6 +48,13 @@ namespace l1ct {
       src = nullptr;
       hwChi2 = 0;
       hwStubs = 0;
+      simPt = 0;
+      simCaloEta = 0;
+      simCaloPhi = 0;
+      simVtxEta = 0;
+      simVtxPhi = 0;
+      simZ0 = 0;
+      simD0 = 0;
     }
   };
 

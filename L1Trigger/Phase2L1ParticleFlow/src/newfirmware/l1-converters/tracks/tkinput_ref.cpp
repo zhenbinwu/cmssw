@@ -117,7 +117,7 @@ std::pair<l1ct::TkObjEmu, bool> l1ct::TrackInputEmulator::decodeTrack(ap_uint<96
     ret.hwQuality = tkword(2, 0);
     ret.hwCharge = charge(tkword);
 
-    if (bitwise_) {
+    if (bitwise) {
       ret.hwPt = convPt(Rinv);
 
       l1ct::glbeta_t vtxEta = convEta(tanl);
@@ -206,6 +206,8 @@ l1ct::glbeta_t l1ct::TrackInputEmulator::convEta(ap_int<16> tanl) const {
   int ret = tanlLUT_[index] + tanlLUTPostOffs_;
   if (tanlLUTSigned_ && tanl < 0)
     ret = -ret;
+  if (debug_)
+    dbgPrintf("convEta: itanl = %+8d -> index %8d, LUT %8d, ret %+8d\n", tanl.to_int(), index, tanlLUT_[index], ret);
   return ret;
 }
 
@@ -215,11 +217,11 @@ void l1ct::TrackInputEmulator::configEta(int lutBits, int preOffs, int shift, in
   tanlLUTPostOffs_ = postOffs;
   tanlLUTShift_ = shift;
   tanlLUT_.resize(1 << lutBits);
-  int etaCenter = endcap ? l1ct::Scales::makeGlbEtaRoundEven(1.25).to_int() : 0;
+  int etaCenter = endcap ? l1ct::Scales::makeGlbEtaRoundEven(2.5).to_int() / 2 : 0;
   int etamin = 1, etamax = -1;
   for (unsigned int u = 0, n = tanlLUT_.size(), h = n / 2; u < n; ++u) {
     int i = (tanlLUTSigned_ || (u < h)) ? int(u) : int(u) - int(n);
-    ap_int<16> tanl = std::min<int>(std::round((i + 0.5) * (1 << shift) + preOffs), (1 << 16) - 1);
+    ap_int<16> tanl = std::min<int>(i * (1 << shift) + preOffs, (1 << 16) - 1);
     int eta = l1ct::Scales::makeGlbEta(floatEta(tanl)).to_int() - etaCenter - tanlLUTPostOffs_;
     bool valid = endcap ? (mayReachHGCal(tanl) && withinTracker(tanl)) : withinBarrel(tanl);
     if (valid) {
