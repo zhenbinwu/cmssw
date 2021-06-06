@@ -48,12 +48,6 @@ namespace Phase2L1GMT {
       return 0;
     }
 
-    int wordconcat(wordtype& word, int bstart, long int input, int bitsize) {
-      int bend = bstart + bitsize - 1;
-      word.range(bend, bstart) = twos_complement(input, bitsize);
-      return bend + 1;
-    }
-
     ConvertedTTTrack convert(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& track) {
       uint charge = (track->rInv() < 0) ? 1 : 0;
       int curvature = track->rInv() * (1 << (BITSTTCURV - 1)) / maxCurv_;
@@ -75,12 +69,12 @@ namespace Phase2L1GMT {
 
       wordtype word = 0;
       int bstart = 0;
-      bstart = wordconcat(word, bstart, curvature, BITSTTCURV);
-      bstart = wordconcat(word, bstart, phiSec, BITSTTPHI);
-      bstart = wordconcat(word, bstart, tanLambda, BITSTTTANL);
-      bstart = wordconcat(word, bstart, z0, BITSZ0);
-      bstart = wordconcat(word, bstart, d0, BITSD0);
-      bstart = wordconcat(word, bstart, uint(track->chi2()), 4);
+      bstart = wordconcat<wordtype>(word, bstart, curvature, BITSTTCURV);
+      bstart = wordconcat<wordtype>(word, bstart, phiSec, BITSTTPHI);
+      bstart = wordconcat<wordtype>(word, bstart, tanLambda, BITSTTTANL);
+      bstart = wordconcat<wordtype>(word, bstart, z0, BITSZ0);
+      bstart = wordconcat<wordtype>(word, bstart, d0, BITSD0);
+      bstart = wordconcat<wordtype>(word, bstart, uint(track->chi2()), 4);
 
       ConvertedTTTrack convertedTrack(charge, curvature, absEta, pt, eta, phiCorrected.to_int(), z0, d0, quality, word);
       convertedTrack.setOfflineQuantities(track->momentum().transverse(), track->eta(), track->phi());

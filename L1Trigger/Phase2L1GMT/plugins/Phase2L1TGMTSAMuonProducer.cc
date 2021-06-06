@@ -77,7 +77,7 @@ private:
 // constructors and destructor
 //
 Phase2L1TGMTSAMuonProducer::Phase2L1TGMTSAMuonProducer(const edm::ParameterSet& iConfig)
-    : muonToken_(consumes<l1t::MuonBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("muonToken"))),
+    : muonToken_(consumes<l1t::MuonBxCollection>(iConfig.getParameter<edm::InputTag>("muonToken"))),
       Nprompt(iConfig.getParameter<uint>("Nprompt")),
       Ndisplaced(iConfig.getParameter<uint>("Ndisplaced"))
 {
@@ -144,27 +144,28 @@ SAMuon Phase2L1TGMTSAMuonProducer::Convertl1tMuon(const l1t::Muon& mu, const int
   ap_uint<BITSQUALITY> qual = mu.hwQual();
   // We might not need to send BX info
   //ap_int<BITSBX> bx(bx_);
-  bool charge(mu.charge() > 0);
+  int charge = mu.charge() > 0 ? 0 :1;
   ap_uint<BITSPT> pt = round(mu.pt() / 0.025);
   ap_int<BITSPHI> phi = round(mu.phi() * (1 << (BITSPHI - 1)) / (M_PI));
   ap_int<BITSETA> eta = round(mu.eta() * (1 << (BITSETA - 1)) / (M_PI));
   // FIXME: Below are not well defined in phase1 GMT
   // Using the version from Correlator for now
   ap_int<BITSSAZ0> z0 = 0;  // No tracks info in Phase 1
-  ap_int<BITSSAD0> d0 =
-      mu.hwDXY();  // Use 2 bits with LSB = 30cm for BMTF and 25cm for EMTF currently, but subjet to change
+  // Use 2 bits with LSB = 30cm for BMTF and 25cm for EMTF currently, but subjet to change
+  ap_int<BITSSAD0> d0 = mu.hwDXY();  
   ap_uint<BITSSABETA> beta = 0;  // No beta from l1t::Muon
 
-  ap_uint<64> word(0);
-  word = word.concat(beta);
-  word = word.concat(d0);
-  word = word.concat(z0);
-  word = word.concat(eta);
-  word = word.concat(phi);
-  word = word.concat(pt);
-  word = word.concat(ap_uint<1>(charge));
-  word = word.concat(qual);
-  //word = word.concat(bx);
+  typedef ap_uint<64> wordtype;
+  int bstart = 0;
+  wordtype word(0);
+  bstart = wordconcat<wordtype>(word, bstart, qual, BITSQUALITY );
+  bstart = wordconcat<wordtype>(word, bstart, charge, 1);
+  bstart = wordconcat<wordtype>(word, bstart, pt, BITSPT);
+  bstart = wordconcat<wordtype>(word, bstart, phi, BITSPHI);
+  bstart = wordconcat<wordtype>(word, bstart, eta, BITSETA);
+  bstart = wordconcat<wordtype>(word, bstart, z0, BITSSAZ0);
+  bstart = wordconcat<wordtype>(word, bstart, d0, BITSSAD0);
+  bstart = wordconcat<wordtype>(word, bstart, beta, BITSSABETA);
 
   SAMuon samuon(mu, charge, pt.to_uint(), eta.to_int(), phi.to_int(), z0.to_int(), d0.to_int(), qual.to_uint());
   samuon.setBeta(beta.to_uint());

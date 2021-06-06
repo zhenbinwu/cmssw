@@ -76,7 +76,7 @@ gmtMuons = cms.EDProducer('Phase2L1TGMTProducer',
 )
 
 standaloneMuons = cms.EDProducer('Phase2L1TGMTSAMuonProducer',
-                                 muonToken  = cms.untracked.InputTag('simGmtStage2Digis', "", "HLT"),
+                                 muonToken  = cms.InputTag('simGmtStage2Digis'),
                                  Nprompt    = cms.uint32(12),
                                  Ndisplaced = cms.uint32(12)
                                 )

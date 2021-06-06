@@ -72,6 +72,14 @@ namespace Phase2L1GMT {
       return (~(-v) + 1) & mask;
   }
 
+  template < class T>
+  inline int wordconcat(T word, int bstart, long int input, int bitsize)
+  {
+      int bend = bstart + bitsize - 1;
+      word.range(bend, bstart) = twos_complement(input, bitsize);
+      return bend + 1;
+    }
+
   const int ptShifts[9][5] = {{1, 107, -1, 0, 0},
                               {107, 1324, 0, -106, 0},
                               {1324, 1872, 1, 556, 0},
