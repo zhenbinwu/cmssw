@@ -29,6 +29,7 @@
 //#include "DataFormats/L1TMuon/interface/BMTF/L1MuBMTrackSegLoc.h"
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/Common/interface/Ref.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 //              ---------------------
 //              -- Class Interface --

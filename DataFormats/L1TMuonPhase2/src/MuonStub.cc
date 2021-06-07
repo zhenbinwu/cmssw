@@ -82,19 +82,16 @@ bool MuonStub::operator==(const MuonStub& id) const {
 //
 
 void MuonStub::print() const {
-  printf(
-      "BX=%d etaRegion=%d phiRegion=%d depth=%d ID=%d coord1=%d coord2=%d quality=%d eta1=%d eta2=%d etaQuality=%d "
-      "type=%d\n",
-      bxNum_,
-      etaRegion_,
-      phiRegion_,
-      depthRegion_,
-      id_,
-      coord1_,
-      coord2_,
-      quality_,
-      eta1_,
-      eta2_,
-      etaQuality_,
-      type_);
+  LogDebug("MuonStub") << " MuonStub : BX=" << bxNum_       
+                       << " etaRegion="     << etaRegion_
+                       << " phiRegion="     << phiRegion_
+                       << " depth="         << depthRegion_
+                       << " ID="            << id_
+                       << " coord1="        << coord1_
+                       << " coord2="        << coord2_
+                       << " quality="       << quality_
+                       << " eta1="          << eta1_
+                       << " eta2="          << eta2_
+                       << " etaQuality="    << etaQuality_
+                       << " type="          << type_;
 }

@@ -7,6 +7,7 @@
 #include "DataFormats/Common/interface/Ptr.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 namespace l1t {
 
