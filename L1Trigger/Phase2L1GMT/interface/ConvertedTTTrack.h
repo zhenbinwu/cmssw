@@ -2,6 +2,7 @@
 #define PHASE2GMT_CONEVRTEDTTRACK
 #include "L1Trigger/Phase2L1GMT/interface/Constants.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 namespace Phase2L1GMT {
 
@@ -55,24 +56,20 @@ namespace Phase2L1GMT {
     }
 
     void print() const {
-      printf("converted track charge=%d curvature=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d\n",
-             charge_,
-             curvature_,
-             offline_pt_,
-             pt_,
-             offline_eta_,
-             eta_,
-             offline_phi_,
-             phi_,
-             z0_,
-             d0_,
-             quality_);
+      LogDebug("ConvertedTTTrack") << "converted track : charge=" << charge_
+                                   << " curvature="               << curvature_
+                                   << " pt="                      << offline_pt_  << "," << pt_
+                                   << " eta="                     << offline_eta_ << "," << eta_
+                                   << " phi="                     << offline_phi_ << "," << phi_
+                                   << " z0="                      << z0_
+                                   << " d0="                      << d0_
+                                   << " quality="                 << quality_;
     }
 
     void printWord() const {
-      printf(" %08llx%016llx",
-             (long long unsigned int)((word_ >> 64).to_uint64()),
-             (long long unsigned int)((word_ & 0xffffffffffffffff).to_uint64()));
+      LogDebug("ConvertedTTTrack") << "converted track : word=" 
+        << std::setfill('0') << std::setw(8) <<std::hex<< (long long unsigned int)((word_ >> 64).to_uint64())
+        << std::setfill('0') << std::setw(16) <<std::hex<< (long long unsigned int)((word_ & 0xffffffffffffffff).to_uint64());
     }
 
     void setTrkPtr(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& trkPtr) { trkPtr_ = trkPtr; }

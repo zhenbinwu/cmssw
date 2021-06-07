@@ -1,6 +1,8 @@
 #ifndef PHASE2GMT_PRETRACKMATCHEDMUON
 #define PHASE2GMT_PRETRACKMATCHEDMUON
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 namespace Phase2L1GMT {
 
   class PreTrackMatchedMuon {
@@ -87,26 +89,17 @@ namespace Phase2L1GMT {
     const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr() const { return trkPtr_; }
 
     void print() const {
-      printf(
-          "preconstructed muon  charge=%d pt=%f,%d eta=%f,%d phi=%f,%d z0=%d d0=%d quality=%d isGlobal=%d valid=%d "
-          "stubs: %d %d %d %d %d \n",
-          charge_,
-          offline_pt_,
-          pt_,
-          offline_eta_,
-          eta_,
-          offline_phi_,
-          phi_,
-          z0_,
-          d0_,
-          quality_,
-          isGlobal_,
-          valid_,
-          stubID0_,
-          stubID1_,
-          stubID2_,
-          stubID3_,
-          stubID4_);
+      LogDebug("PreTrackMatchedMuon") << "preconstructed muon : charge=" << charge_
+                                      << " pt="                          << offline_pt_  << ","          << pt_
+                                      << " eta="                         << offline_eta_ << ","          << eta_
+                                      << " phi="                         << offline_phi_ << ","          << phi_
+                                      << " z0="                          << z0_
+                                      << " d0="                          << d0_
+                                      << " quality="                     << quality_
+                                      << " isGlobal="                    << isGlobal_
+                                      << " valid="                       << valid_
+                                      << " stubs: "<< stubID0_     << " "<< stubID1_ 
+                                      << " " <<stubID2_ << " " <<stubID3_ << " " <<stubID4_;
     }
 
     uint64_t lsb() const {
@@ -134,9 +127,9 @@ namespace Phase2L1GMT {
     }
 
     void printWord() const {
-      printf("%016llx%016llx",
-             (long long unsigned int)msb() >> 2,
-             (long long unsigned int)((lsb() | (msb() << 62)) & 0xffffffffffffffff));
+      LogDebug("PreTrackMatchedMuon") << "PreTrackMatchedMuon : word=" 
+        << std::setfill('0') << std::setw(16) <<std::hex<< (long long unsigned int)(msb() >> 2)
+        << std::setfill('0') << std::setw(16) <<std::hex<< (long long unsigned int)((lsb() | (msb() << 62)) & 0xffffffffffffffff);
     }
 
   private:

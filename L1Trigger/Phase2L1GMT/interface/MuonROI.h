@@ -7,6 +7,7 @@
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/L1Trigger/interface/L1TObjComparison.h"
 #include "DataFormats/L1Trigger/interface/BXVector.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 namespace Phase2L1GMT {
 
@@ -93,13 +94,13 @@ namespace Phase2L1GMT {
         if (s->tfLayer() == 4)
           s4 = stubWord(s);
       }
-      printf("%08llx%016llx%016llx%016llx%016llx%016llx",
-             (long long unsigned int)(roiWord().to_uint64()),
-             (long long unsigned int)(s4.to_uint64()),
-             (long long unsigned int)(s3.to_uint64()),
-             (long long unsigned int)(s2.to_uint64()),
-             (long long unsigned int)(s1.to_uint64()),
-             (long long unsigned int)(s0.to_uint64()));
+      LogDebug("MuonROI") << "MuonROI " 
+         << std::setfill('0') << std::setw(8)  << std::hex <<  (long long unsigned int)(roiWord().to_uint64())
+         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s4.to_uint64())
+         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s3.to_uint64())
+         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s2.to_uint64())
+         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s1.to_uint64())
+         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s0.to_uint64());
     }
 
   private:
