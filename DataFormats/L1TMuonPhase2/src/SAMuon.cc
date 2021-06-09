@@ -10,12 +10,8 @@ SAMuon::SAMuon(const l1t::Muon& mu, bool charge, uint pt, int eta, int phi, int 
 SAMuon::~SAMuon() {}
 
 void SAMuon::print() const {
-  LogDebug("SAMuon") << "Standalone Muon: charge=" << hwCharge_ << 
-  " pt="             << hwPt()                     << ","       << p4().pt()  << 
-  " eta="            << hwEta()                    << ","       << p4().eta() << 
-  " phi="            << hwPhi()                    << ","       << p4().phi() << 
-  " z0="             << hwZ0_                      << " d0="    << hwD0_      << 
-  " isolation="      << hwIso()                    << " beta="  << hwBeta_    << 
-  " quality="        << hwQual();
-
+  LogDebug("SAMuon") << "Standalone Muon: charge=" << hwCharge_ << " pt=" << hwPt() << "," << p4().pt()
+                     << " eta=" << hwEta() << "," << p4().eta() << " phi=" << hwPhi() << "," << p4().phi()
+                     << " z0=" << hwZ0_ << " d0=" << hwD0_ << " isolation=" << hwIso() << " beta=" << hwBeta_
+                     << " quality=" << hwQual();
 }

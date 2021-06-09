@@ -89,17 +89,11 @@ namespace Phase2L1GMT {
     const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr() const { return trkPtr_; }
 
     void print() const {
-      LogDebug("PreTrackMatchedMuon") << "preconstructed muon : charge=" << charge_
-                                      << " pt="                          << offline_pt_  << ","          << pt_
-                                      << " eta="                         << offline_eta_ << ","          << eta_
-                                      << " phi="                         << offline_phi_ << ","          << phi_
-                                      << " z0="                          << z0_
-                                      << " d0="                          << d0_
-                                      << " quality="                     << quality_
-                                      << " isGlobal="                    << isGlobal_
-                                      << " valid="                       << valid_
-                                      << " stubs: "<< stubID0_     << " "<< stubID1_ 
-                                      << " " <<stubID2_ << " " <<stubID3_ << " " <<stubID4_;
+      LogDebug("PreTrackMatchedMuon") << "preconstructed muon : charge=" << charge_ << " pt=" << offline_pt_ << ","
+                                      << pt_ << " eta=" << offline_eta_ << "," << eta_ << " phi=" << offline_phi_ << ","
+                                      << phi_ << " z0=" << z0_ << " d0=" << d0_ << " quality=" << quality_
+                                      << " isGlobal=" << isGlobal_ << " valid=" << valid_ << " stubs: " << stubID0_
+                                      << " " << stubID1_ << " " << stubID2_ << " " << stubID3_ << " " << stubID4_;
     }
 
     uint64_t lsb() const {
@@ -127,9 +121,10 @@ namespace Phase2L1GMT {
     }
 
     void printWord() const {
-      LogDebug("PreTrackMatchedMuon") << "PreTrackMatchedMuon : word=" 
-        << std::setfill('0') << std::setw(16) <<std::hex<< (long long unsigned int)(msb() >> 2)
-        << std::setfill('0') << std::setw(16) <<std::hex<< (long long unsigned int)((lsb() | (msb() << 62)) & 0xffffffffffffffff);
+      LogDebug("PreTrackMatchedMuon") << "PreTrackMatchedMuon : word=" << std::setfill('0') << std::setw(16) << std::hex
+                                      << (long long unsigned int)(msb() >> 2) << std::setfill('0') << std::setw(16)
+                                      << std::hex
+                                      << (long long unsigned int)((lsb() | (msb() << 62)) & 0xffffffffffffffff);
     }
 
   private:

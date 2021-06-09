@@ -94,13 +94,13 @@ namespace Phase2L1GMT {
         if (s->tfLayer() == 4)
           s4 = stubWord(s);
       }
-      LogDebug("MuonROI") << "MuonROI " 
-         << std::setfill('0') << std::setw(8)  << std::hex <<  (long long unsigned int)(roiWord().to_uint64())
-         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s4.to_uint64())
-         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s3.to_uint64())
-         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s2.to_uint64())
-         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s1.to_uint64())
-         << std::setfill('0') << std::setw(16) << std::hex <<  (long long unsigned int)(s0.to_uint64());
+      LogDebug("MuonROI") << "MuonROI " << std::setfill('0') << std::setw(8) << std::hex
+                          << (long long unsigned int)(roiWord().to_uint64()) << std::setfill('0') << std::setw(16)
+                          << std::hex << (long long unsigned int)(s4.to_uint64()) << std::setfill('0') << std::setw(16)
+                          << std::hex << (long long unsigned int)(s3.to_uint64()) << std::setfill('0') << std::setw(16)
+                          << std::hex << (long long unsigned int)(s2.to_uint64()) << std::setfill('0') << std::setw(16)
+                          << std::hex << (long long unsigned int)(s1.to_uint64()) << std::setfill('0') << std::setw(16)
+                          << std::hex << (long long unsigned int)(s0.to_uint64());
     }
 
   private:

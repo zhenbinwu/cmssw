@@ -79,8 +79,7 @@ private:
 Phase2L1TGMTSAMuonProducer::Phase2L1TGMTSAMuonProducer(const edm::ParameterSet& iConfig)
     : muonToken_(consumes<l1t::MuonBxCollection>(iConfig.getParameter<edm::InputTag>("muonToken"))),
       Nprompt(iConfig.getParameter<uint>("Nprompt")),
-      Ndisplaced(iConfig.getParameter<uint>("Ndisplaced"))
-{
+      Ndisplaced(iConfig.getParameter<uint>("Ndisplaced")) {
   produces<std::vector<l1t::SAMuon> >("promptSAMuons").setBranchAlias("prompt");
   produces<std::vector<l1t::SAMuon> >("displacedSAMuons").setBranchAlias("displaced");
 }
@@ -144,7 +143,7 @@ SAMuon Phase2L1TGMTSAMuonProducer::Convertl1tMuon(const l1t::Muon& mu, const int
   ap_uint<BITSQUALITY> qual = mu.hwQual();
   // We might not need to send BX info
   //ap_int<BITSBX> bx(bx_);
-  int charge = mu.charge() > 0 ? 0 :1;
+  int charge = mu.charge() > 0 ? 0 : 1;
   ap_uint<BITSPT> pt = round(mu.pt() / 0.025);
   ap_int<BITSPHI> phi = round(mu.phi() * (1 << (BITSPHI - 1)) / (M_PI));
   ap_int<BITSETA> eta = round(mu.eta() * (1 << (BITSETA - 1)) / (M_PI));
@@ -152,13 +151,13 @@ SAMuon Phase2L1TGMTSAMuonProducer::Convertl1tMuon(const l1t::Muon& mu, const int
   // Using the version from Correlator for now
   ap_int<BITSSAZ0> z0 = 0;  // No tracks info in Phase 1
   // Use 2 bits with LSB = 30cm for BMTF and 25cm for EMTF currently, but subjet to change
-  ap_int<BITSSAD0> d0 = mu.hwDXY();  
+  ap_int<BITSSAD0> d0 = mu.hwDXY();
   ap_uint<BITSSABETA> beta = 0;  // No beta from l1t::Muon
 
   typedef ap_uint<64> wordtype;
   int bstart = 0;
   wordtype word(0);
-  bstart = wordconcat<wordtype>(word, bstart, qual, BITSQUALITY );
+  bstart = wordconcat<wordtype>(word, bstart, qual, BITSQUALITY);
   bstart = wordconcat<wordtype>(word, bstart, charge, 1);
   bstart = wordconcat<wordtype>(word, bstart, pt, BITSPT);
   bstart = wordconcat<wordtype>(word, bstart, phi, BITSPHI);

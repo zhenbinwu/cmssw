@@ -72,13 +72,12 @@ namespace Phase2L1GMT {
       return (~(-v) + 1) & mask;
   }
 
-  template < class T>
-  inline int wordconcat(T word, int bstart, long int input, int bitsize)
-  {
-      int bend = bstart + bitsize - 1;
-      word.range(bend, bstart) = twos_complement(input, bitsize);
-      return bend + 1;
-    }
+  template <class T>
+  inline int wordconcat(T word, int bstart, long int input, int bitsize) {
+    int bend = bstart + bitsize - 1;
+    word.range(bend, bstart) = twos_complement(input, bitsize);
+    return bend + 1;
+  }
 
   const int ptShifts[9][5] = {{1, 107, -1, 0, 0},
                               {107, 1324, 0, -106, 0},
@@ -199,7 +198,8 @@ namespace Phase2L1GMT {
       97,   96,   96,   95,   94,   94,   93,   93,   92,   91,   91,   90,   90,   89,   88,   88,   87,   87,   86,
       86,   85,   85,   84,   84,   83,   82,   82,   82,   81,   81,   80,   80};
 
-  const int etaShifts[4][5] = {{0, 3230, 1, 0, 0}, {3230, 9594, 2, 808, 0}, {9594, 23557, 4, 2608, 0}, {23557, 32768, -2, 0, 4081}};
+  const int etaShifts[4][5] = {
+      {0, 3230, 1, 0, 0}, {3230, 9594, 2, 808, 0}, {9594, 23557, 4, 2608, 0}, {23557, 32768, -2, 0, 4081}};
 
   const uint etaLUT[4082] = {
       0,    1,    1,    2,    3,    3,    4,    4,    5,    6,    6,    7,    8,    8,    9,    10,   10,   11,   11,
