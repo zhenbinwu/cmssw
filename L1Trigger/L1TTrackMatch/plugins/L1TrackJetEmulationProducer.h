@@ -11,31 +11,34 @@ using namespace std;
 
 namespace ExtraBits {
   const int PT_BITS = 18;
-  const int ETAPHI_BITS = 20;
+  const int ETA_BITS = 20;
+  const int PHI_BITS = 21;
   const int Z0_BITS = 22;
 }
 
-typedef ap_ufixed<32, 12, AP_TRN, AP_SAT> pt_intern;
-typedef ap_int<32> glbeta_intern;
-typedef ap_int<32> glbphi_intern;
-typedef ap_int<32> z0_intern;         // 40cm / 0.1
+typedef ap_ufixed<14 + ExtraBits::PT_BITS, 12, AP_TRN, AP_SAT> pt_intern;
+typedef ap_int<12+ExtraBits::ETA_BITS> glbeta_intern;
+typedef ap_int<11+ExtraBits::PHI_BITS> glbphi_intern;
+typedef ap_int<10+ExtraBits::Z0_BITS> z0_intern;         // 40cm / 0.1
 
 namespace Convert {
   const int INTPHI_PI = 720;
   const int INTPHI_TWOPI = 2 * INTPHI_PI;
   constexpr float INTPT_LSB_POW = pow(2.0,-2 - ExtraBits::PT_BITS);
   constexpr float INTPT_LSB = INTPT_LSB_POW;
-  constexpr float ETAPHI_LSB_POW = pow(2.0,-1 * ExtraBits::ETAPHI_BITS);
-  constexpr float ETAPHI_LSB = M_PI / INTPHI_PI * ETAPHI_LSB_POW;
+  constexpr float ETA_LSB_POW = pow(2.0,-1 * ExtraBits::ETA_BITS);
+  constexpr float ETA_LSB = M_PI / INTPHI_PI * ETA_LSB_POW;
+  constexpr float PHI_LSB_POW = pow(2.0,-1 * ExtraBits::PHI_BITS);
+  constexpr float PHI_LSB = M_PI / INTPHI_PI * PHI_LSB_POW;
   constexpr float Z0_LSB_POW = pow(2.0,-1 * ExtraBits::Z0_BITS);
   constexpr float Z0_LSB = 0.05 * Z0_LSB_POW;
   inline float floatPt(pt_intern pt) { return pt.to_float(); }
-  inline int intPt(pt_intern pt) { return (ap_ufixed<34, 14>(pt)).to_int(); }
-  inline float floatEta(glbeta_intern eta) { return eta.to_float() * ETAPHI_LSB; }
-  inline float floatPhi(glbphi_intern phi) { return phi.to_float() * ETAPHI_LSB; }
+  inline int intPt(pt_intern pt) { return (ap_ufixed<16+ExtraBits::PT_BITS, 14>(pt)).to_int(); }
+  inline float floatEta(glbeta_intern eta) { return eta.to_float() * ETA_LSB; }
+  inline float floatPhi(glbphi_intern phi) { return phi.to_float() * PHI_LSB; }
   inline float floatZ0(z0_intern z0) { return z0.to_float() * Z0_LSB; }
 
-  inline pt_intern makePt(int pt) { return ap_ufixed<34, 14>(pt); }
+  inline pt_intern makePt(int pt) { return ap_ufixed<16+ExtraBits::PT_BITS, 14>(pt); }
   inline pt_intern makePtFromFloat(float pt) { return pt_intern(INTPT_LSB_POW * round(pt / INTPT_LSB_POW)); }
   inline z0_intern makeZ0(float z0) { return z0_intern(round(z0 / Z0_LSB)); }
 
@@ -46,13 +49,13 @@ namespace Convert {
     return ret;
   }
 
-  inline glbeta_intern makeGlbEta(float eta) { return round(eta / ETAPHI_LSB); }
+  inline glbeta_intern makeGlbEta(float eta) { return round(eta / ETA_LSB); }
   inline glbeta_intern makeGlbEtaRoundEven(float eta) {
-    glbeta_intern ghweta = round(eta / ETAPHI_LSB);
+    glbeta_intern ghweta = round(eta / ETA_LSB);
     return (ghweta % 2) ? glbeta_intern(ghweta + 1) : ghweta;
   }
 
-  inline glbphi_intern makeGlbPhi(float phi) { return round(phi / ETAPHI_LSB); }
+  inline glbphi_intern makeGlbPhi(float phi) { return round(phi / PHI_LSB); }
 
 };  // namespace Scales
 

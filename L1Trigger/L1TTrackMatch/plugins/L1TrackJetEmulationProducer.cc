@@ -231,8 +231,8 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
           continue;
         if (mzb.clusters[j].ntracks > 5000)
           continue;
-        l1t::glbeta_t jetEta = mzb.clusters[j].eta * Convert::ETAPHI_LSB_POW;
-        l1t::glbphi_t jetPhi = mzb.clusters[j].phi * Convert::ETAPHI_LSB_POW;
+        l1t::glbeta_t jetEta = mzb.clusters[j].eta * Convert::ETA_LSB_POW;
+        l1t::glbphi_t jetPhi = mzb.clusters[j].phi * Convert::PHI_LSB_POW;
         l1t::glbphi_t jetZ0 = mzb.zbincenter * Convert::Z0_LSB_POW;
         l1t::pt_t jetPt = mzb.clusters[j].pTtot;
         l1t::nt_t totalntracks_ = mzb.clusters[j].ntracks;
@@ -326,7 +326,7 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
       ap_fixed<TrackBitWidths::kEtaSize, TrackBitWidths::kEtaMagSize, AP_RND_CONV, AP_SAT> trketainput = 0;
       trketainput.V = L1TrkPtrs_[k]->getTrackWord()(
           TTTrack_TrackWord::TrackBitLocations::kTanlMSB, TTTrack_TrackWord::TrackBitLocations::kTanlLSB);
-      ap_ufixed<64, 28> eta_conv = 1.0 / Convert::ETAPHI_LSB; //conversion factor from input eta format to output format
+      ap_ufixed<64, 28> eta_conv = 1.0 / Convert::ETA_LSB; //conversion factor from input eta format to output format
       glbeta_intern trketa = eta_conv * trketainput;
 
       glbphi_intern trkphi = Convert::makeGlbPhi(L1TrkPtrs_[k]->momentum().phi()); //global phi of track in output format
@@ -336,7 +336,7 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
       ap_ufixed<64, 28> z0_conv = TTTrack_TrackWord::stepZ0 / Convert::Z0_LSB; //conversion factor from input z format to output format
       z0_intern trkZ = z0_conv * inputTrkZ0;
       
-      ap_ufixed<32, 1> phi_conv = TTTrack_TrackWord::stepPhi0 / Convert::ETAPHI_LSB;
+      ap_ufixed<32, 1> phi_conv = TTTrack_TrackWord::stepPhi0 / Convert::PHI_LSB;
       
       for (int i = 0; i < phiBins_; ++i) {
         for (int j = 0; j < etaBins_; ++j) {
