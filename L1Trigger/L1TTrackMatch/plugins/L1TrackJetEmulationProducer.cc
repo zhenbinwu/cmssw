@@ -326,17 +326,17 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
       ap_fixed<TrackBitWidths::kEtaSize, TrackBitWidths::kEtaMagSize, AP_RND_CONV, AP_SAT> trketainput = 0;
       trketainput.V = L1TrkPtrs_[k]->getTrackWord()(
           TTTrack_TrackWord::TrackBitLocations::kTanlMSB, TTTrack_TrackWord::TrackBitLocations::kTanlLSB);
-      ap_ufixed<64, 28> eta_conv = 1.0 / Convert::ETA_LSB; //conversion factor from input eta format to output format
+      ap_ufixed<32+ExtraBits::ETA_BITS, 8+ExtraBits::ETA_BITS> eta_conv = 1.0 / Convert::ETA_LSB; //conversion factor from input eta format to output format
       glbeta_intern trketa = eta_conv * trketainput;
 
       glbphi_intern trkphi = Convert::makeGlbPhi(L1TrkPtrs_[k]->momentum().phi()); //global phi of track in output format
 
       ap_int<TTTrack_TrackWord::TrackBitWidths::kZ0Size> inputTrkZ0 = L1TrkPtrs_[k]->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kZ0MSB,
                                                                          TTTrack_TrackWord::TrackBitLocations::kZ0LSB);
-      ap_ufixed<64, 28> z0_conv = TTTrack_TrackWord::stepZ0 / Convert::Z0_LSB; //conversion factor from input z format to output format
+      ap_ufixed<32+ExtraBits::Z0_BITS, 1+ExtraBits::Z0_BITS> z0_conv = TTTrack_TrackWord::stepZ0 / Convert::Z0_LSB; //conversion factor from input z format to output format
       z0_intern trkZ = z0_conv * inputTrkZ0;
       
-      ap_ufixed<32, 1> phi_conv = TTTrack_TrackWord::stepPhi0 / Convert::PHI_LSB;
+      ap_ufixed<32+ExtraBits::PHI_BITS, 1+ExtraBits::PHI_BITS> phi_conv = TTTrack_TrackWord::stepPhi0 / Convert::PHI_LSB;
       
       for (int i = 0; i < phiBins_; ++i) {
         for (int j = 0; j < etaBins_; ++j) {
