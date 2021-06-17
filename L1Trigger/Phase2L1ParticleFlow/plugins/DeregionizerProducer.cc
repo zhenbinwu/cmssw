@@ -65,8 +65,10 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
   for (unsigned int iReg = 0, nReg = src->nRegions(); iReg < nReg; ++iReg) {
     l1ct::OutputRegion tempOutputRegion;
 
-    if (debug_) std::cout<<"\nRegion "<<iReg<<"\n"<<"###########"<<"\n";
     auto region = src->region(iReg);
+    float eta = src->eta(iReg);
+    float phi = src->phi(iReg);
+    if (debug_) std::cout<<"\nRegion "<<iReg<<"\n"<<"Eta = "<<eta<<" and Phi = "<<phi<<"\n"<<"###########"<<"\n";
     for (int i = 0, n = region.size(); i < n; ++i) {
       l1ct::PuppiObjEmu tempPuppi;
       const l1t::PFCandidate &cand = region[i];
@@ -80,8 +82,8 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
       if (debug_) std::cout <<"pt["<<i<<"] = "<<tempOutputRegion.puppi.back().hwPt<<", eta["<<i<<"] = "<<tempOutputRegion.puppi.back().floatEta()<<", phi["<<i<<"] = "<<tempOutputRegion.puppi.back().floatPhi()<<"\n";
     }
     if(tempOutputRegion.puppi.size() > 0) {
-      regionEtas.push_back(tempOutputRegion.puppi[0].floatEta());
-      regionPhis.push_back(tempOutputRegion.puppi[0].floatPhi());
+      regionEtas.push_back(eta);
+      regionPhis.push_back(phi);
       outputRegions.push_back(tempOutputRegion);
     }
   }
