@@ -137,8 +137,8 @@ namespace l1t {
     refprod refprod_;
     std::vector<unsigned int> values_;   // list of indices to objects in each region, flattened.
     std::vector<unsigned int> regions_;  // for each region, store the index of one-past the last object in values
-    std::vector<float> etas_;  // floatEtaCenter of each PFregion
-    std::vector<float> phis_;  // floatPhiCenter of each PFregion
+    std::vector<float> etas_;            // floatEtaCenter of each PFregion
+    std::vector<float> phis_;            // floatPhiCenter of each PFregion
   };
 }  // namespace l1t
 #endif

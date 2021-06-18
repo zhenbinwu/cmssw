@@ -10,32 +10,31 @@
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/deregionizer/deregionizer_input.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/deregionizer/deregionizer_ref.h"
 
-
 class DeregionizerProducer : public edm::stream::EDProducer<> {
-  public:
-    explicit DeregionizerProducer(const edm::ParameterSet &);
-    ~DeregionizerProducer() override;
+public:
+  explicit DeregionizerProducer(const edm::ParameterSet &);
+  ~DeregionizerProducer() override;
 
-  private:
-    edm::ParameterSet config_;
-    edm::EDGetTokenT<l1t::PFCandidateRegionalOutput> token_;
-    l1ct::DeregionizerEmulator emulator_;
-    bool debug_;
+private:
+  edm::ParameterSet config_;
+  edm::EDGetTokenT<l1t::PFCandidateRegionalOutput> token_;
+  l1ct::DeregionizerEmulator emulator_;
+  bool debug_;
 
-    std::unordered_map<const l1t::PFCandidate *, l1t::PFClusterRef> clusterRefMap_;
-    std::unordered_map<const l1t::PFCandidate *, l1t::PFTrackRef> trackRefMap_;
-    std::unordered_map<const l1t::PFCandidate *, l1t::PFCandidate::MuonRef> muonRefMap_;
+  std::unordered_map<const l1t::PFCandidate *, l1t::PFClusterRef> clusterRefMap_;
+  std::unordered_map<const l1t::PFCandidate *, l1t::PFTrackRef> trackRefMap_;
+  std::unordered_map<const l1t::PFCandidate *, l1t::PFCandidate::MuonRef> muonRefMap_;
 
-    void produce(edm::Event &, const edm::EventSetup &) override;
-    void hwToEdm_(const std::vector<l1ct::PuppiObjEmu> &hwOut, std::vector<l1t::PFCandidate> &edmOut) const;
-    void setRefs_(l1t::PFCandidate &pf, const l1ct::PuppiObjEmu &p) const;
+  void produce(edm::Event &, const edm::EventSetup &) override;
+  void hwToEdm_(const std::vector<l1ct::PuppiObjEmu> &hwOut, std::vector<l1t::PFCandidate> &edmOut) const;
+  void setRefs_(l1t::PFCandidate &pf, const l1ct::PuppiObjEmu &p) const;
 };
 
 DeregionizerProducer::DeregionizerProducer(const edm::ParameterSet &iConfig)
-  : config_(iConfig),
-    token_(consumes<l1t::PFCandidateRegionalOutput>(iConfig.getParameter<edm::InputTag>("RegionalPuppiCands"))),
-    emulator_(iConfig),
-    debug_(iConfig.getUntrackedParameter<bool>("debug", 0)) {
+    : config_(iConfig),
+      token_(consumes<l1t::PFCandidateRegionalOutput>(iConfig.getParameter<edm::InputTag>("RegionalPuppiCands"))),
+      emulator_(iConfig),
+      debug_(iConfig.getUntrackedParameter<bool>("debug", 0)) {
   produces<l1t::PFCandidateCollection>("Puppi");
   produces<l1t::PFCandidateCollection>("TruncatedPuppi");
 }
@@ -61,14 +60,18 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
   std::vector<l1ct::PuppiObjEmu> hwTruncOut;
   std::vector<l1t::PFCandidate> edmTruncOut;
 
-  if (debug_) edm::LogPrint("DeregionizerProducer") << "\nRegional Puppi Candidates";
+  if (debug_)
+    edm::LogPrint("DeregionizerProducer") << "\nRegional Puppi Candidates";
   for (unsigned int iReg = 0, nReg = src->nRegions(); iReg < nReg; ++iReg) {
     l1ct::OutputRegion tempOutputRegion;
 
     auto region = src->region(iReg);
     float eta = src->eta(iReg);
     float phi = src->phi(iReg);
-    if (debug_) edm::LogPrint("DeregionizerProducer") <<"\nRegion "<<iReg<<"\n"<<"Eta = "<<eta<<" and Phi = "<<phi<<"\n"<<"###########";
+    if (debug_)
+      edm::LogPrint("DeregionizerProducer") << "\nRegion " << iReg << "\n"
+                                            << "Eta = " << eta << " and Phi = " << phi << "\n"
+                                            << "###########";
     for (int i = 0, n = region.size(); i < n; ++i) {
       l1ct::PuppiObjEmu tempPuppi;
       const l1t::PFCandidate &cand = region[i];
@@ -79,9 +82,12 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
       tempPuppi.initFromBits(cand.encodedPuppi64());
       tempPuppi.srcCand = &cand;
       tempOutputRegion.puppi.push_back(tempPuppi);
-      if (debug_) edm::LogPrint("DeregionizerProducer") <<"pt["<<i<<"] = "<<tempOutputRegion.puppi.back().hwPt<<", eta["<<i<<"] = "<<tempOutputRegion.puppi.back().floatEta()<<", phi["<<i<<"] = "<<tempOutputRegion.puppi.back().floatPhi();
+      if (debug_)
+        edm::LogPrint("DeregionizerProducer") << "pt[" << i << "] = " << tempOutputRegion.puppi.back().hwPt << ", eta["
+                                              << i << "] = " << tempOutputRegion.puppi.back().floatEta() << ", phi["
+                                              << i << "] = " << tempOutputRegion.puppi.back().floatPhi();
     }
-    if(tempOutputRegion.puppi.size() > 0) {
+    if (tempOutputRegion.puppi.size() > 0) {
       regionEtas.push_back(eta);
       regionPhis.push_back(phi);
       outputRegions.push_back(tempOutputRegion);
@@ -91,10 +97,10 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
   l1ct::DeregionizerInput in = l1ct::DeregionizerInput(regionEtas, regionPhis, outputRegions);
   in.setDebug(debug_);
 
-  emulator_.run(in,hwOut,hwTruncOut);
+  emulator_.run(in, hwOut, hwTruncOut);
 
-  DeregionizerProducer::hwToEdm_(hwOut,edmOut);
-  DeregionizerProducer::hwToEdm_(hwTruncOut,edmTruncOut);
+  DeregionizerProducer::hwToEdm_(hwOut, edmOut);
+  DeregionizerProducer::hwToEdm_(hwTruncOut, edmTruncOut);
 
   deregColl->swap(edmOut);
   truncColl->swap(edmTruncOut);
@@ -103,7 +109,8 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
   iEvent.put(std::move(truncColl), "TruncatedPuppi");
 }
 
-void DeregionizerProducer::hwToEdm_(const std::vector<l1ct::PuppiObjEmu> &hwOut, std::vector<l1t::PFCandidate> &edmOut) const {
+void DeregionizerProducer::hwToEdm_(const std::vector<l1ct::PuppiObjEmu> &hwOut,
+                                    std::vector<l1t::PFCandidate> &edmOut) const {
   for (const auto &hwPuppi : hwOut) {
     l1t::PFCandidate::ParticleType type;
     float mass = 0.13f;
@@ -121,7 +128,8 @@ void DeregionizerProducer::hwToEdm_(const std::vector<l1ct::PuppiObjEmu> &hwOut,
       mass = hwPuppi.hwId.isPhoton() ? 0.0 : 0.5;
     }
     reco::Particle::PolarLorentzVector p4(hwPuppi.floatPt(), hwPuppi.floatEta(), hwPuppi.floatPhi(), mass);
-    edmOut.emplace_back(type, hwPuppi.intCharge(), p4, hwPuppi.floatPuppiW(), hwPuppi.intPt(), hwPuppi.intEta(), hwPuppi.intPhi());
+    edmOut.emplace_back(
+        type, hwPuppi.intCharge(), p4, hwPuppi.floatPuppiW(), hwPuppi.intPt(), hwPuppi.intEta(), hwPuppi.intPhi());
     if (hwPuppi.hwId.charged()) {
       edmOut.back().setZ0(hwPuppi.floatZ0());
       edmOut.back().setDxy(hwPuppi.floatDxy());
