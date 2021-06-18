@@ -61,14 +61,14 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
   std::vector<l1ct::PuppiObjEmu> hwTruncOut;
   std::vector<l1t::PFCandidate> edmTruncOut;
 
-  if (debug_) std::cout << "\nRegional Puppi Candidates" << "\n";
+  if (debug_) edm::LogPrint("DeregionizerProducer") << "\nRegional Puppi Candidates";
   for (unsigned int iReg = 0, nReg = src->nRegions(); iReg < nReg; ++iReg) {
     l1ct::OutputRegion tempOutputRegion;
 
     auto region = src->region(iReg);
     float eta = src->eta(iReg);
     float phi = src->phi(iReg);
-    if (debug_) std::cout<<"\nRegion "<<iReg<<"\n"<<"Eta = "<<eta<<" and Phi = "<<phi<<"\n"<<"###########"<<"\n";
+    if (debug_) edm::LogPrint("DeregionizerProducer") <<"\nRegion "<<iReg<<"\n"<<"Eta = "<<eta<<" and Phi = "<<phi<<"\n"<<"###########";
     for (int i = 0, n = region.size(); i < n; ++i) {
       l1ct::PuppiObjEmu tempPuppi;
       const l1t::PFCandidate &cand = region[i];
@@ -79,7 +79,7 @@ void DeregionizerProducer::produce(edm::Event &iEvent, const edm::EventSetup &iS
       tempPuppi.initFromBits(cand.encodedPuppi64());
       tempPuppi.srcCand = &cand;
       tempOutputRegion.puppi.push_back(tempPuppi);
-      if (debug_) std::cout <<"pt["<<i<<"] = "<<tempOutputRegion.puppi.back().hwPt<<", eta["<<i<<"] = "<<tempOutputRegion.puppi.back().floatEta()<<", phi["<<i<<"] = "<<tempOutputRegion.puppi.back().floatPhi()<<"\n";
+      if (debug_) edm::LogPrint("DeregionizerProducer") <<"pt["<<i<<"] = "<<tempOutputRegion.puppi.back().hwPt<<", eta["<<i<<"] = "<<tempOutputRegion.puppi.back().floatEta()<<", phi["<<i<<"] = "<<tempOutputRegion.puppi.back().floatPhi();
     }
     if(tempOutputRegion.puppi.size() > 0) {
       regionEtas.push_back(eta);
@@ -138,7 +138,7 @@ void DeregionizerProducer::hwToEdm_(const std::vector<l1ct::PuppiObjEmu> &hwOut,
 }
 
 void DeregionizerProducer::setRefs_(l1t::PFCandidate &pf, const l1ct::PuppiObjEmu &p) const {
-  if (p.srcCluster) {
+  if (p.srcCand) {
     auto match = clusterRefMap_.find(p.srcCand);
     if (match == clusterRefMap_.end()) {
       throw cms::Exception("CorruptData") << "Invalid cluster pointer in PF candidate id " << p.intId() << " pt "
@@ -146,7 +146,7 @@ void DeregionizerProducer::setRefs_(l1t::PFCandidate &pf, const l1ct::PuppiObjEm
     }
     pf.setPFCluster(match->second);
   }
-  if (p.srcTrack) {
+  if (p.srcCand) {
     auto match = trackRefMap_.find(p.srcCand);
     if (match == trackRefMap_.end()) {
       throw cms::Exception("CorruptData") << "Invalid track pointer in PF candidate id " << p.intId() << " pt "
@@ -154,7 +154,7 @@ void DeregionizerProducer::setRefs_(l1t::PFCandidate &pf, const l1ct::PuppiObjEm
     }
     pf.setPFTrack(match->second);
   }
-  if (p.srcMu) {
+  if (p.srcCand) {
     auto match = muonRefMap_.find(p.srcCand);
     if (match == muonRefMap_.end()) {
       throw cms::Exception("CorruptData") << "Invalid muon pointer in PF candidate id " << p.intId() << " pt "

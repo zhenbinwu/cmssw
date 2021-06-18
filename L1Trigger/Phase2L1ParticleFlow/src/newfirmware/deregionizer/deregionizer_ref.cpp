@@ -5,6 +5,7 @@
 
 #ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
 
 l1ct::DeregionizerEmulator::DeregionizerEmulator(const edm::ParameterSet &iConfig)
   : DeregionizerEmulator(
@@ -15,6 +16,8 @@ l1ct::DeregionizerEmulator::DeregionizerEmulator(const edm::ParameterSet &iConfi
     iConfig.getParameter<uint32_t>("nPuppiThirdBuffers")) {
   debug_ = iConfig.getUntrackedParameter<bool>("debug", false);
 }
+#else
+#include "../../utils/dbgPrintf.h"
 #endif
 
 l1ct::DeregionizerEmulator::DeregionizerEmulator(const unsigned int nPuppiFinalBuffer/*=128*/, const unsigned int nPuppiPerClk/*=6*/, const unsigned int nPuppiFirstBuffers/*=12*/, const unsigned int nPuppiSecondBuffers/*=32*/, const unsigned int nPuppiThirdBuffers/*=64*/)
@@ -60,8 +63,8 @@ void l1ct::DeregionizerEmulator::accumulateToY(const unsigned int Y, const std::
 }
 
 static void debugPrint(const std::string &header, const std::vector<l1ct::PuppiObjEmu> &pup) {
-  std::cout << " --> " << header << std::endl;
-  for (unsigned int iPup=0, nPup=pup.size(); iPup<nPup; ++iPup) std::cout << "      > puppi[" << iPup << "] pT = " << pup[iPup].hwPt << std::endl;
+  dbgCout() << " --> " << header << "\n";
+  for (unsigned int iPup=0, nPup=pup.size(); iPup<nPup; ++iPup) dbgCout() << "      > puppi[" << iPup << "] pT = " << pup[iPup].hwPt << "\n";
 }
 
 void l1ct::DeregionizerEmulator::run(const l1ct::DeregionizerInput in, std::vector<l1ct::PuppiObjEmu> &out, std::vector<l1ct::PuppiObjEmu> &truncated) {
@@ -88,29 +91,29 @@ void l1ct::DeregionizerEmulator::run(const l1ct::DeregionizerInput in, std::vect
       accumulateToY(nPuppiFinalBuffer_, buffer012345, out, truncated);
 
       if(debug_) {
-        std::cout << std::endl;
-        std::cout << "Phi region index : " << i <<"," << j << std::endl;
+        dbgCout() << "\n";
+        dbgCout() << "Phi region index : " << i <<"," << j << "\n";
 
         debugPrint("Eta region : 0", subregionPuppis[0]);
         debugPrint("Eta region : 1", subregionPuppis[1]);
         debugPrint("Eta region : 0+1", buffer01);
-        std::cout << "------------------ " << std::endl;
+        dbgCout() << "------------------ " << "\n";
 
         debugPrint("Eta region : 2", subregionPuppis[2]);
         debugPrint("Eta region : 3", subregionPuppis[3]);
         debugPrint("Eta region : 2+3", buffer23);
-        std::cout << "------------------ " << std::endl;
+        dbgCout() << "------------------ " << "\n";
 
         debugPrint("Eta region : 4", subregionPuppis[4]);
         debugPrint("Eta region : 5", subregionPuppis[5]);
         debugPrint("Eta region : 4+5", buffer45);
-        std::cout << "------------------ " << std::endl;
+        dbgCout() << "------------------ " << "\n";
 
         debugPrint("Eta region : 0+1+2+3", buffer0123);
-        std::cout << "------------------ " << std::endl;
+        dbgCout() << "------------------ " << "\n";
 
         debugPrint("Eta region : 0+1+2+3+4+5", buffer012345);
-        std::cout << "------------------ " << std::endl;
+        dbgCout() << "------------------ " << "\n";
 
         debugPrint("Inclusive", out);
       }
@@ -118,10 +121,10 @@ void l1ct::DeregionizerEmulator::run(const l1ct::DeregionizerInput in, std::vect
   }
 
   if(debug_) {
-    std::cout << std::endl;
+    dbgCout() << "\n";
     debugPrint("FINAL ARRAY", out);
-    std::cout << std::endl;
-    std::cout << "Ran successfully!" << std::endl;
+    dbgCout() << "\n";
+    dbgCout() << "Ran successfully!" << "\n";
   }
 }
 

@@ -3,6 +3,12 @@
 #include <vector>
 #include "deregionizer_input.h"
 
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
+#else
+#include "../../utils/dbgPrintf.h"
+#endif
+
 l1ct::DeregionizerInput::DeregionizerInput(std::vector<float> &regionEtaCenter, std::vector<float> &regionPhiCenter, const std::vector<l1ct::OutputRegion> &inputRegions)
   : regionEtaCenter_(regionEtaCenter),
     regionPhiCenter_(regionPhiCenter) {
@@ -59,18 +65,18 @@ void l1ct::DeregionizerInput::orderRegions(int order[nEtaRegions]) {
 
   if (debug_) {
     for (int i=0, nx=orderedInRegionsPuppis_.size(); i<nx; i++) {
-      std::cout << std::endl;
-      std::cout << "Eta region index : " << i << std::endl;
+      dbgCout() << "\n";
+      dbgCout() << "Eta region index : " << i << "\n";
       for (int j=0, ny=orderedInRegionsPuppis_[i].size(); j<ny; j++) {
-        std::cout << " ---> Phi region index : " << j << std::endl;
+        dbgCout() << " ---> Phi region index : " << j << "\n";
         for (int iPup=0, nPup=orderedInRegionsPuppis_[i][j].size(); iPup<nPup; iPup++) {
-          std::cout << "      > puppi[" << iPup << "]" << " pt = " << orderedInRegionsPuppis_[i][j][iPup].hwPt << std::endl;
+          dbgCout() << "      > puppi[" << iPup << "]" << " pt = " << orderedInRegionsPuppis_[i][j][iPup].hwPt << "\n";
         }
       }
-      std::cout << " ----------------- " << std::endl;
+      dbgCout() << " ----------------- " << "\n";
     }
-    std::cout << "Regions ordered!" << std::endl;
-    std::cout << std::endl;
+    dbgCout() << "Regions ordered!" << "\n";
+    dbgCout() << "\n";
   }
 }
 
