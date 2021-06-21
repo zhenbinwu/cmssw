@@ -60,8 +60,8 @@
 #include "DataFormats/L1TParticleFlow/interface/PFTau.h"
 #include "DataFormats/L1TParticleFlow/interface/PFTau.h"
 
-//#include "DataFormats/Phase2L1Taus/interface/L1HPSPFTau.h"
-//#include "DataFormats/Phase2L1Taus/interface/L1HPSPFTauFwd.h"
+#include "DataFormats/L1TParticleFlow/interface/HPSPFTau.h"
+#include "DataFormats/L1TParticleFlow/interface/HPSPFTauFwd.h"
 
 #include "DataFormats/L1TCorrelator/interface/TkBsCandidate.h"
 #include "DataFormats/L1TCorrelator/interface/TkBsCandidateFwd.h"
@@ -87,6 +87,7 @@ namespace L1Analysis {
                const edm::Handle<l1t::EGammaBxCollection> EGHGC,
                unsigned maxL1Extra);
     void SetCaloTau(const edm::Handle<l1t::TauBxCollection> calotau, unsigned maxL1Extra);
+    void SetHPSPFTaus  (const  edm::Handle<l1t::HPSPFTauCollection> HPSPFTau, unsigned maxL1Extra);
 
     // Add L1TrackTriggerObjects
     void SetTkEG(const edm::Handle<l1t::TkElectronCollection> tkEG,

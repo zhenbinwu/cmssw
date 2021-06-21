@@ -40,6 +40,18 @@ namespace L1Analysis {
       caloTauIsMerged.clear();
       caloTauHwQual.clear();
 
+      nHPSTaus = 0;
+      hpsTauPt.clear();
+      hpsTauEt.clear();
+      hpsTauEta.clear();
+      hpsTauPhi.clear();
+      hpsTauChg.clear();
+      hpsTauPassTightRelIso.clear();
+      hpsTauPassTightRelIsoMenu.clear();
+      hpsTauType.clear();
+      hpsTauZ0.clear();
+
+
       nPhase1Jets = 0;
       phase1JetPt.clear();
       phase1JetEt.clear();
@@ -267,6 +279,18 @@ namespace L1Analysis {
     std::vector<short int> caloTauHasEM;
     std::vector<short int> caloTauIsMerged;
     std::vector<short int> caloTauHwQual;
+
+
+    unsigned int nHPSTaus;
+    std::vector<double>   hpsTauPt;
+    std::vector<double>   hpsTauEt;
+    std::vector<double>   hpsTauEta;
+    std::vector<double>   hpsTauPhi;
+    std::vector<int>   hpsTauChg;
+    std::vector<double>   hpsTauPassTightRelIso;
+    std::vector<double>   hpsTauPassTightRelIsoMenu;
+    std::vector<unsigned int>   hpsTauType;
+    std::vector<double>   hpsTauZ0;
 
     unsigned short int nPhase1Jets;
     std::vector<double> phase1JetPt;

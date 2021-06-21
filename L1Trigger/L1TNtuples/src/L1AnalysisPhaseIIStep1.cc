@@ -46,6 +46,31 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetCaloTau(const edm::Handle<l1t::TauBx
   }
 }
 
+void L1Analysis::L1AnalysisPhaseIIStep1::SetHPSPFTaus(const edm::Handle<l1t::HPSPFTauCollection >  l1HPSPFTaus,  unsigned maxL1Extra)
+{     
+
+      for (unsigned int i=0; i<l1HPSPFTaus->size() && l1extra_.nHPSTaus<maxL1Extra; i++){
+                   if(l1HPSPFTaus->at(i).pt()<1) continue;
+                   l1extra_.hpsTauPt.push_back(l1HPSPFTaus->at(i).pt());
+                   l1extra_.hpsTauEt.push_back(l1HPSPFTaus->at(i).et());
+                   l1extra_.hpsTauEta.push_back(l1HPSPFTaus->at(i).eta());
+                   l1extra_.hpsTauPhi.push_back(l1HPSPFTaus->at(i).phi());
+                   l1extra_.hpsTauChg.push_back(l1HPSPFTaus->at(i).charge());
+                   l1extra_.hpsTauType.push_back(l1HPSPFTaus->at(i).tauType());
+                   l1extra_.hpsTauPassTightRelIso.push_back(l1HPSPFTaus->at(i).passTightRelIso());
+                   bool hpsTauPassTightRelIsoMenuVar = (l1HPSPFTaus->at(i).sumChargedIso()/l1HPSPFTaus->at(i).pt()) < 0.05;
+                   l1extra_.hpsTauPassTightRelIsoMenu.push_back(hpsTauPassTightRelIsoMenuVar);
+                   if (!l1HPSPFTaus->at(i).leadChargedPFCand().isNull()){
+                       l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).leadChargedPFCand()->pfTrack()->vertex().z()); 
+                   }else{
+                       l1extra_.hpsTauZ0.push_back(-9999);
+                   }
+                   l1extra_.nHPSTaus++;
+      }
+
+}
+
+
 //EG (seeded by Phase 2 Objects )
 void L1Analysis::L1AnalysisPhaseIIStep1::SetEG(const edm::Handle<l1t::EGammaBxCollection> EG,
                                                const edm::Handle<l1t::EGammaBxCollection> EGHGC,

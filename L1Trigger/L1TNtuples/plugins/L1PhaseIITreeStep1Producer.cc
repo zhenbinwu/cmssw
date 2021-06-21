@@ -78,8 +78,8 @@ Implementation:
 
 #include "DataFormats/L1TParticleFlow/interface/PFTau.h"
 
-//#include "DataFormats/Phase2L1Taus/interface/L1HPSPFTau.h"
-//#include "DataFormats/Phase2L1Taus/interface/L1HPSPFTauFwd.h"
+#include "DataFormats/L1TParticleFlow/interface/HPSPFTau.h"
+#include "DataFormats/L1TParticleFlow/interface/HPSPFTauFwd.h"
 
 #include "DataFormats/L1TCorrelator/interface/TkBsCandidate.h"
 #include "DataFormats/L1TCorrelator/interface/TkBsCandidateFwd.h"
@@ -141,6 +141,7 @@ private:
   edm::EDGetTokenT<l1t::TkGlbMuonCollection> TkGlbMuonToken_;
 
   edm::EDGetTokenT<l1t::TauBxCollection> caloTauToken_;
+  edm::EDGetTokenT<l1t::HPSPFTauCollection> L1HPSPFTauToken_;
 
   edm::EDGetTokenT<std::vector<reco::PFMET> > l1PFMet_;
 
@@ -170,6 +171,7 @@ private:
 
 L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& iConfig) {
   caloTauToken_ = consumes<l1t::TauBxCollection>(iConfig.getParameter<edm::InputTag>("caloTauToken"));
+  L1HPSPFTauToken_ = consumes<l1t::HPSPFTauCollection>(iConfig.getParameter<edm::InputTag>("L1HPSPFTauToken"));
 
   egToken_ = consumes<l1t::EGammaBxCollection>(iConfig.getParameter<edm::InputTag>("egTokenBarrel"));
   egTokenHGC_ = consumes<l1t::EGammaBxCollection>(iConfig.getParameter<edm::InputTag>("egTokenHGC"));
@@ -275,6 +277,9 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
 
   edm::Handle<l1t::TauBxCollection> caloTau;
   iEvent.getByToken(caloTauToken_, caloTau);
+
+  edm::Handle<l1t::HPSPFTauCollection> l1HPSPFTau;
+  iEvent.getByToken(L1HPSPFTauToken_,l1HPSPFTau);
 
   edm::Handle<std::vector<reco::PFMET> > l1PFMet;
   iEvent.getByToken(l1PFMet_, l1PFMet);
@@ -387,6 +392,12 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     l1Extra->SetCaloTau(caloTau, maxL1Extra_);
   } else {
     edm::LogWarning("MissingProduct") << "L1Upgrade caloTaus not found. Branch will not be filled" << std::endl;
+  }
+
+  if(l1HPSPFTau.isValid()){
+    l1Extra->SetHPSPFTaus(l1HPSPFTau,maxL1Extra_);
+  } else{
+    edm::LogWarning("MissingProduct") << "L1HPSPFTaus missing"<<std::endl;
   }
 
   edm::Handle<l1t::TkElectronCollection> tkEG;
