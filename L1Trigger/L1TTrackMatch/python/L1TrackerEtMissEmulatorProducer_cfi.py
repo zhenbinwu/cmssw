@@ -16,11 +16,11 @@ L1TrackerEmuEtMiss = cms.EDProducer('L1TrackerEtMissEmulatorProducer',
     nStubsmin = cms.int32( 4 ),     # min number of stubs for the tracks
   
     nCordicSteps = cms.int32( 8 ), #Number of steps for cordic sqrt and phi computation
-    debug        = cms.int32( 0 ),  #0 - No Debug, 1 - LUT debug, 2 - Phi Debug, 3 - Z debug, 4 - Et Debug, 5 - Cordic Debug, 6 - Output
+    debug        = cms.int32( 0 ),  #0 - No Debug, 1 - LUT debug, 2 - Phi Debug, 3 - Z debug, 4 - Et Debug, 5 - Cordic Debug, 6 - Output, 7 - Every Selected Track
     writeLUTs    = cms.bool( False ),
 
-    useGTTinput  = cms.bool( False ),
-    useVertexEmulator = cms.bool( False )
+    useGTTinput  = cms.bool( True ),
+    useVertexEmulator = cms.bool( True )
 
 )
 

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <memory>
 
-using namespace L1TkEtMissEmuAlgo;
+using namespace l1tmetemu;
 
 Cordic::Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs)
     : mPhiScale(aPhiScale),
@@ -106,8 +106,10 @@ EtMiss Cordic::toPolar(Et_t x, Et_t y) const {
 
   // Cordic performs calculation in internal Et granularity, convert to final
   // granularity for Et word
-  ret_etmiss.Et = (int)(x * magNormalisationLUT[cordicSteps - 1] * maxTrackPt / maxMET) >>
-                  (mMagnitudeBits + TTTrack_TrackWord::TrackBitWidths::kRinvSize - kMETSize);
+
+  // emulate fw rounding with float division then floor
+  float tempMET = (float)(x * magNormalisationLUT[cordicSteps - 1] * kMaxTrackPt) / ((float)kMaxMET);
+  ret_etmiss.Et = (int)floor(tempMET) >> (mMagnitudeBits + TTTrack_TrackWord::TrackBitWidths::kRinvSize - kMETSize);
   ret_etmiss.Phi = phi;
   return ret_etmiss;
 }
