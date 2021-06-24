@@ -104,7 +104,7 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetEG(const edm::Handle<l1t::EGammaBxCo
       l1extra_.EGHwQual.push_back(it->hwQual());
       l1extra_.EGBx.push_back(0);  //it->bx());
       l1extra_.EGHGC.push_back(1);
-      bool quality = (it->hwQual() == 5);
+      bool quality = (it->hwQual() == 2);
       l1extra_.EGPassesLooseTrackID.push_back(quality);
       l1extra_.EGPassesPhotonID.push_back(quality);
       l1extra_.nEG++;
@@ -128,6 +128,8 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkEG(const edm::Handle<l1t::TkElectr
       l1extra_.tkElectronChg.push_back(chargeFromCurvature);
       l1extra_.tkElectronzVtx.push_back(it->trkzVtx());
       l1extra_.tkElectronTrkIso.push_back(it->trkIsol());
+      l1extra_.tkElectronPfIso.push_back(it->pfIsol());
+      l1extra_.tkElectronPuppiIso.push_back(it->puppiIsol());
       l1extra_.tkElectronHwQual.push_back(it->EGRef()->hwQual());
       l1extra_.tkElectronEGRefPt.push_back(it->EGRef()->et()); //Rename  this?
       l1extra_.tkElectronEGRefEta.push_back(it->EGRef()->eta());
@@ -154,13 +156,15 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkEG(const edm::Handle<l1t::TkElectr
       l1extra_.tkElectronChg.push_back(chargeFromCurvature);
       l1extra_.tkElectronzVtx.push_back(it->trkzVtx());
       l1extra_.tkElectronTrkIso.push_back(it->trkIsol());
+      l1extra_.tkElectronPfIso.push_back(it->pfIsol());
+      l1extra_.tkElectronPuppiIso.push_back(it->puppiIsol());
       l1extra_.tkElectronHwQual.push_back(it->EGRef()->hwQual());
       l1extra_.tkElectronEGRefPt.push_back(it->EGRef()->et()); //Rename this?
       l1extra_.tkElectronEGRefEta.push_back(it->EGRef()->eta());
       l1extra_.tkElectronEGRefPhi.push_back(it->EGRef()->phi());
       l1extra_.tkElectronBx.push_back(0);  //it->bx());
       l1extra_.tkElectronHGC.push_back(1);
-      bool quality = (it->EGRef()->hwQual() == 5);
+      bool quality = (it->EGRef()->hwQual() == 2);
       l1extra_.tkElectronPassesLooseTrackID.push_back(quality);
       l1extra_.tkElectronPassesPhotonID.push_back(quality);
       l1extra_.nTkElectrons++;
@@ -181,6 +185,10 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkEM(const edm::Handle<l1t::TkEmColl
       l1extra_.tkPhotonPhi.push_back(it->phi());
       l1extra_.tkPhotonTrkIso.push_back(it->trkIsol());
       l1extra_.tkPhotonTrkIsoPV.push_back(it->trkIsolPV());
+      l1extra_.tkPhotonPfIso.push_back(it->pfIsol());
+      l1extra_.tkPhotonPfIsoPV.push_back(it->pfIsolPV());
+      l1extra_.tkPhotonPuppiIso.push_back(it->puppiIsol());
+      l1extra_.tkPhotonPuppiIsoPV.push_back(it->puppiIsolPV());
       l1extra_.tkPhotonBx.push_back(0);  //it->bx());
       l1extra_.tkPhotonHwQual.push_back(it->EGRef()->hwQual());
       l1extra_.tkPhotonEGRefPt.push_back(it->EGRef()->et()); //REname this?
@@ -204,13 +212,17 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkEM(const edm::Handle<l1t::TkEmColl
       l1extra_.tkPhotonPhi.push_back(it->phi());
       l1extra_.tkPhotonTrkIso.push_back(it->trkIsol());
       l1extra_.tkPhotonTrkIsoPV.push_back(it->trkIsolPV());
+      l1extra_.tkPhotonPfIso.push_back(it->pfIsol());
+      l1extra_.tkPhotonPfIsoPV.push_back(it->pfIsolPV());
+      l1extra_.tkPhotonPuppiIso.push_back(it->puppiIsol());
+      l1extra_.tkPhotonPuppiIsoPV.push_back(it->puppiIsolPV());
       l1extra_.tkPhotonBx.push_back(0);  //it->bx());
       l1extra_.tkPhotonHwQual.push_back(it->EGRef()->hwQual());
       l1extra_.tkPhotonEGRefPt.push_back(it->EGRef()->et()); //rename this?
       l1extra_.tkPhotonEGRefEta.push_back(it->EGRef()->eta());
       l1extra_.tkPhotonEGRefPhi.push_back(it->EGRef()->phi());
       l1extra_.tkPhotonHGC.push_back(1);
-      bool quality = (it->EGRef()->hwQual() == 5);
+      bool quality = (it->EGRef()->hwQual() == 2);
       l1extra_.tkPhotonPassesLooseTrackID.push_back(quality);
       l1extra_.tkPhotonPassesPhotonID.push_back(quality);
       l1extra_.nTkPhotons++;

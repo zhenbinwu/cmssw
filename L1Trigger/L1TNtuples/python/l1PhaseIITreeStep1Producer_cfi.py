@@ -2,13 +2,14 @@ import FWCore.ParameterSet.Config as cms
 
 l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
 
-   egTokenBarrel = cms.InputTag("L1EGammaClusterEmuProducer",""),
-   tkEGTokenBarrel = cms.InputTag("L1TkElectronsEllipticMatchCrystal","EG"),
-   tkEMTokenBarrel = cms.InputTag("L1TkPhotonsCrystal","EG"),
+   egTokenBarrel = cms.InputTag("L1EGammaClusterEmuProducer",""),  #keep as is, not produced by GCT
+   tkEGTokenBarrel = cms.InputTag("l1ctLayer1EG","L1TkEleEB"),
+   tkEMTokenBarrel = cms.InputTag("l1ctLayer1EG","L1TkEmEB"),
 
-   egTokenHGC = cms.InputTag("l1EGammaEEProducer","L1EGammaCollectionBXVWithCuts"),
-   tkEGTokenHGC = cms.InputTag("L1TkElectronsEllipticMatchHGC","EG"),
-   tkEMTokenHGC = cms.InputTag("L1TkPhotonsHGC","EG"),
+   egTokenHGC = cms.InputTag("l1ctLayer1EG","L1EgEE"),
+   tkEGTokenHGC = cms.InputTag("l1ctLayer1EG","L1TkEleEE"),
+   tkEMTokenHGC = cms.InputTag("l1ctLayer1EG","L1TkEmEE"),
+
 
    muonKalman = cms.InputTag("simKBmtfDigis","BMTF"),
    muonOverlap = cms.InputTag("simOmtfDigis","OMTF"),

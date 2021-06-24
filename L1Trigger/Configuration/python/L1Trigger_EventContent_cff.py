@@ -203,6 +203,7 @@ def _appendPhase2Digis(obj):
         'keep *_Phase1L1TJetProducer_*_*', 
         'keep *_Phase1L1TJetCalibrator_*_*',
         'keep *_Phase1L1TJetSumsProducer_*_*',
+        'keep *_l1ctLayer1EG_*_*',
         'keep *_l1PFMetCalo_*_*',
         'keep *_l1PFMetPF_*_*',
         'keep *_l1PFMetPuppi_*_*',

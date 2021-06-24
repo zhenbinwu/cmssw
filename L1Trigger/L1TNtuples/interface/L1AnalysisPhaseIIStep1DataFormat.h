@@ -84,6 +84,8 @@ namespace L1Analysis {
       tkElectronChg.clear();
       tkElectronBx.clear();
       tkElectronTrkIso.clear();
+      tkElectronPfIso.clear();
+      tkElectronPuppiIso.clear(); 
       tkElectronzVtx.clear();
       tkElectronHwQual.clear();
       tkElectronEGRefPt.clear();
@@ -101,6 +103,10 @@ namespace L1Analysis {
       tkPhotonBx.clear();
       tkPhotonTrkIso.clear();
       tkPhotonTrkIsoPV.clear();
+      tkPhotonPfIso.clear();
+      tkPhotonPfIsoPV.clear();
+      tkPhotonPuppiIso.clear();
+      tkPhotonPuppiIsoPV.clear();
       tkPhotonzVtx.clear();
       tkPhotonHwQual.clear();
       tkPhotonEGRefPt.clear();
@@ -324,6 +330,8 @@ namespace L1Analysis {
     std::vector<int> tkElectronChg;
     std::vector<int> tkElectronBx;
     std::vector<double> tkElectronTrkIso;
+    std::vector<double> tkElectronPfIso;
+    std::vector<double> tkElectronPuppiIso;
     std::vector<double> tkElectronzVtx;
     std::vector<double> tkElectronHwQual;
     std::vector<double> tkElectronEGRefPt;
@@ -341,6 +349,10 @@ namespace L1Analysis {
     std::vector<int> tkPhotonBx;
     std::vector<double> tkPhotonTrkIso;
     std::vector<double> tkPhotonTrkIsoPV;
+    std::vector<double> tkPhotonPfIso;
+    std::vector<double> tkPhotonPfIsoPV;
+    std::vector<double> tkPhotonPuppiIso;
+    std::vector<double> tkPhotonPuppiIsoPV;
     std::vector<double> tkPhotonzVtx;
     std::vector<double> tkPhotonHwQual;
     std::vector<double> tkPhotonEGRefPt;
