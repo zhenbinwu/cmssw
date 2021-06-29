@@ -7,14 +7,15 @@ L1Analysis::L1AnalysisPhaseIIStep1::L1AnalysisPhaseIIStep1() {}
 L1Analysis::L1AnalysisPhaseIIStep1::~L1AnalysisPhaseIIStep1() {}
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetVertices(
-    float z0Puppi, const edm::Handle<std::vector<l1t::TkPrimaryVertex> > TkPrimaryVertex) {
+    float z0Puppi, const edm::Handle<std::vector<l1t::VertexWord> > TkPrimaryVertex) {
   l1extra_.z0Puppi = z0Puppi;
   for (unsigned int i = 0; i < TkPrimaryVertex->size(); i++) {
-    l1extra_.z0L1TkPV.push_back(TkPrimaryVertex->at(i).zvertex());
-    l1extra_.sumL1TkPV.push_back(TkPrimaryVertex->at(i).sum());
+    l1extra_.z0L1TkPV.push_back(TkPrimaryVertex->at(i).z0());
+    //l1extra_.sumL1TkPV.push_back(TkPrimaryVertex->at(i).sum());
     l1extra_.nL1TkPVs++;
   }
 }
+
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetCaloTau(const edm::Handle<l1t::TauBxCollection> calotau,
                                                     unsigned maxL1Extra) {

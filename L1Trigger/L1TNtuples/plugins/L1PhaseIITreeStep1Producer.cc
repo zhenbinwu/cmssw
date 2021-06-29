@@ -68,8 +68,10 @@ Implementation:
 #include "DataFormats/L1Trigger/interface/Jet.h"
 #include "DataFormats/L1Trigger/interface/Muon.h"
 #include "DataFormats/L1Trigger/interface/EtSum.h"
-//#include "DataFormats/L1TVertex/interface/Vertex.h"
 
+#include "DataFormats/L1Trigger/interface/Vertex.h"
+#include "DataFormats/L1Trigger/interface/VertexWord.h"
+	
 //#include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/L1TParticleFlow/interface/PFJet.h"
 
@@ -152,7 +154,7 @@ private:
   edm::EDGetTokenT<float> z0PuppiToken_;
   //edm::EDGetTokenT<l1t::VertexCollection> l1vertextdrToken_;
   //edm::EDGetTokenT<l1t::VertexCollection> l1verticesToken_;
-  edm::EDGetTokenT<l1t::TkPrimaryVertexCollection> l1TkPrimaryVertexToken_;
+  edm::EDGetTokenT<l1t::VertexWordCollection> l1TkPrimaryVertexToken_;
 
   edm::EDGetTokenT<l1t::PFTauCollection> L1NNTauToken_;
   edm::EDGetTokenT<l1t::PFTauCollection> L1NNTauPFToken_;
@@ -202,7 +204,7 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   //l1vertextdrToken_ = consumes< l1t::VertexCollection> (iConfig.getParameter<edm::InputTag>("l1vertextdr"));
   //l1verticesToken_  = consumes< l1t::VertexCollection> (iConfig.getParameter<edm::InputTag>("l1vertices"));
   l1TkPrimaryVertexToken_ =
-      consumes<l1t::TkPrimaryVertexCollection>(iConfig.getParameter<edm::InputTag>("l1TkPrimaryVertex"));
+      consumes<l1t::VertexWordCollection>(iConfig.getParameter<edm::InputTag>("l1TkPrimaryVertex"));
 
   L1NNTauToken_ = consumes<l1t::PFTauCollection>(iConfig.getParameter<edm::InputTag>("L1NNTauToken"));
   L1NNTauPFToken_ = consumes<l1t::PFTauCollection>(iConfig.getParameter<edm::InputTag>("L1NNTauPFToken"));
@@ -301,7 +303,10 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   // iEvent.getByToken(l1vertextdrToken_,l1vertextdr);
   // iEvent.getByToken(l1verticesToken_,l1vertices);
 
-  edm::Handle<std::vector<l1t::TkPrimaryVertex> > l1TkPrimaryVertex;
+  //edm::Handle<l1t::VertexWordCollectionx> l1TkPrimaryVertex;
+  //iEvent.getByToken(l1TkPrimaryVertexToken_, l1TkPrimaryVertex);
+
+  edm::Handle<std::vector<l1t::VertexWord> > l1TkPrimaryVertex;
   iEvent.getByToken(l1TkPrimaryVertexToken_, l1TkPrimaryVertex);
 
   //tkjet, tkmet, tkht
