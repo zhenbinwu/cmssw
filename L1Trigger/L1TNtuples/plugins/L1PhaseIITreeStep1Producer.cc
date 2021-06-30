@@ -432,6 +432,7 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     l1Extra->SetHPSPFTaus(l1HPSPFTau,maxL1Extra_);
   } else{
     edm::LogWarning("MissingProduct") << "L1HPSPFTaus missing"<<std::endl;
+  }
 
   if (caloJet.isValid()){
       l1Extra->SetCaloJet(caloJet, maxL1Extra_, caloJetHTT);
@@ -481,14 +482,12 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   }
 
     if (l1pfPhase1L1TJetMET.isValid()){
-           cout<<"We have the histo MET here"<<endl;
            l1Extra->SetL1PfPhase1L1TJetMET(l1pfPhase1L1TJetMET, maxL1Extra_);
     } else {
            edm::LogWarning("MissingProduct") << "L1PhaseII l1pfPhase1L1TJetMET not found. Branch will not be filled" << std::endl;
   }
 
   if (l1pfPhase1L1TJetSums.isValid()){
-           cout<<"We have the phase1 puppi sums here"<<endl;
            l1Extra->SetL1PfPhase1L1TJetSums(l1pfPhase1L1TJetSums, maxL1Extra_);
     } else {
            edm::LogWarning("MissingProduct") << "L1PhaseII l1pfPhase1L1TJetSums not found. Branch will not be filled" << std::endl;

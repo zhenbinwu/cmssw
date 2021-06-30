@@ -587,7 +587,6 @@ l1t::EtSum Phase1L1TJetProducer::computeMET(const double etaCut, l1t::EtSum::EtS
 
   double lMET = floor(sqrt(totalDigiPx * totalDigiPx + totalDigiPy * totalDigiPy)) * ptlsb_;
 
-  cout<<"This the the MET:"<<lMET<<endl;
   math::PtEtaPhiMLorentzVector lMETVector(lMET, 0, acos(totalDigiPx / (lMET / ptlsb_)), 0);
   l1t::EtSum lMETSum(lMETVector, sumType, 0, 0, 0, 0);
   return lMETSum;
