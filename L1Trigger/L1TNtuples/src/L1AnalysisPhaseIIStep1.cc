@@ -69,6 +69,8 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetHPSPFTaus(const edm::Handle<l1t::HPS
                    l1extra_.nHPSTaus++;
       }
 
+}
+
 void L1Analysis::L1AnalysisPhaseIIStep1::SetCaloJet(const edm::Handle<l1t::JetBxCollection> jet, unsigned maxL1Extra, float caloJetHTT)
 {
 
@@ -465,7 +467,7 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJet(const      edm::Han
 void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJetMET(const	edm::Handle< std::vector<l1t::EtSum> >  l1L1PFPhase1L1JetMET,    unsigned maxL1Extra){
 
   l1t::EtSum met = l1L1PFPhase1L1JetMET->at(0);
-  cout<<met.et()<< " and " <<met.phi()<<endl;
+  //cout<<met.et()<< " and " <<met.phi()<<endl;
   l1extra_.phase1PuppiMETEt = met.et();
   l1extra_.phase1PuppiMETPhi = met.phi();
 
@@ -476,7 +478,7 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJetSums(const   edm::Ha
   //cout<<"testing the size of this sums vector:"<<l1L1PFPhase1L1JetSums<<endl;
   l1t::EtSum HT = l1L1PFPhase1L1JetSums->at(0);
   l1t::EtSum MHT = l1L1PFPhase1L1JetSums->at(1);
-  cout<<HT.pt()<< " and " <<MHT.pt()<<" and "<<MHT.phi()<<endl;
+  //cout<<HT.pt()<< " and " <<MHT.pt()<<" and "<<MHT.phi()<<endl;
   l1extra_.phase1PuppiHT = HT.pt();
   l1extra_.phase1PuppiMHTEt = MHT.pt();
   l1extra_.phase1PuppiMHTPhi = MHT.phi();
@@ -528,11 +530,12 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vecto
   l1extra_.puppiMETEt = met.et();
   l1extra_.puppiMETPhi = met.phi();
 
-void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vector<reco::PFMET> > l1MetPF) {
-  reco::PFMET met = l1MetPF->at(0);
-  l1extra_.puppiMETRecoEt = met.et();
-  l1extra_.puppiMETRecoPhi = met.phi();
 }
+//void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vector<reco::PFMET> > l1MetPF) {
+//  reco::PFMET met = l1MetPF->at(0);
+//  l1extra_.puppiMETRecoEt = met.et();
+//  l1extra_.puppiMETRecoPhi = met.phi();
+//}
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetNNTaus(const edm::Handle<vector<l1t::PFTau> > l1nnTaus,
                                                    unsigned maxL1Extra) {

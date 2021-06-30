@@ -82,8 +82,8 @@ namespace L1Analysis {
       phase1PuppiMETEt = 0; 
       phase1PuppiMETPhi = 0;
 
-      puppiMETRecoEt = 0;
-      puppiMETRecoPhi = 0;
+      puppiMETEt = 0;
+      puppiMETPhi = 0;
 
 
       nEG = 0;
@@ -349,8 +349,8 @@ namespace L1Analysis {
     double phase1PuppiMETEt;
     double phase1PuppiMETPhi;
 
-    double puppiMETRecoEt;
-    double puppiMETRecoPhi;
+    double puppiMETEt;
+    double puppiMETPhi;
 
 
     unsigned int nEG;

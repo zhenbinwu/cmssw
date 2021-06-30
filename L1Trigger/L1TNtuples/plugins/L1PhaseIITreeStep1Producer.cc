@@ -298,6 +298,8 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   iEvent.getByToken(L1HPSPFTauToken_,l1HPSPFTau);
 
   edm::Handle<std::vector<l1t::EtSum> > l1PFMet;
+  iEvent.getByToken(l1PFMet_, l1PFMet);
+
   edm::Handle<l1t::JetBxCollection> caloJet;
   iEvent.getByToken(caloJetToken_, caloJet);
 
@@ -305,8 +307,6 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   iEvent.getByToken(caloJetHTTToken_, caloJetHTTs);
   float caloJetHTT=*caloJetHTTs;
 
-  edm::Handle<std::vector<reco::PFMET> > l1PFMet;
-  iEvent.getByToken(l1PFMet_, l1PFMet);
 
   edm::Handle<  std::vector<reco::CaloJet>  > l1pfPhase1L1TJet;
   iEvent.getByToken(l1pfPhase1L1TJetToken_,  l1pfPhase1L1TJet);
