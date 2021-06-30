@@ -106,7 +106,10 @@ L1CaloJet = L1CaloJetProducer.clone (
 )
 # ----    Produce the CaloJet HTT Sums
 from L1Trigger.L1CaloTrigger.L1CaloJetHTTProducer_cfi import *
-L1CaloJetHTT = L1CaloJetHTTProducer.clone()
+L1CaloJetHTT = L1CaloJetHTTProducer.clone(
+    BXVCaloJetsInputTag = cms.InputTag("L1CaloJet", "CaloJets") 
+)
+
 
 _phase2_siml1emulator.add(L1TowerCalibration)
 _phase2_siml1emulator.add(L1CaloJet)
@@ -180,7 +183,7 @@ _phase2_siml1emulator.add(l1ctLayer1TaskInputsTask, l1ctLayer1Task)
 from L1Trigger.L1CaloTrigger.Phase1L1TJets_cff import *
 # Describe here l1PFJets_a_la_Phase1 Task
 # ###############################
-l1PFJetsPhase1Task = cms.Task(Phase1L1TJetProducer , Phase1L1TJetCalibrator)
+l1PFJetsPhase1Task = cms.Task(Phase1L1TJetProducer , Phase1L1TJetCalibrator, Phase1L1TJetSumsProducer)
 _phase2_siml1emulator.add(l1PFJetsPhase1Task)
 
 from L1Trigger.Phase2L1Taus.HPSPFTauProducerPF_cfi import *
@@ -188,6 +191,11 @@ _phase2_siml1emulator.add(HPSPFTauProducerPF)
 
 from L1Trigger.Phase2L1Taus.HPSPFTauProducerPuppi_cfi import *
 _phase2_siml1emulator.add(HPSPFTauProducerPuppi)
+
+from L1Trigger.L1CaloTrigger.Phase1L1TJets_9x9_cff import *
+l1PFJetsPhase1Task_9x9 = cms.Task(  Phase1L1TJetProducer9x9, Phase1L1TJetCalibrator9x9, Phase1L1TJetSumsProducer9x9)
+_phase2_siml1emulator.add(l1PFJetsPhase1Task_9x9)
+
 
 # PF MET
 # ########################################################################

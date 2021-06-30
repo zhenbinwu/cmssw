@@ -51,17 +51,40 @@ namespace L1Analysis {
       hpsTauType.clear();
       hpsTauZ0.clear();
 
+      nCaloJets = 0;
+      caloJetPt.clear();
+      caloJetEt.clear();
+      caloJetEta.clear();
+      caloJetPhi.clear();
+      caloJetBx.clear();
 
-      nPhase1Jets = 0;
-      phase1JetPt.clear();
-      phase1JetEt.clear();
-      phase1JetEta.clear();
-      phase1JetPhi.clear();
+      caloJetHT = 0;
+      caloJetHTMenu.clear();
+      caloJetMHTMenuEt.clear();
+      caloJetMHTMenuPhi.clear();
+      nCaloJetMHTMenu=0;
 
-      phase1HT.clear();
-      phase1MHTEt.clear();
-      phase1MHTPhi.clear();
-      nPhase1MHT = 0;
+      nPhase1PuppiJets = 0;
+      phase1PuppiJetPt.clear();
+      phase1PuppiJetEt.clear();
+      phase1PuppiJetEta.clear();
+      phase1PuppiJetPhi.clear();
+
+      phase1PuppiHTMenu.clear();
+      phase1PuppiMHTMenuEt.clear();
+      phase1PuppiMHTMenuPhi.clear();
+      nPhase1PuppiMHTMenu = 0;
+
+      phase1PuppiHT = 0;
+      phase1PuppiMHTEt = 0;
+      phase1PuppiMHTPhi = 0;
+
+      phase1PuppiMETEt = 0; 
+      phase1PuppiMETPhi = 0;
+
+      puppiMETRecoEt = 0;
+      puppiMETRecoPhi = 0;
+
 
       nEG = 0;
       EGPt.clear();
@@ -182,23 +205,20 @@ namespace L1Analysis {
       tkGlbMuonDRMuTrack.clear();
       tkGlbMuonNMatchedTracks.clear();
 
-      puppiMETEt = 0;
-      puppiMETPhi = 0;
 
+      nSeededConePuppiJets = 0;
+      seededConePuppiJetPt.clear();
+      seededConePuppiJetEt.clear();
+      seededConePuppiJetEta.clear();
+      seededConePuppiJetPhi.clear();
+      seededConePuppiJetBx.clear();
+      seededConePuppiJetzVtx.clear();
+      seededConePuppiJetEtUnCorr.clear();
 
-      nSeededConeJets = 0;
-      seededConeJetPt.clear();
-      seededConeJetEt.clear();
-      seededConeJetEta.clear();
-      seededConeJetPhi.clear();
-      seededConeJetBx.clear();
-      seededConeJetzVtx.clear();
-      seededConeJetEtUnCorr.clear();
-
-      seededConeHT.clear();
-      seededConeMHTEt.clear();
-      seededConeMHTPhi.clear();
-      nSeededConeMHT = 0;
+      seededConePuppiHT.clear();
+      seededConePuppiMHTEt.clear();
+      seededConePuppiMHTPhi.clear();
+      nSeededConePuppiMHT = 0;
 
 
       nNNTaus = 0;
@@ -298,16 +318,40 @@ namespace L1Analysis {
     std::vector<unsigned int>   hpsTauType;
     std::vector<double>   hpsTauZ0;
 
-    unsigned short int nPhase1Jets;
-    std::vector<double> phase1JetPt;
-    std::vector<double> phase1JetEt;
-    std::vector<double> phase1JetEta;
-    std::vector<double> phase1JetPhi;
+    unsigned short int nCaloJets;
+    std::vector<double> caloJetPt;
+    std::vector<double> caloJetEt;
+    std::vector<double> caloJetEta;
+    std::vector<double> caloJetPhi;
+    std::vector<short int> caloJetBx;
 
-    std::vector<double> phase1HT;
-    std::vector<double> phase1MHTEt;
-    std::vector<double> phase1MHTPhi;
-    unsigned int nPhase1MHT;
+    float caloJetHT;
+    std::vector<double> caloJetHTMenu;
+    std::vector<double> caloJetMHTMenuEt;
+    std::vector<double> caloJetMHTMenuPhi;
+    unsigned int nCaloJetMHTMenu;
+
+    unsigned short int nPhase1PuppiJets;
+    std::vector<double> phase1PuppiJetPt;
+    std::vector<double> phase1PuppiJetEt;
+    std::vector<double> phase1PuppiJetEta;
+    std::vector<double> phase1PuppiJetPhi;
+
+    std::vector<double> phase1PuppiHTMenu;
+    std::vector<double> phase1PuppiMHTMenuEt;
+    std::vector<double> phase1PuppiMHTMenuPhi;
+    unsigned int nPhase1PuppiMHTMenu;
+
+    double phase1PuppiHT;
+    double phase1PuppiMHTEt;
+    double phase1PuppiMHTPhi;
+
+    double phase1PuppiMETEt;
+    double phase1PuppiMETPhi;
+
+    double puppiMETRecoEt;
+    double puppiMETRecoPhi;
+
 
     unsigned int nEG;
     std::vector<double> EGPt;
@@ -427,22 +471,19 @@ namespace L1Analysis {
     std::vector<double> tkGlbMuonNMatchedTracks;
 
 
-    double puppiMETEt;
-    double puppiMETPhi;
+    unsigned int nSeededConePuppiJets;
+    std::vector<double> seededConePuppiJetPt;
+    std::vector<double> seededConePuppiJetEt;
+    std::vector<double> seededConePuppiJetEta;
+    std::vector<double> seededConePuppiJetPhi;
+    std::vector<int> seededConePuppiJetBx;
+    std::vector<double> seededConePuppiJetzVtx;
+    std::vector<double> seededConePuppiJetEtUnCorr;
 
-    unsigned int nSeededConeJets;
-    std::vector<double> seededConeJetPt;
-    std::vector<double> seededConeJetEt;
-    std::vector<double> seededConeJetEta;
-    std::vector<double> seededConeJetPhi;
-    std::vector<int> seededConeJetBx;
-    std::vector<double> seededConeJetzVtx;
-    std::vector<double> seededConeJetEtUnCorr;
-
-    std::vector<double> seededConeHT;
-    std::vector<double> seededConeMHTEt;
-    std::vector<double> seededConeMHTPhi;
-    unsigned int nSeededConeMHT;
+    std::vector<double> seededConePuppiHT;
+    std::vector<double> seededConePuppiMHTEt;
+    std::vector<double> seededConePuppiMHTPhi;
+    unsigned int nSeededConePuppiMHT;
 
 
     unsigned int nNNTaus;

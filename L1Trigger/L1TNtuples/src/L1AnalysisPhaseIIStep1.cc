@@ -69,6 +69,51 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetHPSPFTaus(const edm::Handle<l1t::HPS
                    l1extra_.nHPSTaus++;
       }
 
+void L1Analysis::L1AnalysisPhaseIIStep1::SetCaloJet(const edm::Handle<l1t::JetBxCollection> jet, unsigned maxL1Extra, float caloJetHTT)
+{
+
+  double mHT30_px=0, mHT30_py=0, HT30=0;
+  double mHT30_3p5_px=0, mHT30_3p5_py=0, HT30_3p5=0;
+
+  for (int ibx = jet->getFirstBX(); ibx <= jet->getLastBX(); ++ibx) {
+    for (l1t::JetBxCollection::const_iterator it=jet->begin(ibx); it!=jet->end(ibx) && l1extra_.nCaloJets<maxL1Extra; it++){
+      if (it->pt() > 0){
+      l1extra_.caloJetEt .push_back(it->et());
+      l1extra_.caloJetPt .push_back(it->pt());
+      l1extra_.caloJetEta.push_back(it->eta());
+      l1extra_.caloJetPhi.push_back(it->phi());
+      l1extra_.caloJetBx .push_back(ibx);
+      l1extra_.nCaloJets++;
+
+      if(it->pt()>30 && fabs(it->eta())<2.4) {
+                  HT30+=it->pt();
+                  mHT30_px+=it->px();
+                  mHT30_py+=it->py();
+      }
+      if(it->pt()>30 && fabs(it->eta())<3.5) {
+                  HT30_3p5+=it->pt();
+                  mHT30_3p5_px+=it->px();
+                  mHT30_3p5_py+=it->py();
+      }
+      }
+    }
+  }
+
+  l1extra_.caloJetHT= caloJetHTT;
+
+  l1extra_.caloJetMHTMenuEt.push_back( sqrt(mHT30_px*mHT30_px+mHT30_py*mHT30_py) );
+  l1extra_.caloJetMHTMenuPhi.push_back( atan(mHT30_py/mHT30_px) );
+  l1extra_.caloJetHTMenu.push_back( HT30 );
+
+  l1extra_.caloJetMHTMenuEt.push_back( sqrt(mHT30_3p5_px*mHT30_3p5_px+mHT30_3p5_py*mHT30_3p5_py) );
+  l1extra_.caloJetMHTMenuPhi.push_back( atan(mHT30_3p5_py/mHT30_3p5_px) );
+  l1extra_.caloJetHTMenu.push_back( HT30_3p5 );
+
+  l1extra_.nCaloJetMHTMenu=2;
+
+
+
+
 }
 
 
@@ -379,14 +424,14 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJet(const      edm::Han
   double mHT30_3p5_px=0, mHT30_3p5_py=0, HT30_3p5=0; 
 
 
-    for (reco::CaloJetCollection::const_iterator it=l1L1PFPhase1L1Jet->begin(); it!=l1L1PFPhase1L1Jet->end() && l1extra_.nPhase1Jets<maxL1Extra; it++){
+    for (reco::CaloJetCollection::const_iterator it=l1L1PFPhase1L1Jet->begin(); it!=l1L1PFPhase1L1Jet->end() && l1extra_.nPhase1PuppiJets<maxL1Extra; it++){
       if (it->pt() > 0){
-      l1extra_.phase1JetPt.push_back(it->pt());
-      l1extra_.phase1JetEt.push_back(it->et());
-      l1extra_.phase1JetEta.push_back(it->eta());
-      l1extra_.phase1JetPhi.push_back(it->phi());
-//      l1extra_.phase1JetBx .push_back(0);
-      l1extra_.nPhase1Jets++;
+      l1extra_.phase1PuppiJetPt.push_back(it->pt());
+      l1extra_.phase1PuppiJetEt.push_back(it->et());
+      l1extra_.phase1PuppiJetEta.push_back(it->eta());
+      l1extra_.phase1PuppiJetPhi.push_back(it->phi());
+//      l1extra_.phase1PuppiJetBx .push_back(0);
+      l1extra_.nPhase1PuppiJets++;
  
     if(it->pt()>30 && fabs(it->eta())<2.4) { //use pT
                   HT30+=it->pt();
@@ -404,34 +449,56 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJet(const      edm::Han
    }  
   }  
 
-  l1extra_.nPhase1MHT=2;
+  l1extra_.nPhase1PuppiMHTMenu=2;
 
-  l1extra_.phase1MHTEt.push_back( sqrt(mHT30_px*mHT30_px+mHT30_py*mHT30_py) );
-  l1extra_.phase1MHTPhi.push_back( atan(mHT30_py/mHT30_px) );
-  l1extra_.phase1HT.push_back( HT30 );
+  l1extra_.phase1PuppiMHTMenuEt.push_back( sqrt(mHT30_px*mHT30_px+mHT30_py*mHT30_py) );
+  l1extra_.phase1PuppiMHTMenuPhi.push_back( atan(mHT30_py/mHT30_px) );
+  l1extra_.phase1PuppiHTMenu.push_back( HT30 );
 
-  l1extra_.phase1MHTEt.push_back( sqrt(mHT30_3p5_px*mHT30_3p5_px+mHT30_3p5_py*mHT30_3p5_py) );
-  l1extra_.phase1MHTPhi.push_back( atan(mHT30_3p5_py/mHT30_3p5_px) );
-  l1extra_.phase1HT.push_back( HT30_3p5 );
+  l1extra_.phase1PuppiMHTMenuEt.push_back( sqrt(mHT30_3p5_px*mHT30_3p5_px+mHT30_3p5_py*mHT30_3p5_py) );
+  l1extra_.phase1PuppiMHTMenuPhi.push_back( atan(mHT30_3p5_py/mHT30_3p5_px) );
+  l1extra_.phase1PuppiHTMenu.push_back( HT30_3p5 );
 
 
 }
+
+void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJetMET(const	edm::Handle< std::vector<l1t::EtSum> >  l1L1PFPhase1L1JetMET,    unsigned maxL1Extra){
+
+  l1t::EtSum met = l1L1PFPhase1L1JetMET->at(0);
+  cout<<met.et()<< " and " <<met.phi()<<endl;
+  l1extra_.phase1PuppiMETEt = met.et();
+  l1extra_.phase1PuppiMETPhi = met.phi();
+
+}
+
+void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJetSums(const   edm::Handle< std::vector<l1t::EtSum> >  l1L1PFPhase1L1JetSums,    unsigned maxL1Extra){
+
+  //cout<<"testing the size of this sums vector:"<<l1L1PFPhase1L1JetSums<<endl;
+  l1t::EtSum HT = l1L1PFPhase1L1JetSums->at(0);
+  l1t::EtSum MHT = l1L1PFPhase1L1JetSums->at(1);
+  cout<<HT.pt()<< " and " <<MHT.pt()<<" and "<<MHT.phi()<<endl;
+  l1extra_.phase1PuppiHT = HT.pt();
+  l1extra_.phase1PuppiMHTEt = MHT.pt();
+  l1extra_.phase1PuppiMHTPhi = MHT.phi();
+
+}
+
 
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetPFJet(const edm::Handle<l1t::PFJetCollection> PFJet, unsigned maxL1Extra) {
   double mHT30_px = 0, mHT30_py = 0, HT30 = 0;
   double mHT30_3p5_px = 0, mHT30_3p5_py = 0, HT30_3p5 = 0;
 
-  for (l1t::PFJetCollection::const_iterator it = PFJet->begin(); it != PFJet->end() && l1extra_.nSeededConeJets < maxL1Extra;
+  for (l1t::PFJetCollection::const_iterator it = PFJet->begin(); it != PFJet->end() && l1extra_.nSeededConePuppiJets < maxL1Extra;
        it++) {
-    l1extra_.seededConeJetPt.push_back(it->pt());
-    l1extra_.seededConeJetEt.push_back(it->et());
-    l1extra_.seededConeJetEtUnCorr.push_back(it->rawPt()); //rename?
-    l1extra_.seededConeJetEta.push_back(it->eta());
-    l1extra_.seededConeJetPhi.push_back(it->phi());
-    //    l1extra_.seededConeJetzVtx.push_back(it->getJetVtx());
-    l1extra_.seededConeJetBx.push_back(0);  //it->bx());
-    l1extra_.nSeededConeJets++;
+    l1extra_.seededConePuppiJetPt.push_back(it->pt());
+    l1extra_.seededConePuppiJetEt.push_back(it->et());
+    l1extra_.seededConePuppiJetEtUnCorr.push_back(it->rawPt()); //rename?
+    l1extra_.seededConePuppiJetEta.push_back(it->eta());
+    l1extra_.seededConePuppiJetPhi.push_back(it->phi());
+    //    l1extra_.seededConePuppiJetzVtx.push_back(it->getJetVtx());
+    l1extra_.seededConePuppiJetBx.push_back(0);  //it->bx());
+    l1extra_.nSeededConePuppiJets++;
 
     if (it->pt() > 30 && fabs(it->eta()) < 2.4) {
       HT30 += it->pt();
@@ -444,15 +511,15 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetPFJet(const edm::Handle<l1t::PFJetCo
       mHT30_3p5_py += it->py();
     }
   }
-  l1extra_.seededConeMHTEt.push_back(sqrt(mHT30_px * mHT30_px + mHT30_py * mHT30_py));
-  l1extra_.seededConeMHTPhi.push_back(atan(mHT30_py / mHT30_px));
-  l1extra_.seededConeHT.push_back(HT30);
+  l1extra_.seededConePuppiMHTEt.push_back(sqrt(mHT30_px * mHT30_px + mHT30_py * mHT30_py));
+  l1extra_.seededConePuppiMHTPhi.push_back(atan(mHT30_py / mHT30_px));
+  l1extra_.seededConePuppiHT.push_back(HT30);
 
-  l1extra_.seededConeMHTEt.push_back(sqrt(mHT30_3p5_px * mHT30_3p5_px + mHT30_3p5_py * mHT30_3p5_py));
-  l1extra_.seededConeMHTPhi.push_back(atan(mHT30_3p5_py / mHT30_3p5_px));
-  l1extra_.seededConeHT.push_back(HT30_3p5);
+  l1extra_.seededConePuppiMHTEt.push_back(sqrt(mHT30_3p5_px * mHT30_3p5_px + mHT30_3p5_py * mHT30_3p5_py));
+  l1extra_.seededConePuppiMHTPhi.push_back(atan(mHT30_3p5_py / mHT30_3p5_px));
+  l1extra_.seededConePuppiHT.push_back(HT30_3p5);
 
-  l1extra_.nSeededConeMHT = 2; //why 2?
+  l1extra_.nSeededConePuppiMHT = 2; //why 2?
 }
 
 
@@ -460,6 +527,11 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vecto
   l1t::EtSum met = l1MetPF->at(0);
   l1extra_.puppiMETEt = met.et();
   l1extra_.puppiMETPhi = met.phi();
+
+void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vector<reco::PFMET> > l1MetPF) {
+  reco::PFMET met = l1MetPF->at(0);
+  l1extra_.puppiMETRecoEt = met.et();
+  l1extra_.puppiMETRecoPhi = met.phi();
 }
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetNNTaus(const edm::Handle<vector<l1t::PFTau> > l1nnTaus,

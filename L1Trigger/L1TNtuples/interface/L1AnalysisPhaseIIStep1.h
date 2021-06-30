@@ -93,6 +93,7 @@ namespace L1Analysis {
                unsigned maxL1Extra);
     void SetCaloTau(const edm::Handle<l1t::TauBxCollection> calotau, unsigned maxL1Extra);
     void SetHPSPFTaus  (const  edm::Handle<l1t::HPSPFTauCollection> HPSPFTau, unsigned maxL1Extra);
+    void SetCaloJet  (const edm::Handle<l1t::JetBxCollection>    calojet,  unsigned maxL1Extra, float caloJetHTT);
 
     // Add L1TrackTriggerObjects
     void SetTkEG(const edm::Handle<l1t::TkElectronCollection> tkEG,
@@ -120,6 +121,8 @@ namespace L1Analysis {
 
     // reco::caloJet collection for "Phase1L1Jets" ...
     void SetL1PfPhase1L1TJet(const edm::Handle<std::vector<reco::CaloJet>> l1L1PFPhase1L1Jet, unsigned maxL1Extra);
+    void SetL1PfPhase1L1TJetMET(const edm::Handle<std::vector<l1t::EtSum>> l1L1PFPhase1L1TJetMET, unsigned maxL1Extra);
+    void SetL1PfPhase1L1TJetSums(const edm::Handle<std::vector<l1t::EtSum>> l1L1PFPhase1L1TJetSums, unsigned maxL1Extra);
 
     void SetPFJet(const edm::Handle<l1t::PFJetCollection> PFJet, unsigned maxL1Extra);
 

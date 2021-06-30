@@ -22,8 +22,12 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
 
    scPFL1Puppi = cms.InputTag("scPFL1Puppi", ""),
 
-   l1pfPhase1L1TJetToken  = cms.InputTag("Phase1L1TJetCalibrator" ,   "Phase1L1TJetFromPfCandidates"), # not there yet either
+   l1pfPhase1L1TJetToken  = cms.InputTag("Phase1L1TJetCalibrator9x9" ,   "Phase1L1TJetFromPfCandidates"), #use the 9x9 case
+   l1pfPhase1L1TJetMET  = cms.InputTag("Phase1L1TJetProducer9x9" ,   "UncalibratedPhase1L1TJetFromPfCandidatesMET"), #use the 9x9 case
+   l1pfPhase1L1TJetSums  = cms.InputTag("Phase1L1TJetSumsProducer9x9" ,   "Sums"), #use the 9x9 case
 
+   caloJetToken = cms.InputTag("L1CaloJet","CaloJets"),
+   caloJetHTTToken = cms.InputTag("L1CaloJetHTT","CaloJetHTT"),
    caloTauToken = cms.InputTag("L1CaloJet","CaloTaus"),
    L1HPSPFTauToken = cms.InputTag("HPSPFTauProducerPF",""),
 
