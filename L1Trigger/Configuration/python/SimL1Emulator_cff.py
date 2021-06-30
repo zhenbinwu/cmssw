@@ -122,6 +122,7 @@ L1VertexFinderEmulator = VertexProducer.clone()
 L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
 _phase2_siml1emulator.add(L1VertexFinder)
 _phase2_siml1emulator.add(L1GTTInputProducer)
+_phase2_siml1emulator.add(L1GTTInputProducerExtended)
 _phase2_siml1emulator.add(L1VertexFinderEmulator)
 
 # Tk + StandaloneObj, including L1TkPrimaryVertex
@@ -162,6 +163,10 @@ _phase2_siml1emulator.add(L1TrackerHTMiss)
 _phase2_siml1emulator.add(L1TrackerEtMissExtended)
 _phase2_siml1emulator.add(L1TrackerHTMissExtended)
 
+#Emulated tracker objects
+from L1Trigger.L1TTrackMatch.L1TrackJetEmulationProducer_cfi import *
+_phase2_siml1emulator.add(L1TrackJetsEmulation)
+_phase2_siml1emulator.add(L1TrackJetsExtendedEmulation)
 
 # PF Candidates
 # ########################################################################
@@ -189,6 +194,10 @@ _phase2_siml1emulator.add(HPSPFTauProducerPuppi)
 from L1Trigger.Phase2L1ParticleFlow.l1pfJetMet_cff import *
 _phase2_siml1emulator.add(l1PFJetsTask)
 _phase2_siml1emulator.add(l1PFMetsTask)
+
+from L1Trigger.Phase2L1ParticleFlow.L1MetPfProducer_cfi import *
+_phase2_siml1emulator.add(L1MetPfProducer)
+
 
 # NNTaus
 # ########################################################################

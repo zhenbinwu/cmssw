@@ -456,8 +456,8 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetPFJet(const edm::Handle<l1t::PFJetCo
 }
 
 
-void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vector<reco::PFMET> > l1MetPF) {
-  reco::PFMET met = l1MetPF->at(0);
+void L1Analysis::L1AnalysisPhaseIIStep1::SetL1METPF(const edm::Handle<std::vector<l1t::EtSum> > l1MetPF) {
+  l1t::EtSum met = l1MetPF->at(0);
   l1extra_.puppiMETEt = met.et();
   l1extra_.puppiMETPhi = met.phi();
 }
@@ -484,29 +484,29 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetNNTaus(const edm::Handle<vector<l1t:
 }
 
 // TkJet
-void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJet(const edm::Handle<l1t::TkJetCollection> trackerJet, unsigned maxL1Extra) {
-  for (l1t::TkJetCollection::const_iterator it = trackerJet->begin();
+void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJet(const edm::Handle<l1t::TkJetWordCollection> trackerJet, unsigned maxL1Extra) {
+  for (l1t::TkJetWordCollection::const_iterator it = trackerJet->begin();
        it != trackerJet->end() && l1extra_.nTrackerJets < maxL1Extra;
        it++) {
-    l1extra_.trackerJetPt.push_back(it->pt());
-    l1extra_.trackerJetEt.push_back(it->et());
-    l1extra_.trackerJetEta.push_back(it->eta());
-    l1extra_.trackerJetPhi.push_back(it->phi());
-    l1extra_.trackerJetzVtx.push_back(it->jetVtx());
+    l1extra_.trackerJetPt.push_back(it->floatPt());
+    //l1extra_.trackerJetEt.push_back(it->et());
+    l1extra_.trackerJetEta.push_back(it->floatEta());
+    l1extra_.trackerJetPhi.push_back(it->floatPhi());
+    //l1extra_.trackerJetzVtx.push_back(it->jetVtx());
     l1extra_.trackerJetBx.push_back(0);  //it->bx());
     l1extra_.nTrackerJets++;
   }
 }
 
-void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJetDisplaced(const edm::Handle<l1t::TkJetCollection> trackerJet, unsigned maxL1Extra) {
-  for (l1t::TkJetCollection::const_iterator it = trackerJet->begin();
+void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJetDisplaced(const edm::Handle<l1t::TkJetWordCollection> trackerJet, unsigned maxL1Extra) {
+  for (l1t::TkJetWordCollection::const_iterator it = trackerJet->begin();
        it != trackerJet->end() && l1extra_.nTrackerJets < maxL1Extra;
        it++) {
-    l1extra_.trackerJetDisplacedPt.push_back(it->pt());
-    l1extra_.trackerJetDisplacedEt.push_back(it->et());
-    l1extra_.trackerJetDisplacedEta.push_back(it->eta());
-    l1extra_.trackerJetDisplacedPhi.push_back(it->phi());
-    l1extra_.trackerJetDisplacedzVtx.push_back(it->jetVtx());
+    l1extra_.trackerJetDisplacedPt.push_back(it->floatPt());
+    //l1extra_.trackerJetDisplacedEt.push_back(it->et());
+    l1extra_.trackerJetDisplacedEta.push_back(it->floatEta());
+    l1extra_.trackerJetDisplacedPhi.push_back(it->floatPhi());
+    //l1extra_.trackerJetDisplacedzVtx.push_back(it->jetVtx());
     l1extra_.trackerJetDisplacedBx.push_back(0);  //it->bx());
     l1extra_.nTrackerJetsDisplaced++;
   }

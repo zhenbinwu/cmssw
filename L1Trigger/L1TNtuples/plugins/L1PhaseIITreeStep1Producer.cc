@@ -80,6 +80,8 @@ Implementation:
 
 #include "DataFormats/L1TParticleFlow/interface/PFTau.h"
 
+#include "DataFormats/L1Trigger/interface/TkJetWord.h"
+
 #include "DataFormats/L1TParticleFlow/interface/HPSPFTau.h"
 #include "DataFormats/L1TParticleFlow/interface/HPSPFTauFwd.h"
 
@@ -145,7 +147,7 @@ private:
   edm::EDGetTokenT<l1t::TauBxCollection> caloTauToken_;
   edm::EDGetTokenT<l1t::HPSPFTauCollection> L1HPSPFTauToken_;
 
-  edm::EDGetTokenT<std::vector<reco::PFMET> > l1PFMet_;
+  edm::EDGetTokenT<std::vector<l1t::EtSum> > l1PFMet_;
 
   edm::EDGetTokenT<std::vector<reco::CaloJet> > l1pfPhase1L1TJetToken_; // why are these caloJets???
   edm::EDGetTokenT<std::vector<l1t::PFJet>> scPFL1Puppi_;
@@ -160,8 +162,8 @@ private:
   edm::EDGetTokenT<l1t::PFTauCollection> L1NNTauPFToken_;
 
   //adding tkjets, tkmet, tkht
-  edm::EDGetTokenT<l1t::TkJetCollection> tkTrackerJetToken_;
-  edm::EDGetTokenT<l1t::TkJetCollection> tkTrackerJetDisplacedToken_;
+  edm::EDGetTokenT<l1t::TkJetWordCollection> tkTrackerJetToken_;
+  edm::EDGetTokenT<l1t::TkJetWordCollection> tkTrackerJetDisplacedToken_;
 
   edm::EDGetTokenT<l1t::TkEtMissCollection> tkMetToken_;
   std::vector<edm::EDGetTokenT<l1t::TkHTMissCollection>> tkMhtToken_;
@@ -195,7 +197,7 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
 
 
 
-  l1PFMet_ = consumes<std::vector<reco::PFMET> >(iConfig.getParameter<edm::InputTag>("l1PFMet"));
+  l1PFMet_ = consumes<std::vector<l1t::EtSum> >(iConfig.getParameter<edm::InputTag>("l1PFMet"));
 
   scPFL1Puppi_ = consumes<std::vector<l1t::PFJet>>(iConfig.getParameter<edm::InputTag>("scPFL1Puppi"));
   l1pfPhase1L1TJetToken_ = consumes<std::vector<reco::CaloJet> > (iConfig.getParameter<edm::InputTag>("l1pfPhase1L1TJetToken"));
@@ -210,8 +212,8 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   L1NNTauPFToken_ = consumes<l1t::PFTauCollection>(iConfig.getParameter<edm::InputTag>("L1NNTauPFToken"));
 
 
-  tkTrackerJetToken_ = consumes<l1t::TkJetCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetToken"));
-  tkTrackerJetDisplacedToken_ = consumes<l1t::TkJetCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetDisplacedToken"));
+  tkTrackerJetToken_ = consumes<l1t::TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetToken"));
+  tkTrackerJetDisplacedToken_ = consumes<l1t::TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetDisplacedToken"));
 
   tkMetToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetToken"));
   tkMetDisplacedToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetDisplacedToken"));
@@ -283,7 +285,7 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<l1t::HPSPFTauCollection> l1HPSPFTau;
   iEvent.getByToken(L1HPSPFTauToken_,l1HPSPFTau);
 
-  edm::Handle<std::vector<reco::PFMET> > l1PFMet;
+  edm::Handle<std::vector<l1t::EtSum> > l1PFMet;
   iEvent.getByToken(l1PFMet_, l1PFMet);
 
   edm::Handle<  std::vector<reco::CaloJet>  > l1pfPhase1L1TJet;
@@ -310,8 +312,8 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   iEvent.getByToken(l1TkPrimaryVertexToken_, l1TkPrimaryVertex);
 
   //tkjet, tkmet, tkht
-  edm::Handle<l1t::TkJetCollection> tkTrackerJet;
-  edm::Handle<l1t::TkJetCollection> tkTrackerJetDisplaced;
+  edm::Handle<l1t::TkJetWordCollection> tkTrackerJet;
+  edm::Handle<l1t::TkJetWordCollection> tkTrackerJetDisplaced;
 
   edm::Handle<l1t::TkEtMissCollection> tkMets;
   edm::Handle<l1t::TkEtMissCollection> tkMetsDisplaced;

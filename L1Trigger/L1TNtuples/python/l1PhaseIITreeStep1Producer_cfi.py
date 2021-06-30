@@ -27,7 +27,7 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    caloTauToken = cms.InputTag("L1CaloJet","CaloTaus"),
    L1HPSPFTauToken = cms.InputTag("HPSPFTauProducerPF",""),
 
-   l1PFMet = cms.InputTag("l1PFMetPuppi",""),
+   l1PFMet = cms.InputTag("L1MetPfProducer",""),
 
    zoPuppi = cms.InputTag("l1pfProducerBarrel","z0"),
    l1vertextdr = cms.InputTag("VertexProducer","l1vertextdr"),
@@ -37,8 +37,8 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    L1NNTauToken = cms.InputTag("l1NNTauProducerPuppi","L1PFTausNN"),
    L1NNTauPFToken = cms.InputTag("l1NNTauProducer","L1PFTausNN"),
 
-   tkTrackerJetToken = cms.InputTag("L1TrackJets", "L1TrackJets"),
-   tkTrackerJetDisplacedToken = cms.InputTag("L1TrackJetsExtended", "L1TrackJetsExtended"),
+   tkTrackerJetToken = cms.InputTag("L1TrackJetsEmulated", "L1TrackJets"),
+   tkTrackerJetDisplacedToken = cms.InputTag("L1TrackJetsEmulatedExtended", "L1TrackJetsExtended"),
 
    tkMetToken = cms.InputTag("L1TrackerEtMiss","L1TrackerEtMiss"),
    tkMetDisplacedToken = cms.InputTag("L1TrackerEtMissExtended","L1TrackerEtMissExtended"),

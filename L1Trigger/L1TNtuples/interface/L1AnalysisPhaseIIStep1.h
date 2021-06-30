@@ -57,6 +57,8 @@
 //#include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/L1TParticleFlow/interface/PFJet.h"
 
+#include "DataFormats/L1Trigger/interface/TkJetWord.h"
+
 #include "DataFormats/METReco/interface/PFMET.h"
 #include "DataFormats/L1TParticleFlow/interface/PFCandidate.h"
 
@@ -114,7 +116,7 @@ namespace L1Analysis {
     void SetTkGlbMuon(const edm::Handle<l1t::TkGlbMuonCollection> TkGlbMuon, unsigned maxL1Extra); 
 
     // Add new PFJet collections
-    void SetL1METPF(const edm::Handle<std::vector<reco::PFMET>> l1MetPF);
+    void SetL1METPF(const edm::Handle<std::vector<l1t::EtSum>> l1MetPF);
 
     // reco::caloJet collection for "Phase1L1Jets" ...
     void SetL1PfPhase1L1TJet(const edm::Handle<std::vector<reco::CaloJet>> l1L1PFPhase1L1Jet, unsigned maxL1Extra);
@@ -125,8 +127,8 @@ namespace L1Analysis {
     void SetNNTaus(const edm::Handle<std::vector<l1t::PFTau>> l1nnTaus, unsigned maxL1Extra);
 
     //tkjets, tkmet, tkht
-    void SetTkJet(const edm::Handle<l1t::TkJetCollection> tkTrackerJet, unsigned maxL1Extra);
-    void SetTkJetDisplaced(const edm::Handle<l1t::TkJetCollection> tkTrackerJet, unsigned maxL1Extra);
+    void SetTkJet(const edm::Handle<l1t::TkJetWordCollection> tkTrackerJet, unsigned maxL1Extra);
+    void SetTkJetDisplaced(const edm::Handle<l1t::TkJetWordCollection> tkTrackerJet, unsigned maxL1Extra);
 
     void SetTkMET(const edm::Handle<l1t::TkEtMissCollection> trackerMets);
     void SetTkMHT(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs);
