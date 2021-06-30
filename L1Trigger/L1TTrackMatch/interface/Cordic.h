@@ -12,7 +12,7 @@
 **        : 
 */
 
-using namespace L1TkEtMissEmuAlgo;
+using namespace l1tmetemu;
 
 class Cordic {
 public:
