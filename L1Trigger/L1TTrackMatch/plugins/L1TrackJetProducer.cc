@@ -241,7 +241,7 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
           float deta = L1TrkPtrs_[t]->momentum().eta() - jetEta;
           float dphi = L1TrkPtrs_[t]->momentum().phi() - jetPhi;
           float dZ = fabs(mzb.zbincenter - L1TrkPtrs_[t]->z0());
-          if (dZ < zStep_ && fabs(deta) < etaStep_ * 2.0 && fabs(dphi) < phiStep_ * 2.0) {
+          if (dZ <= zStep_ && fabs(deta) < etaStep_ * 2.0 && fabs(dphi) < phiStep_ * 2.0) {
             L1TrackAssocJet.push_back(L1TrkPtrs_[t]);
           }
         }
