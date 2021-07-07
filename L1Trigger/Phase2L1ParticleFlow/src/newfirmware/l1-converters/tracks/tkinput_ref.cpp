@@ -59,8 +59,8 @@ l1ct::TrackInputEmulator::TrackInputEmulator(const edm::ParameterSet &iConfig)
     configDEtaHGCal(iConfig.getParameter<uint32_t>("dEtaHGCalBits"),
                     iConfig.getParameter<uint32_t>("dEtaHGCalZ0PreShift"),
                     iConfig.getParameter<uint32_t>("dEtaHGCalRInvPreShift"),
-                    iConfig.getParameter<uint32_t>("dEtaHGCalRInvPostShift"),
-                    iConfig.getParameter<uint32_t>("dEtaHGCalRInvLUTBits"),
+                    iConfig.getParameter<uint32_t>("dEtaHGCalLUTBits"),
+                    iConfig.getParameter<uint32_t>("dEtaHGCalLUTShift"),
                     iConfig.getParameter<double>("dEtaHGCalFloatOffs"));
     configDPhiHGCal(iConfig.getParameter<uint32_t>("dPhiHGCalBits"),
                     iConfig.getParameter<uint32_t>("dPhiHGCalZ0PreShift"),
@@ -81,11 +81,10 @@ l1ct::TrackInputEmulator::TrackInputEmulator(Region region, Encoding encoding, b
       rInvToPt_(31199.5),
       phiScale_(0.00038349520),
       z0Scale_(0.00999469),
-      dEtaHGCalParamZ0_(-6.71),
-      dEtaHGCalParamRInv2_(-0.01349),
-      dEtaHGCalParamTanl1_(-12.02),
-      dEtaHGCalParamTanl2_(-218.9),
-      dEtaHGCalParamC_(2.25),
+      dEtaHGCalParamZ0_(-0.00655),
+      dEtaHGCalParamRInv2C_(+0.66),
+      dEtaHGCalParamRInv2ITanl1_(-0.72),
+      dEtaHGCalParamRInv2ITanl2_(-0.38),
       dPhiHGCalParamZ0_(0.00171908),
       dPhiHGCalParamC_(56.5354),
       debug_(false) {}
@@ -321,25 +320,21 @@ void l1ct::TrackInputEmulator::configZ0(int bits) {
 }
 
 float l1ct::TrackInputEmulator::floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
-  float z0Scaled = z0.to_float() / 1024.0;
-  float RinvScaled = Rinv.to_float() / 1024.0, RinvScaled2 = RinvScaled * RinvScaled;
-  float invtanlScaled = 1024.0 / tanl.to_float(), invtanlScaled2 = invtanlScaled * invtanlScaled;
-  float tanlTerm, ret;
-  if (tanl >= 0) {
-    tanlTerm = dEtaHGCalParamTanl1_ * invtanlScaled + dEtaHGCalParamTanl2_ * invtanlScaled2 + dEtaHGCalParamC_;
-    ret = dEtaHGCalParamZ0_ * z0Scaled + dEtaHGCalParamRInv2_ * RinvScaled2 + tanlTerm;
-  } else {
-    tanlTerm = dEtaHGCalParamTanl1_ * invtanlScaled - dEtaHGCalParamTanl2_ * invtanlScaled2 - dEtaHGCalParamC_;
-    ret = dEtaHGCalParamZ0_ * z0Scaled - dEtaHGCalParamRInv2_ * RinvScaled2 + tanlTerm;
-  }
+  float RinvScaled = Rinv.to_float() / (16 * 1024.0), RinvScaled2 = RinvScaled * RinvScaled;
+  float invtanlScaled = (32 * 1024.0) / std::abs(tanl.to_float()), invtanlScaled2 = invtanlScaled * invtanlScaled;
+  float tanlTerm = (tanl > 0 ? 1 : -1) * (dEtaHGCalParamRInv2C_ + dEtaHGCalParamRInv2ITanl1_ * invtanlScaled +
+                                          dEtaHGCalParamRInv2ITanl2_ * invtanlScaled2);
+  float ret = dEtaHGCalParamZ0_ * z0.to_float() + tanlTerm * RinvScaled2;
   if (debug_) {
     dbgPrintf(
-        "flt deta for z0 %+6d Rinv %+6d tanl %+6d:  z0term %+8.2f  Rinvterm  %+8.2f   tanlterm  %+8.2f   ret  %+8.2f\n",
+        "flt deta for z0 %+6d Rinv %+6d tanl %+6d:  z0term %+8.2f  rinv2u %.4f tanlterm  %+8.3f (pre: %+8.2f)  ret  "
+        "%+8.2f\n",
         z0.to_int(),
         Rinv.to_int(),
         tanl.to_int(),
-        dEtaHGCalParamZ0_ * z0Scaled,
-        (tanl >= 0 ? +1 : -1) * dEtaHGCalParamRInv2_ * RinvScaled2,
+        dEtaHGCalParamZ0_ * z0.to_float(),
+        RinvScaled2,
+        tanlTerm * RinvScaled2,
         tanlTerm,
         ret);
   }
@@ -349,25 +344,25 @@ float l1ct::TrackInputEmulator::floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, a
 l1ct::tkdeta_t l1ct::TrackInputEmulator::calcDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
   int z0Term = dEtaHGCalZ0_ * (z0 >> dEtaHGCalZ0PreShift_);
 
-  int rinvShift = Rinv.to_int() >> dEtaHGCalRInvPreShift_;
-  int tanlsign = (tanl >= 0 ? +1 : -1);
-  int rinvTerm = dEtaHGCalRInv_ * tanlsign * (rinvShift * rinvShift >> dEtaHGCalRInvPostShift_);
+  int rinvShift = Rinv.to_int() >> dEtaHGCalRInvPreShift_, rinvShift2 = rinvShift * rinvShift;
 
   ap_uint<16> unsTanl = tanl(15, 0);
   unsigned int tanlIdx = (unsTanl.to_int()) >> dEtaHGCalTanlShift_;
-  assert(tanlIdx < dEtaHGCalTanlLUT_.size());
-  int tanlTerm = dEtaHGCalTanlLUT_[tanlIdx];
+  assert(tanlIdx < dEtaHGCalLUT_.size());
+  int tanlTerm = (rinvShift2 * dEtaHGCalLUT_[tanlIdx] + dEtaHGCalTanlTermOffs_) >> dEtaHGCalTanlTermShift_;
 
-  int ret0 = z0Term + rinvTerm + tanlTerm + dEtaHGCalOffs_;
+  int ret0 = z0Term + tanlTerm + dEtaHGCalOffs_;
   if (debug_) {
     dbgPrintf(
-        "int deta for z0 %+6d Rinv %+6d tanl %+6d:  z0term %+8.2f  Rinvterm  %+8.2f   tanlterm  %+8.2f   ret  %+8.2f\n",
+        "int deta for z0 %+6d Rinv %+6d tanl %+6d:  z0term %+8.2f  rinv2u %.4f tanlterm  %+8.2f (pre: %+8.2f)  ret  "
+        "%+8.2f\n",
         z0.to_int(),
         Rinv.to_int(),
         tanl.to_int(),
         float(z0Term) / (1 << dEtaHGCalBits_),
-        float(rinvTerm) / (1 << dEtaHGCalBits_),
+        float(rinvShift2) / (1 << (28 - 2 * dEtaHGCalRInvPreShift_)),
         float(tanlTerm) / (1 << dEtaHGCalBits_),
+        float(dEtaHGCalLUT_[tanlIdx]) / (1 << (dEtaHGCalBits_ - dEtaHGCalLUTShift_)),
         float(ret0) / (1 << dEtaHGCalBits_));
   }
   return (ret0 + (1 << (dEtaHGCalBits_ - 1))) >> dEtaHGCalBits_;
@@ -376,34 +371,36 @@ l1ct::tkdeta_t l1ct::TrackInputEmulator::calcDEtaHGCal(ap_int<12> z0, ap_int<15>
 void l1ct::TrackInputEmulator::configDEtaHGCal(int dEtaHGCalBits,
                                                int dEtaHGCalZ0PreShift,
                                                int dEtaHGCalRInvPreShift,
-                                               int dEtaHGCalRInvPostShift,
-                                               int dEtaHGCalRInvLUTBits,
+                                               int dEtaHGCalLUTBits,
+                                               int dEtaHGCalLUTShift,
                                                float offs) {
   dEtaHGCalBits_ = dEtaHGCalBits;
   float scale = (1 << dEtaHGCalBits);
 
   dEtaHGCalZ0PreShift_ = dEtaHGCalZ0PreShift;
-  dEtaHGCalZ0_ = std::round(dEtaHGCalParamZ0_ / 1024.0 * scale * (1 << dEtaHGCalZ0PreShift));
+  dEtaHGCalZ0_ = std::round(dEtaHGCalParamZ0_ * scale * (1 << dEtaHGCalZ0PreShift));
 
   dEtaHGCalRInvPreShift_ = dEtaHGCalRInvPreShift;
-  dEtaHGCalRInvPostShift_ = dEtaHGCalRInvPostShift;
-  dEtaHGCalRInv_ = std::round(dEtaHGCalParamRInv2_ / 1024 / 1024 * scale *
-                              (1 << (2 * dEtaHGCalRInvPreShift + dEtaHGCalRInvPostShift)));
 
-  dEtaHGCalTanlShift_ = 16 - dEtaHGCalRInvLUTBits;
-  dEtaHGCalTanlLUT_.resize((1 << dEtaHGCalRInvLUTBits));
+  dEtaHGCalTanlShift_ = 16 - dEtaHGCalLUTBits;
+  dEtaHGCalLUT_.resize((1 << dEtaHGCalLUTBits));
+  dEtaHGCalLUTShift_ = dEtaHGCalLUTShift;
+
+  dEtaHGCalTanlTermShift_ = 28 - 2 * dEtaHGCalRInvPreShift_ - dEtaHGCalLUTShift_;
+  dEtaHGCalTanlTermOffs_ = std::round(0.5 * (1 << dEtaHGCalTanlTermShift_));
   int lutmin = 1, lutmax = -1;
-  for (unsigned int u = 0, n = dEtaHGCalTanlLUT_.size(), h = n / 2; u < n; ++u) {
+  float lutScale = scale / (1 << dEtaHGCalLUTShift);
+  for (unsigned int u = 0, n = dEtaHGCalLUT_.size(), h = n / 2; u < n; ++u) {
     int i = (u < h) ? int(u) : int(u) - int(n);
     float tanl = (i + 0.5) * (1 << dEtaHGCalTanlShift_);
     float sign = tanl >= 0 ? 1 : -1;
-    float invtanlScaled = 1024.0 / tanl, invtanlScaled2 = invtanlScaled * invtanlScaled;
-    float term =
-        dEtaHGCalParamTanl1_ * invtanlScaled + dEtaHGCalParamTanl2_ * sign * invtanlScaled2 + dEtaHGCalParamC_ * sign;
-    int iterm = std::round(scale * term);
+    float invtanlScaled = 32 * 1024.0 / std::abs(tanl), invtanlScaled2 = invtanlScaled * invtanlScaled;
+    float term = sign * (dEtaHGCalParamRInv2C_ + dEtaHGCalParamRInv2ITanl1_ * invtanlScaled +
+                         dEtaHGCalParamRInv2ITanl2_ * invtanlScaled2);
+    int iterm = std::round(lutScale * term);
     bool valid = mayReachHGCal(tanl);
     if (valid) {
-      dEtaHGCalTanlLUT_[u] = iterm;
+      dEtaHGCalLUT_[u] = iterm;
       if (lutmin > lutmax) {
         lutmin = iterm;
         lutmax = iterm;
@@ -412,21 +409,24 @@ void l1ct::TrackInputEmulator::configDEtaHGCal(int dEtaHGCalBits,
         lutmax = std::max(lutmax, iterm);
       }
     } else {
-      dEtaHGCalTanlLUT_[u] = 0;
+      dEtaHGCalLUT_[u] = 0;
     }
   }
 
   dEtaHGCalOffs_ = std::round(scale * offs);
 
   if (debug_)
-    dbgPrintf("Configured deta with %d bits: z0 %8d [%8.2f] Rinv %8d [%8.2f], lutmin = %d, lutmax = %d\n",
-              dEtaHGCalBits,
-              dEtaHGCalZ0_,
-              dEtaHGCalZ0_ / float(scale),
-              dEtaHGCalRInv_,
-              dEtaHGCalRInv_ / float(scale),
-              lutmin,
-              lutmax);
+    dbgPrintf(
+        "Configured deta with %d bits: z0 %8d [%8.2f], lutmin = %d, lutmax = %d, lutshift %d, rinvShift %d, "
+        "tanlTermShift %d\n",
+        dEtaHGCalBits,
+        dEtaHGCalZ0_,
+        dEtaHGCalZ0_ / float(scale),
+        lutmin,
+        lutmax,
+        dEtaHGCalLUTShift,
+        dEtaHGCalRInvPreShift_,
+        dEtaHGCalTanlTermShift_);
 }
 
 float l1ct::TrackInputEmulator::floatDPhiHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {

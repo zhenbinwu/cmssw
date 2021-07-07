@@ -92,12 +92,11 @@ namespace l1ct {
     // endcap DPhi propagation, in layer-1 units (float parameterization, no rounding)
     float floatDPhiHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
 
-    void setDEtaHGCalParams(float pZ0, float pRinv2, float pTanl1, float pTanl2, float pC) {
+    void setDEtaHGCalParams(float pZ0, float pRinv2C, float pRinv2ITanl1, float pRinv2ITanl2) {
       dEtaHGCalParamZ0_ = pZ0;
-      dEtaHGCalParamRInv2_ = pRinv2;
-      dEtaHGCalParamTanl1_ = pTanl1;
-      dEtaHGCalParamTanl2_ = pTanl2;
-      dEtaHGCalParamC_ = pC;
+      dEtaHGCalParamRInv2C_ = pRinv2C;
+      dEtaHGCalParamRInv2ITanl1_ = pRinv2ITanl1;
+      dEtaHGCalParamRInv2ITanl2_ = pRinv2ITanl2;
     }
     void setDPhiHGCalParams(float pZ0, float pC) {
       dPhiHGCalParamZ0_ = pZ0;
@@ -112,8 +111,8 @@ namespace l1ct {
     void configDEtaHGCal(int dEtaHGCalBits,
                          int dEtaHGCalZ0PreShift,
                          int dEtaHGCalRInvPreShift,
-                         int dEtaHGCalRInvPostShift,
-                         int dEtaHGCalRInvLUTBits,
+                         int dEtaHGCalLUTBits,
+                         int dEtaHGCalLUTShift,
                          float offs = 0);
     void configDPhiHGCal(int dPhiHGCalBits,
                          int dPhiHGCalZ0PreShift,
@@ -133,7 +132,7 @@ namespace l1ct {
     void setDebug(bool debug = true) { debug_ = debug; }
 
     // access to bare LUTs
-    const std::vector<int> &dEtaHGCalTanlLUT() const { return dEtaHGCalTanlLUT_; }
+    const std::vector<int> &dEtaHGCalLUT() const { return dEtaHGCalLUT_; }
     const std::vector<int> &dPhiHGCalTanlLUT() const { return dPhiHGCalTanlLUT_; }
     const std::vector<int> &tanlLUT() const { return tanlLUT_; }
     const std::vector<l1ct::pt_t> &ptLUT() const { return ptLUT_; }
@@ -166,7 +165,7 @@ namespace l1ct {
     float rInvToPt_, phiScale_, z0Scale_;
 
     /// Parameters for track propagation in floating point
-    float dEtaHGCalParamZ0_, dEtaHGCalParamRInv2_, dEtaHGCalParamTanl1_, dEtaHGCalParamTanl2_, dEtaHGCalParamC_;
+    float dEtaHGCalParamZ0_, dEtaHGCalParamRInv2C_, dEtaHGCalParamRInv2ITanl1_, dEtaHGCalParamRInv2ITanl2_;
     float dPhiHGCalParamZ0_, dPhiHGCalParamC_;
 
     // vtx phi conversion parameters
@@ -176,9 +175,9 @@ namespace l1ct {
     int z0Mult_, z0OffsPos_, z0OffsNeg_, z0BitShift_;
 
     // deta parameters in hgcal region
-    int dEtaHGCalBits_, dEtaHGCalZ0PreShift_, dEtaHGCalZ0_, dEtaHGCalRInvPreShift_, dEtaHGCalRInv_,
-        dEtaHGCalRInvPostShift_, dEtaHGCalTanlShift_, dEtaHGCalOffs_;
-    std::vector<int> dEtaHGCalTanlLUT_;
+    int dEtaHGCalBits_, dEtaHGCalZ0PreShift_, dEtaHGCalZ0_, dEtaHGCalRInvPreShift_, dEtaHGCalTanlShift_,
+        dEtaHGCalLUTShift_, dEtaHGCalTanlTermOffs_, dEtaHGCalTanlTermShift_, dEtaHGCalOffs_;
+    std::vector<int> dEtaHGCalLUT_;
 
     // dphi parameters in hgcal region
     int dPhiHGCalBits_, dPhiHGCalZ0PreShift_, dPhiHGCalZ0_, dPhiHGCalZ0PostShift_, dPhiHGCalRInvShift_,
