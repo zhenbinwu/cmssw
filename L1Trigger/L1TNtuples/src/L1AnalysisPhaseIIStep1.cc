@@ -588,15 +588,19 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJetDisplaced(const edm::Handle<l1t
 }
 
 
-// trackerMet
-void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMET(const edm::Handle<l1t::TkEtMissCollection> trackerMets) {
-  for (l1t::TkEtMissCollection::const_iterator it = trackerMets->begin(); it != trackerMets->end(); it++) {
-    l1extra_.trackerMetSumEt.push_back(it->etTotal());
-    l1extra_.trackerMetEt.push_back(it->etMiss());
-    l1extra_.trackerMetPhi.push_back(it->phi());
-    l1extra_.trackerMetBx.push_back(it->bx());
-    l1extra_.nTrackerMet++;
-  }
+void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMET(const   edm::Handle< std::vector<l1t::EtSum> > trackerMets) {
+  l1t::EtSum tkmet = trackerMets->at(0);
+  //cout<<met.et()<< " and " <<met.phi()<<endl;
+    l1extra_.trackerMetEt = tkmet.et();
+  l1extra_.trackerMetPhi = tkmet.phi();
+
+  //for (l1t::EtSum::const_iterator it = trackerMets->begin(); it != trackerMets->end(); it++) {
+  //  //l1extra_.trackerMetSumEt.push_back(it->etTotal()); what to do?
+  //  l1extra_.trackerMetEt.push_back(it->et());
+  //  l1extra_.trackerMetPhi.push_back(it->phi());
+  //  //l1extra_.trackerMetBx.push_back(it->bx()); what to do?
+  //  l1extra_.nTrackerMet++;
+  //}
 }
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHT(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs) {

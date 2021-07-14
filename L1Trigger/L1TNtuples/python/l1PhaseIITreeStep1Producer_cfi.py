@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
+
 l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
 
    egTokenBarrel = cms.InputTag("L1EGammaClusterEmuProducer",""),  #keep as is, not produced by GCT
@@ -31,7 +32,7 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    caloTauToken = cms.InputTag("L1CaloJet","CaloTaus"),
    L1HPSPFTauToken = cms.InputTag("HPSPFTauProducerPF",""),
 
-   l1PFMet = cms.InputTag("L1MetPfProducer",""),
+   l1PFMet = cms.InputTag("L1MetPfProducer",""), #emulator
 
    zoPuppi = cms.InputTag("l1pfProducerBarrel","z0"),
    l1vertextdr = cms.InputTag("VertexProducer","l1vertextdr"),
@@ -41,12 +42,12 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    L1NNTauToken = cms.InputTag("l1NNTauProducerPuppi","L1PFTausNN"),
    L1NNTauPFToken = cms.InputTag("l1NNTauProducer","L1PFTausNN"),
 
-   tkTrackerJetToken = cms.InputTag("L1TrackJetsEmulated", "L1TrackJets"),
-   tkTrackerJetDisplacedToken = cms.InputTag("L1TrackJetsEmulatedExtended", "L1TrackJetsExtended"),
+   tkTrackerJetToken = cms.InputTag("L1TrackJetsEmulation", "L1TrackJets"),  #these are emulated
+   tkTrackerJetDisplacedToken = cms.InputTag("L1TrackJetsExtendedEmulation", "L1TrackJetsExtended"), #emulated
+	 
+   tkMetToken = cms.InputTag("L1TrackerEmuEtMiss","L1TrackerEmuEtMiss"), #emulated
+   tkMetDisplacedToken = cms.InputTag("L1TrackerEtMissExtended","L1TrackerExtendedEtMiss"),
 
-   tkMetToken = cms.InputTag("L1TrackerEtMiss","L1TrackerEtMiss"),
-   tkMetDisplacedToken = cms.InputTag("L1TrackerEtMissExtended","L1TrackerEtMissExtended"),
-   
    tkMhtTokens = cms.VInputTag( cms.InputTag("L1TrackerHTMiss","L1TrackerHTMiss")),
    tkMhtDisplacedTokens = cms.VInputTag( cms.InputTag("L1TrackerHTMissExtended","L1TrackerHTMissExtended")),
 

@@ -256,8 +256,8 @@ namespace L1Analysis {
       // TrackerMet
       nTrackerMet = 0;
       trackerMetSumEt.clear();
-      trackerMetEt.clear();
-      trackerMetPhi.clear();
+      trackerMetEt=0;
+      trackerMetPhi=0;
       trackerMetBx.clear();
 
       //trackerMHT
@@ -519,8 +519,8 @@ namespace L1Analysis {
 
     unsigned int nTrackerMet;
     std::vector<double> trackerMetSumEt;
-    std::vector<double> trackerMetEt;
-    std::vector<double> trackerMetPhi;
+    double trackerMetEt;
+    double trackerMetPhi;
     std::vector<double> trackerMetBx;
 
     unsigned int nTrackerMHT;

@@ -171,7 +171,7 @@ private:
   edm::EDGetTokenT<l1t::TkJetWordCollection> tkTrackerJetToken_;
   edm::EDGetTokenT<l1t::TkJetWordCollection> tkTrackerJetDisplacedToken_;
 
-  edm::EDGetTokenT<l1t::TkEtMissCollection> tkMetToken_;
+  edm::EDGetTokenT<std::vector<l1t::EtSum> > tkMetToken_; //was TkEtMissCollection like displaced
   std::vector<edm::EDGetTokenT<l1t::TkHTMissCollection>> tkMhtToken_;
 
   edm::EDGetTokenT<l1t::TkEtMissCollection> tkMetDisplacedToken_;
@@ -227,7 +227,7 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   tkTrackerJetToken_ = consumes<l1t::TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetToken"));
   tkTrackerJetDisplacedToken_ = consumes<l1t::TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetDisplacedToken"));
 
-  tkMetToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetToken"));
+  tkMetToken_ = consumes<std::vector<l1t::EtSum> >(iConfig.getParameter<edm::InputTag>("tkMetToken"));
   tkMetDisplacedToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetDisplacedToken"));
   //tkMhtToken_ = consumes<l1t::TkHTMissCollection>(iConfig.getParameter<edm::InputTag>("tkMhtToken"));
 
@@ -342,7 +342,7 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<l1t::TkJetWordCollection> tkTrackerJet;
   edm::Handle<l1t::TkJetWordCollection> tkTrackerJetDisplaced;
 
-  edm::Handle<l1t::TkEtMissCollection> tkMets;
+  edm::Handle<std::vector<l1t::EtSum> > tkMets; //was TkEtMissCollection
   edm::Handle<l1t::TkEtMissCollection> tkMetsDisplaced;
   //edm::Handle<l1t::TkHTMissCollection> tkMhts;
 
