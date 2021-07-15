@@ -56,6 +56,10 @@ Implementation:
 #include "DataFormats/L1TCorrelator/interface/TkHTMiss.h"
 #include "DataFormats/L1TCorrelator/interface/TkHTMissFwd.h"
 
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
+
 #include "DataFormats/L1TCorrelator/interface/TkTau.h"
 #include "DataFormats/L1TCorrelator/interface/TkTauFwd.h"
 
@@ -144,6 +148,10 @@ private:
   edm::EDGetTokenT<l1t::MuonBxCollection> muonToken_;
   edm::EDGetTokenT<l1t::TkGlbMuonCollection> TkGlbMuonToken_;
 
+  edm::EDGetTokenT<l1t::MuonStubCollection> gmtMuonToken_;
+  edm::EDGetTokenT<std::vector<l1t::TrackerMuon> > gmtTkMuonToken_;
+
+
   edm::EDGetTokenT<l1t::TauBxCollection> caloTauToken_;
   edm::EDGetTokenT<l1t::HPSPFTauCollection> L1HPSPFTauToken_;
   edm::EDGetTokenT<l1t::JetBxCollection> caloJetToken_;  
@@ -203,6 +211,8 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   muonToken_ = consumes<l1t::MuonBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("muonToken"));
   TkGlbMuonToken_ = consumes<l1t::TkGlbMuonCollection>(iConfig.getParameter<edm::InputTag>("TkGlbMuonToken"));
 
+  gmtMuonToken_ = consumes<l1t::MuonStubCollection>(iConfig.getUntrackedParameter<edm::InputTag>("gmtMuonToken"));
+  gmtTkMuonToken_ = consumes<std::vector<l1t::TrackerMuon> >(iConfig.getParameter<edm::InputTag>("gmtTkMuonToken"));
 
 
   l1PFMet_ = consumes<std::vector<l1t::EtSum> >(iConfig.getParameter<edm::InputTag>("l1PFMet"));
@@ -284,6 +294,13 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
 
   iEvent.getByToken(muonToken_, muon);
   iEvent.getByToken(TkGlbMuonToken_, TkGlbMuon);
+
+  edm::Handle<l1t::MuonStubCollection> gmtMuon;
+  edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon;
+
+  iEvent.getByToken(gmtMuonToken_, gmtMuon);
+  iEvent.getByToken(gmtTkMuonToken_, gmtTkMuon);
+
 
   edm::Handle<l1t::PFTauCollection> l1NNTau;
   iEvent.getByToken(L1NNTauToken_, l1NNTau);
@@ -541,6 +558,19 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     l1Extra->SetTkGlbMuon(TkGlbMuon, maxL1Extra_);
   } else {
     edm::LogWarning("MissingProduct") << "L1PhaseII TkGlbMuons not found. Branch will not be filled" << std::endl;
+  }
+
+  if (gmtMuon.isValid()) {
+    l1Extra->SetGmtMuon(gmtMuon, maxL1Extra_);
+  } else {
+    edm::LogWarning("MissingProduct") << "L1PhaseII gmtMuons not found. Branch will not be filled" << std::endl;
+  }
+
+
+  if (gmtTkMuon.isValid()) {
+    l1Extra->SetGmtTkMuon(gmtTkMuon, maxL1Extra_);
+  } else {
+    edm::LogWarning("MissingProduct") << "L1PhaseII gmtTkMuons not found. Branch will not be filled" << std::endl;
   }
 
 

@@ -21,6 +21,11 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    muonToken = cms.untracked.InputTag("simGmtStage2Digis", ""),
    TkGlbMuonToken = cms.InputTag("L1TkGlbMuons",""),
 
+   #GMT muons
+   gmtMuonToken = cms.untracked.InputTag("", ""), #("L1TkStubsGmt", ""),
+   gmtTkMuonToken = cms.InputTag("L1TkMuonsGmt", ""), #("L1TkMuonsGmt",""),
+
+
    scPFL1Puppi = cms.InputTag("scPFL1Puppi", ""),
 
    l1pfPhase1L1TJetToken  = cms.InputTag("Phase1L1TJetCalibrator9x9" ,   "Phase1L1TJetFromPfCandidates"), #use the 9x9 case

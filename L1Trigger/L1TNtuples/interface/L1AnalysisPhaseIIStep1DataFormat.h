@@ -205,6 +205,10 @@ namespace L1Analysis {
       tkGlbMuonDRMuTrack.clear();
       tkGlbMuonNMatchedTracks.clear();
 
+      nGmtMuons = 0;
+      nGmtTkMuons = 0;
+      gmtMuonPt.clear();
+      gmtTkMuonPt.clear();
 
       nSeededConePuppiJets = 0;
       seededConePuppiJetPt.clear();
@@ -470,6 +474,10 @@ namespace L1Analysis {
     std::vector<double> tkGlbMuonDRMuTrack;
     std::vector<double> tkGlbMuonNMatchedTracks;
 
+    unsigned int nGmtMuons;
+    unsigned int nGmtTkMuons;
+    std::vector<double> gmtMuonPt;
+    std::vector<double> gmtTkMuonPt;
 
     unsigned int nSeededConePuppiJets;
     std::vector<double> seededConePuppiJetPt;

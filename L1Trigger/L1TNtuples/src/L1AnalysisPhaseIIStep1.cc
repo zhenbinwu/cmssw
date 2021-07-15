@@ -636,3 +636,55 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHTDisplaced(const edm::Handle<l1t
   }
 }
 
+
+//gmt muons
+void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<l1t::MuonStubCollection> gmtMuon, unsigned maxL1Extra) {
+    for (l1t::MuonStubCollection::const_iterator it = gmtMuon->begin();
+         it != gmtMuon->end() && l1extra_.nGmtMuons < maxL1Extra;
+         it++) {
+      //if (it->pt() > 0) {
+        l1extra_.gmtMuonPt.push_back(9999); //use pT
+      /*  l1extra_.gmtMuonEta.push_back(it->eta());
+        l1extra_.gmtMuonPhi.push_back(it->phi());
+        l1extra_.gmtMuonEtaAtVtx.push_back(it->etaAtVtx());
+        l1extra_.gmtMuonPhiAtVtx.push_back(it->phiAtVtx());
+        l1extra_.gmtMuonIEt.push_back(it->hwPt()); //rename?
+        l1extra_.gmtMuonIEta.push_back(it->hwEta());
+        l1extra_.gmtMuonIPhi.push_back(it->hwPhi());
+        l1extra_.gmtMuonIEtaAtVtx.push_back(it->hwEtaAtVtx());
+        l1extra_.gmtMuonIPhiAtVtx.push_back(it->hwPhiAtVtx());
+        l1extra_.gmtMuonIDEta.push_back(it->hwDEtaExtra());
+        l1extra_.gmtMuonIDPhi.push_back(it->hwDPhiExtra());
+        l1extra_.gmtMuonChg.push_back(it->charge());
+        l1extra_.gmtMuonIso.push_back(it->hwIso());
+        l1extra_.gmtMuonQual.push_back(it->hwQual());
+        l1extra_.gmtMuonTfMuonIdx.push_back(it->tfMuonIndex());
+        l1extra_.gmtMuonBx.push_back(ibx);
+       */
+        l1extra_.nGmtMuons++;
+      //}
+    }
+  }
+
+//tkmuon gmt
+void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon,
+                                                 unsigned maxL1Extra) {
+  for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
+    l1extra_.gmtTkMuonPt.push_back(999);
+    /* l1extra_.gmtTkMuonEta.push_back(it->eta());
+    l1extra_.gmtTkMuonPhi.push_back(it->phi());
+    l1extra_.gmtTkMuonChg.push_back(it->charge());
+    l1extra_.gmtTkMuonTrkIso.push_back(it->trkIsol());
+    l1extra_.gmtTkMuonDRMuTrack.push_back(it->dR());
+    l1extra_.gmtTkMuonNMatchedTracks.push_back(it->nTracksMatched());
+    l1extra_.gmtTkMuonMuRefPt.push_back(it->muRef()->pt());
+    l1extra_.gmtTkMuonMuRefEta.push_back(it->muRef()->eta());
+    l1extra_.gmtTkMuonMuRefPhi.push_back(it->muRef()->phi());
+    l1extra_.gmtTkMuonQual.push_back(it->muRef()->hwQual()); //What to do with this?
+    l1extra_.gmtTkMuonzVtx.push_back(it->trkzVtx());
+    l1extra_.gmtTkMuonBx.push_back(0);  //it->bx()); 
+    */
+    l1extra_.nGmtTkMuons++; 
+  }
+}
+
