@@ -23,7 +23,7 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
 
    #GMT muons
    gmtMuonToken = cms.untracked.InputTag("", ""), #("L1TkStubsGmt", ""),
-   gmtTkMuonToken = cms.InputTag("L1TkMuonsGmt", ""), #("L1TkMuonsGmt",""),
+   gmtTkMuonToken = cms.InputTag("", ""), #("L1TkMuonsGmt",""),
 
 
    scPFL1Puppi = cms.InputTag("scPFL1Puppi", ""),
