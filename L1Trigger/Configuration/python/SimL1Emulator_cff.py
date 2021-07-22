@@ -71,6 +71,8 @@ _phase2_siml1emulator = SimL1EmulatorTask.copy()
 # ########################################################################
 # Phase-2 Trigger Primitives
 # ########################################################################
+from L1Trigger.DTTriggerPhase2.dtTriggerPhase2PrimitiveDigis_cfi import *
+_phase2_siml1emulator.add(dtTriggerPhase2PrimitiveDigis)
 
 # HGCAL TP 
 # ########################################################################
