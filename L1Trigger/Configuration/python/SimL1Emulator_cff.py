@@ -156,7 +156,9 @@ _phase2_siml1emulator.add( L1TkGlbMuons )
 # ########################################################################
 from L1Trigger.Phase2L1GMT.gmt_cfi  import *
 L1TkStubsGmt = gmtStubs.clone()
-L1TkMuonsGmt = gmtMuons.clone()
+L1TkMuonsGmt = gmtMuons.clone(
+    srcStubs  = cms.InputTag('L1TkStubsGmt')
+)
 L1SAMuonsGmt = standaloneMuons.clone()
 _phase2_siml1emulator.add( L1TkStubsGmt )
 _phase2_siml1emulator.add( L1TkMuonsGmt )
