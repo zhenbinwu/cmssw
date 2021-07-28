@@ -6,8 +6,7 @@ L1Analysis::L1AnalysisPhaseIIStep1::L1AnalysisPhaseIIStep1() {}
 
 L1Analysis::L1AnalysisPhaseIIStep1::~L1AnalysisPhaseIIStep1() {}
 
-void L1Analysis::L1AnalysisPhaseIIStep1::SetVertices(
-    float z0Puppi, const edm::Handle<std::vector<l1t::VertexWord> > TkPrimaryVertex) {
+void L1Analysis::L1AnalysisPhaseIIStep1::SetVertices(float z0Puppi, const edm::Handle<std::vector<l1t::VertexWord> > TkPrimaryVertex) {
   l1extra_.z0Puppi = z0Puppi;
   for (unsigned int i = 0; i < TkPrimaryVertex->size(); i++) {
     l1extra_.z0L1TkPV.push_back(TkPrimaryVertex->at(i).z0());
@@ -61,11 +60,12 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetHPSPFTaus(const edm::Handle<l1t::HPS
                    l1extra_.hpsTauPassTightRelIso.push_back(l1HPSPFTaus->at(i).passTightRelIso());
                    bool hpsTauPassTightRelIsoMenuVar = (l1HPSPFTaus->at(i).sumChargedIso()/l1HPSPFTaus->at(i).pt()) < 0.05;
                    l1extra_.hpsTauPassTightRelIsoMenu.push_back(hpsTauPassTightRelIsoMenuVar);
-                   if (!l1HPSPFTaus->at(i).leadChargedPFCand().isNull()){
-                       l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).leadChargedPFCand()->pfTrack()->vertex().z()); 
-                   }else{
-                       l1extra_.hpsTauZ0.push_back(-9999);
-                   }
+                   l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).Z());
+                   //if (!l1HPSPFTaus->at(i).leadChargedPFCand().isNull()){
+                   //    l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).leadChargedPFCand()->pfTrack()->vertex().z()); 
+                   //}else{
+                   //    l1extra_.hpsTauZ0.push_back(-9999);
+                   //}
                    l1extra_.nHPSTaus++;
       }
 
@@ -638,53 +638,65 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHTDisplaced(const edm::Handle<l1t
 
 
 //gmt muons
-void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<l1t::MuonStubCollection> gmtMuon, unsigned maxL1Extra) {
-    for (l1t::MuonStubCollection::const_iterator it = gmtMuon->begin();
-         it != gmtMuon->end() && l1extra_.nGmtMuons < maxL1Extra;
-         it++) {
-      //if (it->pt() > 0) {
-        l1extra_.gmtMuonPt.push_back(9999); //use pT
-      /*  l1extra_.gmtMuonEta.push_back(it->eta());
-        l1extra_.gmtMuonPhi.push_back(it->phi());
-        l1extra_.gmtMuonEtaAtVtx.push_back(it->etaAtVtx());
-        l1extra_.gmtMuonPhiAtVtx.push_back(it->phiAtVtx());
-        l1extra_.gmtMuonIEt.push_back(it->hwPt()); //rename?
-        l1extra_.gmtMuonIEta.push_back(it->hwEta());
-        l1extra_.gmtMuonIPhi.push_back(it->hwPhi());
-        l1extra_.gmtMuonIEtaAtVtx.push_back(it->hwEtaAtVtx());
-        l1extra_.gmtMuonIPhiAtVtx.push_back(it->hwPhiAtVtx());
-        l1extra_.gmtMuonIDEta.push_back(it->hwDEtaExtra());
-        l1extra_.gmtMuonIDPhi.push_back(it->hwDPhiExtra());
-        l1extra_.gmtMuonChg.push_back(it->charge());
-        l1extra_.gmtMuonIso.push_back(it->hwIso());
-        l1extra_.gmtMuonQual.push_back(it->hwQual());
-        l1extra_.gmtMuonTfMuonIdx.push_back(it->tfMuonIndex());
-        l1extra_.gmtMuonBx.push_back(ibx);
-       */
+void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon> > gmtMuon, unsigned maxL1Extra) {
+    const double lsb_pt = 0.025;  // 25MeV
+    const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
+    const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
+    const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
+    for (unsigned int i = 0; i < gmtMuon->size() && l1extra_.nGmtMuons < maxL1Extra; i++) {
+      if (lsb_pt*gmtMuon->at(i).hwPt() > 0) {
+        l1extra_.gmtMuonPt.push_back(lsb_pt*gmtMuon->at(i).hwPt()); //use pT
+        l1extra_.gmtMuonEta.push_back(lsb_eta*gmtMuon->at(i).hwEta());
+        l1extra_.gmtMuonPhi.push_back(lsb_phi*gmtMuon->at(i).hwPhi());
+        l1extra_.gmtMuonZ0.push_back(lsb_z0*gmtMuon->at(i).hwZ0());
+
+        l1extra_.gmtMuonIPt.push_back(gmtMuon->at(i).hwPt()); //rename?
+        l1extra_.gmtMuonIEta.push_back(gmtMuon->at(i).hwEta());
+        l1extra_.gmtMuonIPhi.push_back(gmtMuon->at(i).hwPhi());
+        l1extra_.gmtMuonIZ0.push_back(gmtMuon->at(i).hwZ0());
+        l1extra_.gmtMuonID0.push_back(gmtMuon->at(i).hwD0());
+
+        l1extra_.gmtMuonChg.push_back(gmtMuon->at(i).hwCharge());
+        l1extra_.gmtMuonIso.push_back(gmtMuon->at(i).hwIso());
+        l1extra_.gmtMuonQual.push_back(gmtMuon->at(i).hwQual());
+        l1extra_.gmtMuonBeta.push_back(gmtMuon->at(i).hwBeta());
+
+        l1extra_.gmtMuonBx.push_back(0); //is this just 0 always?
+
         l1extra_.nGmtMuons++;
-      //}
+      }
     }
   }
 
 //tkmuon gmt
-void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon,
-                                                 unsigned maxL1Extra) {
-  for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
-    l1extra_.gmtTkMuonPt.push_back(999);
-    /* l1extra_.gmtTkMuonEta.push_back(it->eta());
-    l1extra_.gmtTkMuonPhi.push_back(it->phi());
-    l1extra_.gmtTkMuonChg.push_back(it->charge());
-    l1extra_.gmtTkMuonTrkIso.push_back(it->trkIsol());
-    l1extra_.gmtTkMuonDRMuTrack.push_back(it->dR());
-    l1extra_.gmtTkMuonNMatchedTracks.push_back(it->nTracksMatched());
-    l1extra_.gmtTkMuonMuRefPt.push_back(it->muRef()->pt());
-    l1extra_.gmtTkMuonMuRefEta.push_back(it->muRef()->eta());
-    l1extra_.gmtTkMuonMuRefPhi.push_back(it->muRef()->phi());
-    l1extra_.gmtTkMuonQual.push_back(it->muRef()->hwQual()); //What to do with this?
-    l1extra_.gmtTkMuonzVtx.push_back(it->trkzVtx());
-    l1extra_.gmtTkMuonBx.push_back(0);  //it->bx()); 
-    */
-    l1extra_.nGmtTkMuons++; 
-  }
+void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon,unsigned maxL1Extra) {
+    const double lsb_pt = 0.025;  // 25MeV
+    const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
+    const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
+    const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
+    for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
+      if (lsb_pt*gmtTkMuon->at(i).hwPt() > 0) {
+        l1extra_.gmtTkMuonPt.push_back(lsb_pt*gmtTkMuon->at(i).hwPt()); //use pT
+        l1extra_.gmtTkMuonEta.push_back(lsb_eta*gmtTkMuon->at(i).hwEta());
+        l1extra_.gmtTkMuonPhi.push_back(lsb_phi*gmtTkMuon->at(i).hwPhi());
+        l1extra_.gmtTkMuonZ0.push_back(lsb_z0*gmtTkMuon->at(i).hwZ0());
+
+        l1extra_.gmtTkMuonIPt.push_back(gmtTkMuon->at(i).hwPt()); //rename?
+        l1extra_.gmtTkMuonIEta.push_back(gmtTkMuon->at(i).hwEta());
+        l1extra_.gmtTkMuonIPhi.push_back(gmtTkMuon->at(i).hwPhi());
+        l1extra_.gmtTkMuonIZ0.push_back(gmtTkMuon->at(i).hwZ0());
+        l1extra_.gmtTkMuonID0.push_back(gmtTkMuon->at(i).hwD0());
+
+        l1extra_.gmtTkMuonChg.push_back(gmtTkMuon->at(i).hwCharge());
+        l1extra_.gmtTkMuonIso.push_back(gmtTkMuon->at(i).hwIso());
+        l1extra_.gmtTkMuonQual.push_back(gmtTkMuon->at(i).hwQual());
+        l1extra_.gmtTkMuonBeta.push_back(gmtTkMuon->at(i).hwBeta());
+
+        l1extra_.gmtTkMuonBx.push_back(0); //is this just 0 always?
+
+        l1extra_.nGmtTkMuons++;
+      }
+    }
+
 }
 

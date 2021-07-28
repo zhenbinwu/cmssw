@@ -205,10 +205,38 @@ namespace L1Analysis {
       tkGlbMuonDRMuTrack.clear();
       tkGlbMuonNMatchedTracks.clear();
 
+
       nGmtMuons = 0;
-      nGmtTkMuons = 0;
       gmtMuonPt.clear();
+      gmtMuonEta.clear();
+      gmtMuonPhi.clear();
+      gmtMuonZ0.clear();
+      gmtMuonIPt.clear();
+      gmtMuonIEta.clear();
+      gmtMuonIPhi.clear();
+      gmtMuonIZ0.clear();
+      gmtMuonID0.clear();
+      gmtMuonChg.clear();
+      gmtMuonIso.clear();
+      gmtMuonQual.clear();
+      gmtMuonBeta.clear();
+      gmtMuonBx.clear();
+
+      nGmtTkMuons = 0;
       gmtTkMuonPt.clear();
+      gmtTkMuonEta.clear();
+      gmtTkMuonPhi.clear();
+      gmtTkMuonZ0.clear();
+      gmtTkMuonIPt.clear();
+      gmtTkMuonIEta.clear();
+      gmtTkMuonIPhi.clear();
+      gmtTkMuonIZ0.clear();
+      gmtTkMuonID0.clear();
+      gmtTkMuonChg.clear();
+      gmtTkMuonIso.clear();
+      gmtTkMuonQual.clear();
+      gmtTkMuonBeta.clear();
+      gmtTkMuonBx.clear();
 
       nSeededConePuppiJets = 0;
       seededConePuppiJetPt.clear();
@@ -475,9 +503,37 @@ namespace L1Analysis {
     std::vector<double> tkGlbMuonNMatchedTracks;
 
     unsigned int nGmtMuons;
-    unsigned int nGmtTkMuons;
     std::vector<double> gmtMuonPt;
+    std::vector<double> gmtMuonEta;
+    std::vector<double> gmtMuonPhi;
+    std::vector<double> gmtMuonZ0;
+    std::vector<double> gmtMuonIPt;
+    std::vector<double> gmtMuonIEta;
+    std::vector<double> gmtMuonIPhi;
+    std::vector<double> gmtMuonIZ0;
+    std::vector<double> gmtMuonID0;
+    std::vector<double> gmtMuonChg;
+    std::vector<double> gmtMuonIso;
+    std::vector<double> gmtMuonQual;
+    std::vector<double> gmtMuonBeta;
+    std::vector<short int> gmtMuonBx;
+
+    unsigned int nGmtTkMuons;
     std::vector<double> gmtTkMuonPt;
+    std::vector<double> gmtTkMuonEta;
+    std::vector<double> gmtTkMuonPhi;
+    std::vector<double> gmtTkMuonZ0;
+    std::vector<double> gmtTkMuonIPt;
+    std::vector<double> gmtTkMuonIEta;
+    std::vector<double> gmtTkMuonIPhi;
+    std::vector<double> gmtTkMuonIZ0;
+    std::vector<double> gmtTkMuonID0;
+    std::vector<double> gmtTkMuonChg;
+    std::vector<double> gmtTkMuonIso;
+    std::vector<double> gmtTkMuonQual;
+    std::vector<double> gmtTkMuonBeta;
+    std::vector<short int> gmtTkMuonBx;
+
 
     unsigned int nSeededConePuppiJets;
     std::vector<double> seededConePuppiJetPt;

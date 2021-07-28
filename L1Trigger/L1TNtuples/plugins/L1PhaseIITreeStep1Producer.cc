@@ -148,7 +148,7 @@ private:
   edm::EDGetTokenT<l1t::MuonBxCollection> muonToken_;
   edm::EDGetTokenT<l1t::TkGlbMuonCollection> TkGlbMuonToken_;
 
-  edm::EDGetTokenT<l1t::MuonStubCollection> gmtMuonToken_;
+  edm::EDGetTokenT<std::vector<l1t::SAMuon> > gmtMuonToken_;
   edm::EDGetTokenT<std::vector<l1t::TrackerMuon> > gmtTkMuonToken_;
 
 
@@ -211,7 +211,7 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   muonToken_ = consumes<l1t::MuonBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("muonToken"));
   TkGlbMuonToken_ = consumes<l1t::TkGlbMuonCollection>(iConfig.getParameter<edm::InputTag>("TkGlbMuonToken"));
 
-  gmtMuonToken_ = consumes<l1t::MuonStubCollection>(iConfig.getUntrackedParameter<edm::InputTag>("gmtMuonToken"));
+  gmtMuonToken_ = consumes<std::vector<l1t::SAMuon> >(iConfig.getParameter<edm::InputTag>("gmtMuonToken"));
   gmtTkMuonToken_ = consumes<std::vector<l1t::TrackerMuon> >(iConfig.getParameter<edm::InputTag>("gmtTkMuonToken"));
 
 
@@ -295,7 +295,7 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   iEvent.getByToken(muonToken_, muon);
   iEvent.getByToken(TkGlbMuonToken_, TkGlbMuon);
 
-  edm::Handle<l1t::MuonStubCollection> gmtMuon;
+  edm::Handle<std::vector<l1t::SAMuon> > gmtMuon;
   edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon;
 
   iEvent.getByToken(gmtMuonToken_, gmtMuon);
