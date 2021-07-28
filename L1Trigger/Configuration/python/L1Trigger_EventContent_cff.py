@@ -182,9 +182,6 @@ def _appendPhase2Digis(obj):
         'keep *_L1TkIsoElectronsHGC_*_*',
         'keep *_L1TkPhotonsHGC_*_*',
         'keep *_L1TkMuons_*_*',
-        'keep *_L1TkStubsGmt_*_*',
-        'keep *_L1TkMuonsGmt_*_*',
-        'keep *_L1SAMuonsGmt_*_*',
         'keep *_pfClustersFromL1EGClusters_*_*',
         'keep *_pfClustersFromCombinedCaloHCal_*_*',
         'keep *_pfClustersFromCombinedCaloHF_*_*',
@@ -218,6 +215,9 @@ def _appendPhase2Digis(obj):
         'keep *_TTClustersFromPhase2TrackerDigis_*_*',
         'keep *_TTTracksFromExtendedTrackletEmulation_*_*',
         'keep *_TTTracksFromTrackletEmulation_*_*',
+        'keep *_L1TkStubsGmt_*_*',
+        'keep *_L1TkMuonsGmt_*_*',
+        'keep *_L1SAMuonsGmt_*_*',
         ]
     obj.outputCommands += l1Phase2Digis
 
