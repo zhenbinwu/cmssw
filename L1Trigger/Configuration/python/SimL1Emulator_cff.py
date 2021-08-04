@@ -144,6 +144,16 @@ _phase2_siml1emulator.add(L1TkPhotonsHGC)
 _phase2_siml1emulator.add( L1TkMuons )
 _phase2_siml1emulator.add( L1TkGlbMuons )
 
+# Emulated GMT Muons (Tk + Stub, Tk + MuonTFT, StandaloneMuon)
+# ########################################################################
+from L1Trigger.Phase2L1GMT.gmt_cfi  import *
+L1TkStubsGmt = gmtStubs.clone()
+L1TkMuonsGmt = gmtMuons.clone()
+L1SAMuonsGmt = standaloneMuons.clone()
+_phase2_siml1emulator.add( L1TkStubsGmt )
+_phase2_siml1emulator.add( L1TkMuonsGmt )
+_phase2_siml1emulator.add( L1SAMuonsGmt )
+
 # Tracker Objects
 # ########################################################################
 from L1Trigger.L1TTrackMatch.L1TrackJetProducer_cfi import *

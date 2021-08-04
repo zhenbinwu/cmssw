@@ -33,6 +33,9 @@ public:
   typedef TTTrack<Ref_Phase2TrackerDigi_> L1TTTrackType;
   typedef std::vector<L1TTTrackType> L1TTTrackCollectionType;
 
+  typedef Vertex L1VertexType;
+  typedef VertexCollection L1VertexCollectionType;
+
   explicit L1TrackerEtMissProducer(const edm::ParameterSet&);
   ~L1TrackerEtMissProducer() override;
 
@@ -61,14 +64,13 @@ private:
   std::string L1ExtendedMetCollectionName;
 
   const edm::EDGetTokenT<VertexCollection> pvToken_;
-  const edm::EDGetTokenT<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > > trackToken_;
+  const edm::EDGetTokenT<L1TTTrackCollectionType> trackToken_;
 };
 
 // constructor//
 L1TrackerEtMissProducer::L1TrackerEtMissProducer(const edm::ParameterSet& iConfig)
-    : pvToken_(consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("L1VertexInputTag"))),
-      trackToken_(consumes<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > >(
-          iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))) {
+    : pvToken_(consumes<L1VertexCollectionType>(iConfig.getParameter<edm::InputTag>("L1VertexInputTag"))),
+      trackToken_(consumes<L1TTTrackCollectionType>(iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))) {
   maxZ0_ = (float)iConfig.getParameter<double>("maxZ0");
   deltaZ_ = (float)iConfig.getParameter<double>("deltaZ");
   chi2dofMax_ = (float)iConfig.getParameter<double>("chi2dofMax");
@@ -105,7 +107,7 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   iSetup.get<TrackerTopologyRcd>().get(tTopoHandle_);
   const TrackerTopology* tTopo = tTopoHandle_.product();
 
-  edm::Handle<VertexCollection> L1VertexHandle;
+  edm::Handle<L1VertexCollectionType> L1VertexHandle;
   iEvent.getByToken(pvToken_, L1VertexHandle);
 
   edm::Handle<L1TTTrackCollectionType> L1TTTrackHandle;
@@ -187,10 +189,6 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     if (nPS < nPSStubsMin_)
       continue;
 
-    // std::cout << "track: " << numtracks << "|" << pt << "|" << z0 << "|" <<
-    // eta <<
-    //"|" << nstubs << std::endl;
-
     numqualitytracks++;
 
     if (!displaced_) {  // if displaced, deltaZ = 3.0 cm, very loose
@@ -229,15 +227,18 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   math::XYZTLorentzVector missingEt(-sumPx, -sumPy, 0, et);
 
   if (debug_) {
-    std::cout << "====Global Pt====" << std::endl;
-    std::cout << "Px: " << sumPx << "| Py: " << sumPy << std::endl;
-    std::cout << "====MET===" << std::endl;
-    std::cout << "MET: " << et << "| Phi: " << etphi << std::endl;
+    edm::LogVerbatim("L1TrackerEtMissProducer") << "====Global Pt===="
+                                                << "\n"
+                                                << "Px: " << sumPx << "| Py: " << sumPy << "\n"
+                                                << "====MET==="
+                                                << "\n"
+                                                << "MET: " << et << "| Phi: " << etphi << "\n"
 
-    std::cout << "# Intial Tracks: " << numtracks << std::endl;
-    std::cout << "# Tracks after Quality Cuts: " << numqualitytracks << std::endl;
-    std::cout << "# Tracks Associated to Vertex: " << numassoctracks << std::endl;
-    std::cout << "========================================================" << std::endl;
+                                                << "# Intial Tracks: " << numtracks << "\n"
+                                                << "# Tracks after Quality Cuts: " << numqualitytracks << "\n"
+                                                << "# Tracks Associated to Vertex: " << numassoctracks << "\n"
+                                                << "========================================================"
+                                                << "\n";
   }
 
   int ibx = 0;

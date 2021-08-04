@@ -31,6 +31,7 @@
 #include "TH2F.h"
 #include "TPad.h"
 #include "TProfile.h"
+#include "TTree.h"
 
 using namespace std;
 
@@ -38,6 +39,8 @@ class L1TkMETAnalyser : public edm::EDAnalyzer {
 public:
   explicit L1TkMETAnalyser(const edm::ParameterSet& iConfig);
   ~L1TkMETAnalyser() override;
+
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
   void beginJob() override;
@@ -58,6 +61,19 @@ private:
   float EtphiScale;
 
   bool available_;
+  TTree* eventTree;
+
+  std::vector<float>* m_SimMET;
+  std::vector<float>* m_EmuMET;
+  std::vector<float>* m_HwMET;
+
+  std::vector<float>* m_SimMETphi;
+  std::vector<float>* m_EmuMETphi;
+  std::vector<float>* m_HwMETphi;
+
+  std::vector<float>* m_SimNtrk;
+  std::vector<float>* m_EmuNtrk;
+  std::vector<float>* m_HwNtrk;
 
   edm::Service<TFileService> fs_;
 
@@ -105,6 +121,32 @@ void L1TkMETAnalyser::beginJob() {
   if (not available_)
     return;  // No ROOT file open.
 
+  m_SimMET = new std::vector<float>;
+  m_EmuMET = new std::vector<float>;
+  m_HwMET = new std::vector<float>;
+
+  m_SimMETphi = new std::vector<float>;
+  m_EmuMETphi = new std::vector<float>;
+  m_HwMETphi = new std::vector<float>;
+
+  m_SimNtrk = new std::vector<float>;
+  m_EmuNtrk = new std::vector<float>;
+  m_HwNtrk = new std::vector<float>;
+
+  eventTree = fs_->make<TTree>("eventTree", "Event tree");
+
+  eventTree->Branch("SimMET", &m_SimMET);
+  eventTree->Branch("EmuMET", &m_EmuMET);
+  eventTree->Branch("HwMET", &m_HwMET);
+
+  eventTree->Branch("SimMETphi", &m_SimMETphi);
+  eventTree->Branch("EmuMETphi", &m_EmuMETphi);
+  eventTree->Branch("HwMETphi", &m_HwMETphi);
+
+  eventTree->Branch("SimNtrk", &m_SimNtrk);
+  eventTree->Branch("EmuNtrk", &m_EmuNtrk);
+  eventTree->Branch("HwNtrk", &m_HwNtrk);
+
   hisTkSimMET_ = inputDir.make<TH1F>("hisTkSimMET_", "sim TkMET [GeV]", 101, 0, 500);
   hisTkEmuMET_ = inputDir.make<TH1F>("hisTkEmuMET_", "emu TkMET [GeV]", 101, 0, 500);
 
@@ -141,11 +183,21 @@ void L1TkMETAnalyser::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   iEvent.getByToken(TrackMETSimToken_, L1TkMETSimHandle);
   iEvent.getByToken(TrackMETEmuToken_, L1TkMETEmuHandle);
 
+  m_SimMET->clear();
+  m_EmuMET->clear();
+  m_HwMET->clear();
+  m_SimMETphi->clear();
+  m_EmuMETphi->clear();
+  m_HwMETphi->clear();
+  m_SimNtrk->clear();
+  m_EmuNtrk->clear();
+  m_HwNtrk->clear();
+
   float SimEtmiss = L1TkMETSimHandle->begin()->etMiss();
-  float EmuEtmiss = L1TkMETEmuHandle->begin()->hwPt() * L1TkEtMissEmuAlgo::stepMET;
+  float EmuEtmiss = L1TkMETEmuHandle->begin()->hwPt() * l1tmetemu::kStepMET;
 
   float SimEtPhi = L1TkMETSimHandle->begin()->etPhi();
-  float EmuEtPhi = L1TkMETEmuHandle->begin()->hwPhi() * L1TkEtMissEmuAlgo::stepMETPhi - M_PI;
+  float EmuEtPhi = L1TkMETEmuHandle->begin()->hwPhi() * l1tmetemu::kStepMETPhi - M_PI;
 
   int SimEtNtrk = L1TkMETSimHandle->begin()->etQual();
   int EmuEtNtrk = L1TkMETEmuHandle->begin()->hwQual();
@@ -155,6 +207,13 @@ void L1TkMETAnalyser::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     hisPhiResidual_->Fill(EmuEtPhi - SimEtPhi);
     hisNtrkResidual_->Fill(EmuEtNtrk - SimEtNtrk);
   }
+
+  m_SimMET->push_back(SimEtmiss);
+  m_EmuMET->push_back(EmuEtmiss);
+  m_SimMETphi->push_back(SimEtPhi);
+  m_EmuMETphi->push_back(EmuEtPhi);
+  m_SimNtrk->push_back(SimEtNtrk);
+  m_EmuNtrk->push_back(EmuEtNtrk);
 
   hisTkSimMET_->Fill(SimEtmiss);
   hisTkEmuMET_->Fill(EmuEtmiss);
@@ -179,22 +238,33 @@ void L1TkMETAnalyser::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     hisMETResidual_->Fill(EmuEtmiss - HWEtmiss);
     hisPhiResidual_->Fill(EmuEtPhi - HWEtPhi);
     hisNtrkResidual_->Fill(EmuEtNtrk - HWEtNtrk);
+
+    m_HwMET->push_back(HWEtmiss);
+    m_HwMETphi->push_back(HWEtPhi);
+    m_HwNtrk->push_back(HWEtNtrk);
   }
+  eventTree->Fill();
 }
 
 //////////
 // END JOB
 void L1TkMETAnalyser::endJob() {
   // things to be done at the exit of the event Loop
-  // edm::LogInfo("L1TkMETAnalyser")
-  std::cout << "analyzer::==================== TkMET RECONSTRUCTION "
-               "======================\n"
-            << "MET Residual Bias: " << hisMETResidual_->GetMean() << " GeV\n"
-            << "MET Resolution: " << hisMETResidual_->GetStdDev() << " GeV\n"
-            << "Phi Residual Bias: " << hisPhiResidual_->GetMean() << " rad\n"
-            << "Phi Resolution: " << hisPhiResidual_->GetStdDev() << " rad\n"
-            << "NTrk Residual Bias: " << hisNtrkResidual_->GetMean() << " Tracks\n"
-            << "Ntrk Resolution: " << hisNtrkResidual_->GetStdDev() << " Tracks\n";
+  edm::LogInfo("L1TkMETAnalyser") << "==================== TkMET RECONSTRUCTION ======================\n"
+                                  << "MET Residual Bias: " << hisMETResidual_->GetMean() << " GeV\n"
+                                  << "MET Resolution: " << hisMETResidual_->GetStdDev() << " GeV\n"
+                                  << "Phi Residual Bias: " << hisPhiResidual_->GetMean() << " rad\n"
+                                  << "Phi Resolution: " << hisPhiResidual_->GetStdDev() << " rad\n"
+                                  << "NTrk Residual Bias: " << hisNtrkResidual_->GetMean() << " Tracks\n"
+                                  << "Ntrk Resolution: " << hisNtrkResidual_->GetStdDev() << " Tracks\n";
+}
+
+void L1TkMETAnalyser::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
 }
 
 ///////////////////////////
