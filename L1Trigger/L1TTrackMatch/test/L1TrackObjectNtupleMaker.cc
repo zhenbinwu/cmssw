@@ -2394,12 +2394,12 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     }	
     else if (TrackJetsEmulationHandle.isValid() && (Displaced=="Prompt" || Displaced=="Both")) {	
       for (jetemIter = TrackJetsEmulationHandle->begin(); jetemIter != TrackJetsEmulationHandle->end(); ++jetemIter) {	
-        m_trkjetem_ntracks->push_back(jetemIter->intNTracks());	
-        m_trkjetem_phi->push_back(jetemIter->floatPhi());	
-        m_trkjetem_eta->push_back(jetemIter->floatEta());	
-        m_trkjetem_pt->push_back(jetemIter->floatPt());
-        m_trkjetem_z->push_back(jetemIter->floatZ0());
-        m_trkjetem_nxtracks->push_back(jetemIter->intNXTracks());	
+        m_trkjetem_ntracks->push_back(jetemIter->nt());	
+        m_trkjetem_phi->push_back(jetemIter->glbphi());	
+        m_trkjetem_eta->push_back(jetemIter->glbeta());	
+        m_trkjetem_pt->push_back(jetemIter->pt());
+        m_trkjetem_z->push_back(jetemIter->z0());
+        m_trkjetem_nxtracks->push_back(jetemIter->xt());	
       }	
     }	
     if ( !TrackJetsExtendedEmulationHandle.isValid() && (Displaced=="Displaced" || Displaced=="Both") ) {	
@@ -2407,12 +2407,12 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     }	
     else if (TrackJetsExtendedEmulationHandle.isValid() && (Displaced=="Displaced" || Displaced=="Both")) {	
       for (jetemIter = TrackJetsExtendedEmulationHandle->begin(); jetemIter != TrackJetsExtendedEmulationHandle->end(); ++jetemIter) {	
-        m_trkjetemExt_ntracks->push_back(jetemIter->intNTracks());	
-        m_trkjetemExt_phi->push_back(jetemIter->floatPhi());	
-        m_trkjetemExt_eta->push_back(jetemIter->floatEta());	
-        m_trkjetemExt_pt->push_back(jetemIter->floatPt());
-        m_trkjetemExt_z->push_back(jetemIter->floatZ0());	
-        m_trkjetemExt_nxtracks->push_back(jetemIter->intNXTracks());	
+        m_trkjetemExt_ntracks->push_back(jetemIter->nt());	
+        m_trkjetemExt_phi->push_back(jetemIter->glbphi());	
+        m_trkjetemExt_eta->push_back(jetemIter->glbeta());	
+        m_trkjetemExt_pt->push_back(jetemIter->pt());
+        m_trkjetemExt_z->push_back(jetemIter->z0());	
+        m_trkjetemExt_nxtracks->push_back(jetemIter->xt());	
       }	
     }	
 	

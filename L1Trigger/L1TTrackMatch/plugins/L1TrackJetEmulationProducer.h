@@ -62,8 +62,8 @@ namespace convert {
 //  Also used to store final cluster data for each zbin.
 struct EtaPhiBin {
   pt_intern pTtot;
-  l1t::nt_t ntracks;
-  l1t::nx_t nxtracks;
+  l1t::TkJetWord::nt_t ntracks;
+  l1t::TkJetWord::nx_t nxtracks;
   bool used;
   glbphi_intern phi;  //average phi value (halfway b/t min and max)
   glbeta_intern eta;  //average eta value
