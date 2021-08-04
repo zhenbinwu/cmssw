@@ -32,12 +32,12 @@ public:
     kMVAOtherSize = 6,    // Space for two specialized MVA selections
     kMVAQualitySize = 3,  // Width of track quality MVA
     kHitPatternSize = 7,  // Width of the hit pattern for stubs
-    kBendChi2Size = 3,    // Width of the Bend-Chi2
+    kBendChi2Size = 3,    // Width of the bend-chi2/dof
     kD0Size = 13,         // Width of D0
-    kChi2RZSize = 4,      // Width of Chi2 for r-z
+    kChi2RZSize = 4,      // Width of chi2/dof for r-z
     kZ0Size = 12,         // Width of z-position (40cm / 0.1)
     kTanlSize = 16,       // Width of tan(lambda)
-    kChi2RPhiSize = 4,    // Width of Chi2 for r-phi
+    kChi2RPhiSize = 4,    // Width of chi2/dof for r-phi
     kPhiSize = 12,        // Width of phi
     kRinvSize = 15,       // Width of Rinv
     kValidSize = 1,       // Valid bit
@@ -88,12 +88,13 @@ public:
   static constexpr double stepZ0 = (2. * std::abs(minZ0)) / (1 << TrackBitWidths::kZ0Size);
   static constexpr double stepD0 = (1. / (1 << 8));
 
+  // Bin edges for chi2/dof
   static constexpr std::array<double, 1 << TrackBitWidths::kChi2RPhiSize> chi2RPhiBins = {
-      {0., 0.25, 0.5, 1., 2., 3., 5., 7., 10., 20., 40., 100., 200., 500., 1000., 3000.}};
+      {0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0}};
   static constexpr std::array<double, 1 << TrackBitWidths::kChi2RZSize> chi2RZBins = {
-      {0., 0.25, 0.5, 1., 2., 3., 5., 7., 10., 20., 40., 100., 200., 500., 1000., 3000.}};
+      {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0}};
   static constexpr std::array<double, 1 << TrackBitWidths::kBendChi2Size> bendChi2Bins = {
-      {0., 0.5, 1.25, 2., 3., 5., 10., 50.}};
+      {0.0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0}};
 
   // Track flags
   typedef ap_uint<TrackBitWidths::kValidSize> valid_t;  // valid bit
