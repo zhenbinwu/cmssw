@@ -231,14 +231,15 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
           continue;
         if (mzb.clusters[j].ntracks > 5000)
           continue;
-        l1t::glbeta_t jetEta = mzb.clusters[j].eta * convert::ETA_LSB_POW;
-        l1t::glbphi_t jetPhi = mzb.clusters[j].phi * convert::PHI_LSB_POW;
-        l1t::glbphi_t jetZ0 = mzb.zbincenter * convert::Z0_LSB_POW;
-        l1t::pt_t jetPt = mzb.clusters[j].pTtot;
-        l1t::nt_t totalntracks_ = mzb.clusters[j].ntracks;
-        l1t::nx_t totalxtracks_ = mzb.clusters[j].nxtracks;
+        l1t::TkJetWord::glbeta_t jetEta = mzb.clusters[j].eta * convert::ETA_LSB_POW;
+        l1t::TkJetWord::glbphi_t jetPhi = mzb.clusters[j].phi * convert::PHI_LSB_POW;
+        l1t::TkJetWord::z0_t jetZ0 = mzb.zbincenter * convert::Z0_LSB_POW;
+        l1t::TkJetWord::pt_t jetPt = mzb.clusters[j].pTtot;
+        l1t::TkJetWord::nt_t totalntracks_ = mzb.clusters[j].ntracks;
+        l1t::TkJetWord::nx_t totalxtracks_ = mzb.clusters[j].nxtracks;
+        l1t::TkJetWord::tkjetunassigned_t unassigned_ = 0;
 
-        struct l1t::TkJetWord trkJet = {jetPt, jetEta, jetPhi, jetZ0, totalntracks_, totalxtracks_};
+        l1t::TkJetWord trkJet(jetPt, jetEta, jetPhi, jetZ0, totalntracks_, totalxtracks_, unassigned_);
         //trkJet.setDispCounters(DispCounters);
         L1L1TrackJetProducer->push_back(trkJet);
       }
@@ -374,8 +375,8 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
     pt_intern E1 = 0;
     pt_intern E0 = 0;
     pt_intern E2 = 0;
-    l1t::nt_t ntrk1, ntrk2;
-    l1t::nx_t nxtrk1, nxtrk2;
+    l1t::TkJetWord::nt_t ntrk1, ntrk2;
+    l1t::TkJetWord::nx_t nxtrk1, nxtrk2;
     int used1, used2, used3, used4;
 
     for (phibin = 0; phibin < phiBins_; ++phibin) {  //Find eta-phibin with highest pT
