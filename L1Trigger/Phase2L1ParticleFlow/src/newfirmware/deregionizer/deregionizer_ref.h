@@ -1,5 +1,5 @@
-#ifndef deregionizer_ref_h
-#define deregionizer_ref_h
+#ifndef L1Trigger_Phase2L1ParticleFlow_newfirmware_deregionizer_ref_h
+#define L1Trigger_Phase2L1ParticleFlow_newfirmware_deregionizer_ref_h
 
 #include <vector>
 #include "deregionizer_input.h"
@@ -29,12 +29,12 @@ namespace l1ct {
              std::vector<l1ct::PuppiObjEmu> &out,
              std::vector<l1ct::PuppiObjEmu> &truncated);
 
+    std::vector<std::vector<l1ct::PuppiObjEmu> > splitPFregions(
+        const std::vector<std::vector<std::vector<l1ct::PuppiObjEmu> > > &regionPuppis, const int i, const int j);
+
   private:
     unsigned int nPuppiFinalBuffer_, nPuppiPerClk_, nPuppiFirstBuffers_, nPuppiSecondBuffers_, nPuppiThirdBuffers_;
     bool debug_;
-
-    std::vector<std::vector<l1ct::PuppiObjEmu> > splitPFregions(
-        const std::vector<std::vector<std::vector<l1ct::PuppiObjEmu> > > &regionPuppis, const int i, const int j);
 
     static std::vector<l1ct::PuppiObjEmu> mergeXtoY(const unsigned int X,
                                                     const unsigned int Y,

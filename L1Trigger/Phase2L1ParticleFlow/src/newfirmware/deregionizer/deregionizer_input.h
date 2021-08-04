@@ -1,9 +1,12 @@
-#ifndef deregionizer_input_h
-#define deregionizer_input_h
+#ifndef L1Trigger_Phase2L1ParticleFlow_newfirmware_deregionizer_input_h
+#define L1Trigger_Phase2L1ParticleFlow_newfirmware_deregionizer_input_h
 
-#include <fstream>
 #include <vector>
+#ifdef CMSSW_GIT_HASH
 #include "../dataformats/layer1_emulator.h"
+#else
+#include "../../dataformats/layer1_emulator.h"
+#endif
 
 namespace l1ct {
 
