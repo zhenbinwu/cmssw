@@ -188,10 +188,7 @@ namespace l1ct {
     inline phi_t makePhi(float phi) { return round(phi / ETAPHI_LSB); }
     inline eta_t makeEta(float eta) { return round(eta / ETAPHI_LSB); }
     inline glbeta_t makeGlbEta(float eta) { return round(eta / ETAPHI_LSB); }
-    inline glbeta_t makeGlbEtaRoundEven(float eta) {
-      glbeta_t ghweta = round(eta / ETAPHI_LSB);
-      return (ghweta % 2) ? glbeta_t(ghweta + 1) : ghweta;
-    }
+    inline glbeta_t makeGlbEtaRoundEven(float eta) { return 2 * std::round(eta / ETAPHI_LSB / 2); }
 
     inline glbphi_t makeGlbPhi(float phi) { return round(phi / ETAPHI_LSB); }
     inline iso_t makeIso(float iso) { return iso_t(0.25 * round(iso * 4)); }

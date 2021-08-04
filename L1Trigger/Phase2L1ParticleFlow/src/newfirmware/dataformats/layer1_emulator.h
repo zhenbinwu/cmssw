@@ -39,6 +39,7 @@ namespace l1ct {
 
   struct TkObjEmu : public TkObj {
     uint16_t hwChi2, hwStubs;
+    float simPt, simCaloEta, simCaloPhi, simVtxEta, simVtxPhi, simZ0, simD0;
     const l1t::PFTrack *src;
     bool read(std::fstream &from);
     bool write(std::fstream &to) const;
@@ -47,6 +48,13 @@ namespace l1ct {
       src = nullptr;
       hwChi2 = 0;
       hwStubs = 0;
+      simPt = 0;
+      simCaloEta = 0;
+      simCaloPhi = 0;
+      simVtxEta = 0;
+      simVtxPhi = 0;
+      simZ0 = 0;
+      simD0 = 0;
     }
   };
 
@@ -237,6 +245,15 @@ namespace l1ct {
     inline void clear() { obj.clear(); }
   };
 
+  struct RawInputs {
+    std::vector<DetectorSector<ap_uint<96>>> track;
+    DetectorSector<ap_uint<64>> muon;  // muons are global
+
+    bool read(std::fstream &from);
+    bool write(std::fstream &to) const;
+    void clear();
+  };
+
   struct RegionizerDecodedInputs {
     std::vector<DetectorSector<HadCaloObjEmu>> hadcalo;
     std::vector<DetectorSector<EmCaloObjEmu>> emcalo;
@@ -298,9 +315,10 @@ namespace l1ct {
   };
 
   struct Event {
-    enum { VERSION = 8 };
+    enum { VERSION = 9 };
     uint32_t run, lumi;
     uint64_t event;
+    RawInputs raw;
     RegionizerDecodedInputs decoded;
     std::vector<PFInputRegion> pfinputs;
     std::vector<PVObjEmu> pvs;
