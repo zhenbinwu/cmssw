@@ -54,7 +54,7 @@ private:
   edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
 
-  edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;  // standalone muons
+  edm::EDGetTokenT<l1t::SAMuonCollection> muCands_;    // standalone muons
 
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> emCands_;
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> hadCands_;
@@ -79,7 +79,7 @@ private:
   // these are used to link items back
   std::unordered_map<const l1t::PFCluster *, l1t::PFClusterRef> clusterRefMap_;
   std::unordered_map<const l1t::PFTrack *, l1t::PFTrackRef> trackRefMap_;
-  std::unordered_map<const l1t::Muon *, l1t::PFCandidate::MuonRef> muonRefMap_;
+  std::unordered_map<const l1t::SAMuon *, l1t::PFCandidate::MuonRef> muonRefMap_;
 
   // main methods
   void beginStream(edm::StreamID) override;
@@ -90,14 +90,12 @@ private:
   void initEvent(const edm::Event &e);
   // add object, tracking references
   void addTrack(const l1t::PFTrack &t, l1t::PFTrackRef ref);
-  void addMuon(const l1t::Muon &t, l1t::PFCandidate::MuonRef ref);
+  void addMuon(const l1t::SAMuon &t, l1t::PFCandidate::MuonRef ref);
   void addHadCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
   void addEmCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
-  // add objects in raw format
-  void addRawMuon(l1ct::DetectorSector<ap_uint<64>> &sec, const l1t::Muon &t);
   // add objects in already-decoded format
   void addDecodedTrack(l1ct::DetectorSector<l1ct::TkObjEmu> &sec, const l1t::PFTrack &t);
-  void addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t);
+  void addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::SAMuon &t);
   void addDecodedHadCalo(l1ct::DetectorSector<l1ct::HadCaloObjEmu> &sec, const l1t::PFCluster &t);
   void addDecodedEmCalo(l1ct::DetectorSector<l1ct::EmCaloObjEmu> &sec, const l1t::PFCluster &t);
   // fetching outputs
@@ -136,7 +134,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
       tkCands_(hasTracks_ ? consumes<l1t::PFTrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"))
                           : edm::EDGetTokenT<l1t::PFTrackCollection>()),
       trkPt_(iConfig.getParameter<double>("trkPtCut")),
-      muCands_(consumes<l1t::MuonBxCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
+      muCands_(consumes<l1t::SAMuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
       emPtCut_(iConfig.getParameter<double>("emPtCut")),
       hadPtCut_(iConfig.getParameter<double>("hadPtCut")),
       regionizer_(nullptr),
@@ -274,13 +272,13 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   }
 
   /// ------ READ MUONS ----
-  edm::Handle<l1t::MuonBxCollection> muons;
+  edm::Handle<l1t::SAMuonCollection> muons;
   iEvent.getByToken(muCands_, muons);
-  for (auto it = muons->begin(0), ed = muons->end(0); it != ed; ++it) {
-    const l1t::Muon &mu = *it;
+  for (unsigned int i = 0, n = muons->size(); i < n; ++i) {
+    const l1t::SAMuon &mu = (*muons)[i];
     if (debugR_ > 0 && deltaR(mu.eta(), mu.phi(), debugEta_, debugPhi_) > debugR_)
       continue;
-    addMuon(mu, l1t::PFCandidate::MuonRef(muons, muons->key(it)));
+    addMuon(mu, l1t::PFCandidate::MuonRef(muons, i));
   }
 
   // ------ READ CALOS -----
@@ -492,8 +490,8 @@ void L1TCorrelatorLayer1Producer::addTrack(const l1t::PFTrack &t, l1t::PFTrackRe
   addDecodedTrack(sectors[isec], t);
   trackRefMap_[&t] = ref;
 }
-void L1TCorrelatorLayer1Producer::addMuon(const l1t::Muon &mu, l1t::PFCandidate::MuonRef ref) {
-  addRawMuon(event_.raw.muon, mu);
+void L1TCorrelatorLayer1Producer::addMuon(const l1t::SAMuon &mu, l1t::PFCandidate::MuonRef ref) {
+  event_.raw.muon.obj.emplace_back(mu.word());
   addDecodedMuon(event_.decoded.muon, mu);
   muonRefMap_[&mu] = ref;
 }
@@ -550,40 +548,17 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
   sec.obj.push_back(tkAndSel.first);
 }
 
-void L1TCorrelatorLayer1Producer::addRawMuon(l1ct::DetectorSector<ap_uint<64>> &sec, const l1t::Muon &t) {
-  // FIXME: this packing should be implemented in GMT code, but it's not yet available
-  ap_uint<64> mu = 0;
-  ap_uint<4> gmt_qual = t.hwQual();
-  ap_uint<3> gmt_bx = 0;  // FIXME
-  ap_uint<13> gmt_pt = round(t.pt() / 0.025);
-  ap_int<13> gmt_phi = round(t.phi() * 2 * M_PI / (1 << 13));
-  ap_int<12> gmt_eta = round(t.eta() * 2 * M_PI / (1 << 12));
-  ap_int<5> gmt_z0 = round(t.vertex().Z() / (1.8));
-  ap_int<7> gmt_d0 = round(t.vertex().Rho() / (3.0));
-  ap_uint<13> gmt_beta = 0;  // FIXME
-  mu(3, 0) = gmt_qual;
-  mu(6, 4) = gmt_bx;
-  mu[7] = (t.charge() > 0 ? 0 : 1);
-  mu(20, 8) = gmt_pt;
-  mu(33, 21) = gmt_phi;
-  mu(45, 34) = gmt_eta;
-  mu(50, 46) = gmt_z0;
-  mu(57, 51) = gmt_d0;
-  mu(61, 58) = gmt_beta;
-  sec.obj.push_back(mu);
-}
-
-void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t) {
+void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::SAMuon &t) {
   l1ct::MuObjEmu mu;
   mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
   mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
   mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
-  mu.hwCharge = t.charge() > 0;
-  mu.hwQuality = t.hwQual();
+  mu.hwCharge = !t.hwCharge();
+  mu.hwQuality = t.hwQual()/2;
   mu.hwDEta = 0;
   mu.hwDPhi = 0;
   mu.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
-  mu.hwDxy = 0;
+  mu.hwDxy = 0; // Dxy not defined yet
   mu.src = &t;
   sec.obj.push_back(mu);
 }

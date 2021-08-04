@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "DataFormats/L1Trigger/interface/L1Candidate.h"
-#include "DataFormats/L1Trigger/interface/Muon.h"
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 #include "DataFormats/L1TParticleFlow/interface/PFCluster.h"
 #include "DataFormats/L1TParticleFlow/interface/PFTrack.h"
 #include "DataFormats/L1TParticleFlow/interface/RegionalOutput.h"
@@ -12,7 +12,7 @@ namespace l1t {
 
   class PFCandidate : public L1Candidate {
   public:
-    typedef edm::Ptr<l1t::Muon> MuonRef;
+    typedef l1t::SAMuonRef MuonRef;
     enum ParticleType { ChargedHadron = 0, Electron = 1, NeutralHadron = 2, Photon = 3, Muon = 4 };
 
     PFCandidate() {}

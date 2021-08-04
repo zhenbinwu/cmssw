@@ -12,7 +12,7 @@ namespace l1t {
   class PFTrack;
   class PFCluster;
   class PFCandidate;
-  class Muon;
+  class SAMuon;
 }  // namespace l1t
 
 namespace l1ct {
@@ -59,7 +59,7 @@ namespace l1ct {
   };
 
   struct MuObjEmu : public MuObj {
-    const l1t::Muon *src;
+    const l1t::SAMuon *src;
     bool read(std::fstream &from);
     bool write(std::fstream &to) const;
     void clear() {
@@ -71,7 +71,7 @@ namespace l1ct {
   struct PFChargedObjEmu : public PFChargedObj {
     const l1t::PFCluster *srcCluster;
     const l1t::PFTrack *srcTrack;
-    const l1t::Muon *srcMu;
+    const l1t::SAMuon *srcMu;
     const l1t::PFCandidate *srcCand;
     bool read(std::fstream &from);
     bool write(std::fstream &to) const;
@@ -113,7 +113,7 @@ namespace l1ct {
   struct PuppiObjEmu : public PuppiObj {
     const l1t::PFCluster *srcCluster;
     const l1t::PFTrack *srcTrack;
-    const l1t::Muon *srcMu;
+    const l1t::SAMuon *srcMu;
     const l1t::PFCandidate *srcCand;
     bool read(std::fstream &from);
     bool write(std::fstream &to) const;

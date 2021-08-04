@@ -220,7 +220,7 @@ void L1TPFProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       const l1t::Muon& mu = *it;
       if (debugR_ > 0 && deltaR(mu.eta(), mu.phi(), debugEta_, debugPhi_) > debugR_)
         continue;
-      l1regions_.addMuon(mu, l1t::PFCandidate::MuonRef(muons, muons->key(it)));
+      l1regions_.addMuon(mu);
     }
   }
 

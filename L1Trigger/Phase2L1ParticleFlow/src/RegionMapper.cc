@@ -89,7 +89,6 @@ void RegionMapper::clear() {
     r.zero();
   clusterRefMap_.clear();
   trackRefMap_.clear();
-  muonRefMap_.clear();
 }
 
 void RegionMapper::addTrack(const l1t::PFTrack &t) {
@@ -152,11 +151,6 @@ void RegionMapper::addMuon(const l1t::TkMuon &mu) {
       r.muon.push_back(prop);
     }
   }
-}
-
-void RegionMapper::addMuon(const l1t::Muon &mu, l1t::PFCandidate::MuonRef ref) {
-  addMuon(mu);
-  muonRefMap_[&mu] = ref;
 }
 
 void RegionMapper::addCalo(const l1t::PFCluster &p) {
@@ -232,14 +226,6 @@ std::unique_ptr<l1t::PFCandidateCollection> RegionMapper::fetch(bool puppi, floa
                                                 << p4.pt() << " eta " << p4.eta() << " phi " << p4.phi();
           }
           ret->back().setPFTrack(match->second);
-        }
-        if (p.muonsrc) {
-          auto match = muonRefMap_.find(p.muonsrc);
-          if (match == muonRefMap_.end()) {
-            throw cms::Exception("CorruptData") << "Invalid muon pointer in PF candidate id " << p.hwId << " pt "
-                                                << p4.pt() << " eta " << p4.eta() << " phi " << p4.phi();
-          }
-          ret->back().setMuon(match->second);
         }
       }
     }
