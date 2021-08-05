@@ -22,6 +22,7 @@
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/l1-converters/tracks/tkinput_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/l1-converters/muons/muonGmtToL1ct_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/common/regionizer_base_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/multififo/multififo_regionizer_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/tdr/tdr_regionizer_ref.h"
@@ -63,6 +64,7 @@ private:
 
   l1ct::Event event_;
   std::unique_ptr<l1ct::TrackInputEmulator> trackInput_;
+  std::unique_ptr<l1ct::GMTMuonDecoderEmulator> muonInput_;
   std::unique_ptr<l1ct::RegionizerEmulator> regionizer_;
   std::unique_ptr<l1ct::PFAlgoEmulatorBase> l1pfalgo_;
   std::unique_ptr<l1ct::LinPuppiEmulator> l1pualgo_;
@@ -171,6 +173,14 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
     } else if (tkInAlgo != "Ideal")
       throw cms::Exception("Configuration", "Unsupported trackInputConversionAlgo");
   }
+
+  const std::string &muInAlgo = iConfig.getParameter<std::string>("muonInputConversionAlgo");
+  if (muInAlgo == "Emulator") {
+      muonInput_ = std::make_unique<l1ct::GMTMuonDecoderEmulator>(
+              iConfig.getParameter<edm::ParameterSet>("muonInputConversionParameters"));
+  } else if (muInAlgo != "Ideal")
+      throw cms::Exception("Configuration", "Unsupported muonInputConversionAlgo");
+
 
   const std::string &regalgo = iConfig.getParameter<std::string>("regionizerAlgo");
   if (regalgo == "Ideal") {
