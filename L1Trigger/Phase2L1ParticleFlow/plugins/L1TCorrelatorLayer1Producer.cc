@@ -55,7 +55,7 @@ private:
   edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
 
-  edm::EDGetTokenT<l1t::SAMuonCollection> muCands_;    // standalone muons
+  edm::EDGetTokenT<l1t::SAMuonCollection> muCands_;  // standalone muons
 
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> emCands_;
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> hadCands_;
@@ -176,11 +176,10 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
 
   const std::string &muInAlgo = iConfig.getParameter<std::string>("muonInputConversionAlgo");
   if (muInAlgo == "Emulator") {
-      muonInput_ = std::make_unique<l1ct::GMTMuonDecoderEmulator>(
-              iConfig.getParameter<edm::ParameterSet>("muonInputConversionParameters"));
+    muonInput_ = std::make_unique<l1ct::GMTMuonDecoderEmulator>(
+        iConfig.getParameter<edm::ParameterSet>("muonInputConversionParameters"));
   } else if (muInAlgo != "Ideal")
-      throw cms::Exception("Configuration", "Unsupported muonInputConversionAlgo");
-
+    throw cms::Exception("Configuration", "Unsupported muonInputConversionAlgo");
 
   const std::string &regalgo = iConfig.getParameter<std::string>("regionizerAlgo");
   if (regalgo == "Ideal") {
@@ -560,15 +559,19 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
 
 void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::SAMuon &t) {
   l1ct::MuObjEmu mu;
-  mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
-  mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
-  mu.hwCharge = !t.hwCharge();
-  mu.hwQuality = t.hwQual()/2;
-  mu.hwDEta = 0;
-  mu.hwDPhi = 0;
-  mu.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
-  mu.hwDxy = 0; // Dxy not defined yet
+  if (muonInput_) {
+    mu = muonInput_->decode(t.word());
+  } else {
+    mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
+    mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
+    mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
+    mu.hwCharge = !t.hwCharge();
+    mu.hwQuality = t.hwQual() / 2;
+    mu.hwDEta = 0;
+    mu.hwDPhi = 0;
+    mu.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
+    mu.hwDxy = 0;  // Dxy not defined yet
+  }
   mu.src = &t;
   sec.obj.push_back(mu);
 }
