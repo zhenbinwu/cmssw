@@ -114,6 +114,30 @@ namespace Phase2L1GMT {
       return out;
     }
 
+    bool outputGT(std::vector<l1t::TrackerMuon>& muons) {
+      for (auto& mu : muons) {
+        wordtype word1 = 0;
+        wordtype word2 = 0;
+
+        int bstart = 0;
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwPt(), BITSGTPT);
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwPhi(), BITSGTPHI);
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwEta(), BITSGTETA);
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwZ0(), BITSGTZ0);
+        bstart = wordconcat<wordtype>(word1, bstart, (mu.hwD0() >> 2), BITSGTD0);
+
+        bstart = 0;
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwCharge(), 1);
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwQual(), BITSGTQUALITY);
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwIso(), BITSGTISO);
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwBeta(), BITSMUONBETA);
+
+        std::array<uint64_t, 2> wordout = {{word1, word2}};
+        mu.setWord(wordout);
+      }
+      return true;
+    }
+
     std::vector<l1t::TrackerMuon> sort(std::vector<l1t::TrackerMuon>& muons, uint maximum) {
       if (muons.size() < 2)
         return muons;
