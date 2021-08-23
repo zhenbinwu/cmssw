@@ -211,6 +211,7 @@ namespace L1Analysis {
       gmtMuonEta.clear();
       gmtMuonPhi.clear();
       gmtMuonZ0.clear();
+      gmtMuonD0.clear();
       gmtMuonIPt.clear();
       gmtMuonIEta.clear();
       gmtMuonIPhi.clear();
@@ -227,6 +228,9 @@ namespace L1Analysis {
       gmtTkMuonEta.clear();
       gmtTkMuonPhi.clear();
       gmtTkMuonZ0.clear();
+      gmtTkMuonD0.clear();
+
+
       gmtTkMuonIPt.clear();
       gmtTkMuonIEta.clear();
       gmtTkMuonIPhi.clear();
@@ -507,6 +511,7 @@ namespace L1Analysis {
     std::vector<double> gmtMuonEta;
     std::vector<double> gmtMuonPhi;
     std::vector<double> gmtMuonZ0;
+    std::vector<double> gmtMuonD0;
     std::vector<double> gmtMuonIPt;
     std::vector<double> gmtMuonIEta;
     std::vector<double> gmtMuonIPhi;
@@ -523,6 +528,7 @@ namespace L1Analysis {
     std::vector<double> gmtTkMuonEta;
     std::vector<double> gmtTkMuonPhi;
     std::vector<double> gmtTkMuonZ0;
+    std::vector<double> gmtTkMuonD0;
     std::vector<double> gmtTkMuonIPt;
     std::vector<double> gmtTkMuonIEta;
     std::vector<double> gmtTkMuonIPhi;

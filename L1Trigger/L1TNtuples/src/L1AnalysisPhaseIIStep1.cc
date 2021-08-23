@@ -563,10 +563,10 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJet(const edm::Handle<l1t::TkJetWo
   for (l1t::TkJetWordCollection::const_iterator it = trackerJet->begin();
        it != trackerJet->end() && l1extra_.nTrackerJets < maxL1Extra;
        it++) {
-    l1extra_.trackerJetPt.push_back(it->floatPt());
+    l1extra_.trackerJetPt.push_back(it->pt());
     //l1extra_.trackerJetEt.push_back(it->et());
-    l1extra_.trackerJetEta.push_back(it->floatEta());
-    l1extra_.trackerJetPhi.push_back(it->floatPhi());
+    l1extra_.trackerJetEta.push_back(it->glbeta());
+    l1extra_.trackerJetPhi.push_back(it->glbphi());
     //l1extra_.trackerJetzVtx.push_back(it->jetVtx());
     l1extra_.trackerJetBx.push_back(0);  //it->bx());
     l1extra_.nTrackerJets++;
@@ -577,10 +577,10 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkJetDisplaced(const edm::Handle<l1t
   for (l1t::TkJetWordCollection::const_iterator it = trackerJet->begin();
        it != trackerJet->end() && l1extra_.nTrackerJets < maxL1Extra;
        it++) {
-    l1extra_.trackerJetDisplacedPt.push_back(it->floatPt());
+    l1extra_.trackerJetDisplacedPt.push_back(it->pt());
     //l1extra_.trackerJetDisplacedEt.push_back(it->et());
-    l1extra_.trackerJetDisplacedEta.push_back(it->floatEta());
-    l1extra_.trackerJetDisplacedPhi.push_back(it->floatPhi());
+    l1extra_.trackerJetDisplacedEta.push_back(it->glbeta());
+    l1extra_.trackerJetDisplacedPhi.push_back(it->glbphi());
     //l1extra_.trackerJetDisplacedzVtx.push_back(it->jetVtx());
     l1extra_.trackerJetDisplacedBx.push_back(0);  //it->bx());
     l1extra_.nTrackerJetsDisplaced++;
@@ -639,16 +639,33 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHTDisplaced(const edm::Handle<l1t
 
 //gmt muons
 void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon> > gmtMuon, unsigned maxL1Extra) {
-    const double lsb_pt = 0.025;  // 25MeV
-    const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
-    const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
-    const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
+    const int BITSPHI = 13;
+    const int BITSETA = 13;
+    const int BITSZ0 = 10;
+    const int BITSD0 = 12;
+
+    const float maxZ0_ = 30.;
+    const float maxD0_ = 15.4;
+
+    const float lsb_pt = 0.03125;
+    const float lsb_phi = 2. * M_PI / pow(2, BITSPHI);
+    const float lsb_eta = 2. * M_PI / pow(2, BITSETA);
+    const float lsb_z0 = 2. * maxZ0_ / pow(2, BITSZ0);
+    const float lsb_d0 = 2. * maxD0_ / pow(2, BITSD0);
+    const float LSBSAz0 = 1.875;
+    const float LSBSAd0 = 3.85;
+
+    //const double lsb_pt = 0.025;  // 25MeV
+    //const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
+    //const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
+    //const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
     for (unsigned int i = 0; i < gmtMuon->size() && l1extra_.nGmtMuons < maxL1Extra; i++) {
       if (lsb_pt*gmtMuon->at(i).hwPt() > 0) {
         l1extra_.gmtMuonPt.push_back(lsb_pt*gmtMuon->at(i).hwPt()); //use pT
         l1extra_.gmtMuonEta.push_back(lsb_eta*gmtMuon->at(i).hwEta());
         l1extra_.gmtMuonPhi.push_back(lsb_phi*gmtMuon->at(i).hwPhi());
         l1extra_.gmtMuonZ0.push_back(lsb_z0*gmtMuon->at(i).hwZ0());
+        l1extra_.gmtMuonD0.push_back(lsb_d0*gmtMuon->at(i).hwD0());
 
         l1extra_.gmtMuonIPt.push_back(gmtMuon->at(i).hwPt()); //rename?
         l1extra_.gmtMuonIEta.push_back(gmtMuon->at(i).hwEta());
@@ -670,16 +687,34 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vecto
 
 //tkmuon gmt
 void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon,unsigned maxL1Extra) {
-    const double lsb_pt = 0.025;  // 25MeV
-    const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
-    const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
-    const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
+    const int BITSPHI = 13;
+    const int BITSETA = 13;
+    const int BITSZ0 = 10;
+    const int BITSD0 = 12;
+
+    const float maxZ0_ = 30.;
+    const float maxD0_ = 15.4;
+
+    const float lsb_pt = 0.03125;
+    const float lsb_phi = 2. * M_PI / pow(2, BITSPHI);
+    const float lsb_eta = 2. * M_PI / pow(2, BITSETA);
+    const float lsb_z0 = 2. * maxZ0_ / pow(2, BITSZ0);
+    const float lsb_d0 = 2. * maxD0_ / pow(2, BITSD0);
+    const float LSBSAz0 = 1.875;
+    const float LSBSAd0 = 3.85;
+
+
+    //const double lsb_pt = 0.025;  // 25MeV
+    //const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
+    //const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
+    //const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
     for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
       if (lsb_pt*gmtTkMuon->at(i).hwPt() > 0) {
         l1extra_.gmtTkMuonPt.push_back(lsb_pt*gmtTkMuon->at(i).hwPt()); //use pT
         l1extra_.gmtTkMuonEta.push_back(lsb_eta*gmtTkMuon->at(i).hwEta());
         l1extra_.gmtTkMuonPhi.push_back(lsb_phi*gmtTkMuon->at(i).hwPhi());
         l1extra_.gmtTkMuonZ0.push_back(lsb_z0*gmtTkMuon->at(i).hwZ0());
+        l1extra_.gmtTkMuonD0.push_back(lsb_d0*gmtTkMuon->at(i).hwD0());
 
         l1extra_.gmtTkMuonIPt.push_back(gmtTkMuon->at(i).hwPt()); //rename?
         l1extra_.gmtTkMuonIEta.push_back(gmtTkMuon->at(i).hwEta());
