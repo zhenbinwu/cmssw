@@ -30,7 +30,6 @@ namespace l1tpf_impl {
 
     // add object, tracking references
     void addTrack(const l1t::PFTrack &t, l1t::PFTrackRef ref);
-    void addMuon(const l1t::Muon &t, l1t::PFCandidate::MuonRef ref);
     void addCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
     void addEmCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
 
@@ -61,7 +60,6 @@ namespace l1tpf_impl {
     // these are used to link items back
     std::unordered_map<const l1t::PFCluster *, l1t::PFClusterRef> clusterRefMap_;
     std::unordered_map<const l1t::PFTrack *, l1t::PFTrackRef> trackRefMap_;
-    std::unordered_map<const l1t::Muon *, l1t::PFCandidate::MuonRef> muonRefMap_;
   };
 
 }  // namespace l1tpf_impl

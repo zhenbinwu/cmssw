@@ -15,6 +15,19 @@
 
 #include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
+namespace {
+  unsigned int reDigitize(float val, float lsb, int bits, bool isSigned = true) {
+    int digi = std::floor(val / lsb);  // tracker convention is to round down
+    if (isSigned) {
+      digi = std::min(std::max(digi, -(1 << (bits - 1))), (1 << (bits - 1)) - 1);
+      return (digi >= 0) ? digi : digi + (1 << bits);
+    } else {
+      digi = std::min(std::max(digi, 0), (1 << bits) - 1);
+      return digi;
+    }
+  }
+}  // namespace
+
 namespace l1tpf {
   class PFTrackProducerFromL1Tracks : public edm::stream::EDProducer<> {
   public:
@@ -28,8 +41,8 @@ namespace l1tpf {
     int nParam_;
     float fBz_;
     l1tpf::ParametricResolution resolCalo_, resolTrk_;
-
     std::vector<StringCutObjectSelector<l1t::PFTrack::L1TTTrackType>> qualityBitSetters_;
+    bool redigitizeTrackWord_;
 
     void produce(edm::Event &, const edm::EventSetup &) override;
 
@@ -41,7 +54,8 @@ l1tpf::PFTrackProducerFromL1Tracks::PFTrackProducerFromL1Tracks(const edm::Param
       BFieldTag_{esConsumes<MagneticField, IdealMagneticFieldRecord>()},
       nParam_(iConfig.getParameter<unsigned int>("nParam")),
       resolCalo_(iConfig.getParameter<edm::ParameterSet>("resolCalo")),
-      resolTrk_(iConfig.getParameter<edm::ParameterSet>("resolTrack")) {
+      resolTrk_(iConfig.getParameter<edm::ParameterSet>("resolTrack")),
+      redigitizeTrackWord_(iConfig.getParameter<bool>("redigitizeTrackWord")) {
   for (const auto &cut : iConfig.getParameter<std::vector<std::string>>("qualityBits")) {
     qualityBitSetters_.emplace_back(cut);
   }
@@ -71,7 +85,7 @@ void l1tpf::PFTrackProducerFromL1Tracks::produce(edm::Event &iEvent, const edm::
 
     reco::Candidate::PolarLorentzVector p4p(pt, eta, phi, 0.137);  // pion mass
     reco::Particle::LorentzVector p4(p4p.X(), p4p.Y(), p4p.Z(), p4p.E());
-    reco::Particle::Point vtx(0., 0., z0);
+    reco::Particle::Point vtx(tk.POCA().x(), tk.POCA().y(), z0);
 
     auto caloetaphi = l1tpf::propagateToCalo(p4, math::XYZTLorentzVector(0., 0., z0, 0.), charge, fBz_);
 
@@ -92,6 +106,30 @@ void l1tpf::PFTrackProducerFromL1Tracks::produce(edm::Event &iEvent, const edm::
                       trkErr,
                       caloErr,
                       quality);
+
+    if (redigitizeTrackWord_) {
+      TTTrack_TrackWord &tw = out->back().trackWord();
+      float localPhi = reco::deltaPhi(phi, tk.phiSector() * (2 * M_PI / 9));
+      unsigned int packed_rInv = reDigitize(tk.rInv(), TTTrack_TrackWord::stepRinv, TTTrack_TrackWord::kRinvSize);
+      unsigned int packed_phi0 = reDigitize(localPhi, TTTrack_TrackWord::stepPhi0, TTTrack_TrackWord::kPhiSize);
+      unsigned int packed_tanl =
+          reDigitize(tk.momentum().z() / pt, TTTrack_TrackWord::stepTanL, TTTrack_TrackWord::kTanlSize);
+      unsigned int packed_z0 = reDigitize(z0, TTTrack_TrackWord::stepZ0, TTTrack_TrackWord::kZ0Size);
+      unsigned int packed_d0 = reDigitize(tk.POCA().perp(), TTTrack_TrackWord::stepD0, TTTrack_TrackWord::kD0Size);
+
+      tw.setTrackWord(tw.getValid(),
+                      packed_rInv,
+                      packed_phi0,
+                      packed_tanl,
+                      packed_z0,
+                      packed_d0,
+                      tw.getChi2RPhi(),
+                      tw.getChi2RZ(),
+                      tw.getBendChi2(),
+                      tw.getHitPattern(),
+                      tw.getMVAQuality(),
+                      quality);
+    }
   }
   iEvent.put(std::move(out));
 }

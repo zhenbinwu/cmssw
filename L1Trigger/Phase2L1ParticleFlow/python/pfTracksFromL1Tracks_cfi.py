@@ -21,6 +21,7 @@ pfTracksFromL1Tracks = cms.EDProducer("PFTrackProducerFromL1Tracks",
         "momentum.perp > 2 && getStubRefs.size >= 4 && chi2Red < 15",
         "momentum.perp > 2 && getStubRefs.size >= 6 && chi2Red < 15 && chi2 < 50", # historical reasons
         "momentum.perp > 5 && getStubRefs.size >= 4"
-    )
+    ),
+    redigitizeTrackWord = cms.bool(True),
 )
 

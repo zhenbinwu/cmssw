@@ -73,6 +73,8 @@ namespace l1ct {
       hwTkQuality = 0;
     }
 
+    int intVtxEta() const { return hwVtxEta().to_int(); }
+    int intVtxPhi() const { return hwVtxPhi().to_int(); }
     float floatDEta() const { return Scales::floatEta(hwDEta); }
     float floatDPhi() const { return Scales::floatPhi(hwDPhi); }
     float floatVtxEta() const { return Scales::floatEta(hwVtxEta()); }
