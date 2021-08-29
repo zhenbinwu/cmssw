@@ -124,6 +124,7 @@ from L1Trigger.VertexFinder.VertexProducer_cff import *
 L1VertexFinder = VertexProducer.clone()
 L1VertexFinderEmulator = VertexProducer.clone()
 L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
+L1VertexFinderEmulator.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
 _phase2_siml1emulator.add(L1VertexFinder)
 _phase2_siml1emulator.add(L1GTTInputProducer)
 _phase2_siml1emulator.add(L1VertexFinderEmulator)
