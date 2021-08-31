@@ -37,21 +37,22 @@ l1ct::MuObjEmu l1ct::GMTMuonDecoderEmulator::decode(const ap_uint<64> &in) const
 
   l1ct::MuObjEmu out;
   out.clear();
+  if (in != 0) {
+    // add a shift in order to get the proper rounding
+    out.hwPt = gmt_pt + gmt_pt_t(l1ct::Scales::INTPT_LSB / 2);
 
-  // add a shift in order to get the proper rounding
-  out.hwPt = gmt_pt + gmt_pt_t(l1ct::Scales::INTPT_LSB / 2);
+    out.hwEta = (gmt_eta * etaPhi_scale + etaPhi_offs) >> etaPhi_extra_bits;
+    out.hwPhi = (gmt_phi * etaPhi_scale + etaPhi_offs) >> etaPhi_extra_bits;
+    out.hwDEta = 0;
+    out.hwDPhi = 0;
 
-  out.hwEta = (gmt_eta * etaPhi_scale + etaPhi_offs) >> etaPhi_extra_bits;
-  out.hwPhi = (gmt_phi * etaPhi_scale + etaPhi_offs) >> etaPhi_extra_bits;
-  out.hwDEta = 0;
-  out.hwDPhi = 0;
+    out.hwCharge = !gmt_chg;
 
-  out.hwCharge = !gmt_chg;
+    out.hwZ0 = gmt_z0 * z0_scale;
+    out.hwDxy = gmt_d0 * dxy_scale;
 
-  out.hwZ0 = gmt_z0 * z0_scale;
-  out.hwDxy = gmt_d0 * dxy_scale;
-
-  out.hwQuality = gmt_qual(3, 1);  // drop lowest bit
+    out.hwQuality = gmt_qual(3, 1);  // drop lowest bit
+  }
 
   return out;
 }

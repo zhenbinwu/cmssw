@@ -264,16 +264,12 @@ void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
                                                   std::vector<l1ct::MuObjEmu>& links) {
   if (nmu_ == 0)
     return;
+  assert(NMU_LINKS == 1);
   links.resize(NMU_LINKS);
-  // we have 2 muons on odd clock cycles, and 1 muon on even clock cycles.
-  assert(NMU_LINKS == 2);
-  for (unsigned int il = 0, idx = 0; il < NMU_LINKS; ++il, ++idx) {
-    unsigned int ioffs = (iclock * 3) / 2 + il;
-    if (ioffs < in.muon.size() && (il == 0 || iclock % 2 == 1) && iclock < nclocks_ - 1) {
-      links[idx] = in.muon[ioffs];
-    } else {
-      links[idx].clear();
-    }
+  if (iclock < in.muon.size() && iclock < nclocks_ - 1) {
+    links[0] = in.muon[iclock];
+  } else {
+    links[0].clear();
   }
 }
 
