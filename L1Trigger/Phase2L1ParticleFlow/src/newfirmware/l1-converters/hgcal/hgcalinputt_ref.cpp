@@ -11,11 +11,11 @@ l1ct::HadCaloObjEmu l1ct::HgcalClusterDecoderEmulator::decode(const ap_uint<256>
 
   l1ct::HadCaloObjEmu out;
   out.clear();
-  out.hwPt = w_pt*l1ct::pt_t(l1ct::Scales::INTPT_LSB);
+  out.hwPt = w_pt * l1ct::pt_t(l1ct::Scales::INTPT_LSB);
   out.hwEta = w_eta;
   out.hwPhi = w_phi;  // relative to the region center, at calo
-  out.hwEmPt = w_empt*l1ct::pt_t(l1ct::Scales::INTPT_LSB);
-  out.hwEmID = w_qual ;
-  
+  out.hwEmPt = w_empt * l1ct::pt_t(l1ct::Scales::INTPT_LSB);
+  out.hwEmID = w_qual;
+
   return out;
 }

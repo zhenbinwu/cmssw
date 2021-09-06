@@ -7,11 +7,10 @@
 #include "../../../dataformats/layer1_emulator.h"
 #endif
 
-
 namespace l1ct {
   class HgcalClusterDecoderEmulator {
   public:
-    HgcalClusterDecoderEmulator() {};
+    HgcalClusterDecoderEmulator(){};
     ~HgcalClusterDecoderEmulator();
     l1ct::HadCaloObjEmu decode(const ap_uint<256> &in) const;
   };
