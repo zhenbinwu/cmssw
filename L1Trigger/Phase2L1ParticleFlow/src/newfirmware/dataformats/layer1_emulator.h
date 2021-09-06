@@ -248,6 +248,7 @@ namespace l1ct {
   struct RawInputs {
     std::vector<DetectorSector<ap_uint<96>>> track;
     DetectorSector<ap_uint<64>> muon;  // muons are global
+    std::vector<DetectorSector<ap_uint<256>>> hgcalcluster;
 
     bool read(std::fstream &from);
     bool write(std::fstream &to) const;
@@ -315,7 +316,7 @@ namespace l1ct {
   };
 
   struct Event {
-    enum { VERSION = 9 };
+    enum { VERSION = 10 };
     uint32_t run, lumi;
     uint64_t event;
     RawInputs raw;
