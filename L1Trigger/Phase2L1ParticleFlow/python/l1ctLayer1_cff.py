@@ -191,6 +191,7 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         )
 
     ),
+    writeRawHgcalCluster = cms.untracked.bool(True)
 )
 
 
@@ -263,6 +264,7 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         )
 
     ),
+    writeRawHgcalCluster = cms.untracked.bool(True)
 )
 
 l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
