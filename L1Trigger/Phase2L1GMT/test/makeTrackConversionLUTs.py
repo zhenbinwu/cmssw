@@ -17,7 +17,8 @@ from pprint import pprint
 BITSABSCURV=14
 BITSPT=13
 maxCurv = 0.00855
-ptLSB=0.025
+ptLSB=0.03125 ## Updated LSB 
+# ptLSB=0.025
 ptLUT=[]
 pts = []
 ptshifts = []
@@ -216,11 +217,11 @@ def ptChecks(shiftmap, LUT, bounderidx=False):
         pOB=0.3*3.8*0.01/(k)
         idx, pINT = LookUp(i, shiftmap, LUT, bounderidx)
         ## We don't need to check beyond the boundary
-        if pOB > (1<<BITSPT)*0.025 or pOB < 2:
+        if pOB > (1<<BITSPT)*ptLSB or pOB < 2:
             continue
         # Allow +-1 1LSB
-        if (abs(pOB - float(pINT)*0.025) > 0.025 ):
-            print("pt : ", i, pOB, pts[i-1], ptLUT[i-1], idx, pINT, int(pINT)*0.025)
+        if (abs(pOB - float(pINT)*ptLSB) > ptLSB ):
+            print("pt : ", i, pOB, pts[i-1], ptLUT[i-1], idx, pINT, int(pINT)*ptLSB)
 
 def etaChecks(shiftmap, LUT, bounderidx=False):
     for i in range(0,(1<<(BITSTTTANL))):
@@ -279,4 +280,4 @@ if __name__ == "__main__":
         print("index is not continuous: ", con)
     # etaChecks(k, y, bounderidx=bounderidx)
     # print("Total size of LUT is %d" % len(y))
-    PrintEtaLUT(k, y)
+    # PrintEtaLUT(k, y)
