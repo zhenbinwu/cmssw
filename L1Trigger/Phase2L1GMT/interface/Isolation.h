@@ -84,12 +84,12 @@ namespace Phase2L1GMT {
     for (unsigned int i = 0; i < trkMus.size(); ++i) {
       auto mu = trkMus.at(i);
       if (mu.hwPt() != 0) {
-        double convertphi = mu.hwPhi() * lsb_phi;
+        double convertphi = mu.hwPhi() * LSBphi;
         if (convertphi > M_PI) {
           convertphi -= 2 * M_PI;
         }
-        dumpOutput << nevto << " " << i << " " << mu.hwPt() * lsb_pt << " " << mu.hwEta() * lsb_eta << " " << convertphi
-                   << " " << mu.hwZ0() * lsb_z0 << " " << mu.hwIso() << endl;
+        dumpOutput << nevto << " " << i << " " << mu.hwPt() * LSBpt << " " << mu.hwEta() * LSBeta << " " << convertphi
+                   << " " << mu.hwZ0() * LSBGTz0 << " " << mu.hwIso() << endl;
       }
     }
     nevto++;

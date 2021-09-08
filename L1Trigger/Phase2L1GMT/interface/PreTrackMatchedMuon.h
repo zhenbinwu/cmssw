@@ -60,14 +60,14 @@ namespace Phase2L1GMT {
       offline_phi_ = phi;
     }
 
-    void setMuonRef(const l1t::RegionalMuonCandRef& ref) {
-      muRef_ = ref;
+    void addMuonRef(const l1t::RegionalMuonCandRef& ref) {
+      muRef_.push_back(ref);
       isGlobal_ = true;
     }
 
     void resetGlobal() { isGlobal_ = false; }
 
-    const l1t::RegionalMuonCandRef& muonRef() const { return muRef_; }
+    const std::vector<l1t::RegionalMuonCandRef>& muonRef() const { return muRef_; }
     void addStub(const l1t::MuonStubRef& stub) {
       stubs_.push_back(stub);
       if (stub->tfLayer() == 0)
@@ -147,7 +147,7 @@ namespace Phase2L1GMT {
     uint stubID4_;
     bool valid_;
     l1t::MuonStubRefVector stubs_;
-    l1t::RegionalMuonCandRef muRef_;
+    std::vector<l1t::RegionalMuonCandRef> muRef_;
     edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;
   };
 }  // namespace Phase2L1GMT

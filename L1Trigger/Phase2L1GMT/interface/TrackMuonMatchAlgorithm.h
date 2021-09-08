@@ -102,7 +102,7 @@ namespace Phase2L1GMT {
         if (out.size() == maximum)
           break;
         l1t::TrackerMuon muon(mu.trkPtr(), mu.charge(), mu.pt(), mu.eta(), mu.phi(), mu.z0(), mu.d0(), mu.quality());
-        muon.setMuonRef(mu.muonRef());
+
         for (const auto& stub : mu.stubs())
           muon.addStub(stub);
         out.push_back(muon);
@@ -441,6 +441,12 @@ namespace Phase2L1GMT {
         for (const auto& stub : roi.stubs()) {
           match_t m = propagateAndMatch(track, stub);
           if (m.valid == 1) {
+            
+            if (roi.isGlobalMuon() && roi.muonRef().isNonnull()) {
+              m.isGlobal = true;
+              m.muRef = roi.muonRef();
+            }
+
             if (stub->tfLayer() == 0)
               matchInfo0.push_back(m);
             else if (stub->tfLayer() == 1)
@@ -452,10 +458,6 @@ namespace Phase2L1GMT {
             else if (stub->tfLayer() == 4)
               matchInfo4.push_back(m);
 
-            if (roi.isGlobalMuon() && roi.muonRef().isNonnull()) {
-              m.isGlobal = true;
-              m.muRef = roi.muonRef();
-            }
           }
         }
       }
@@ -470,7 +472,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -479,7 +481,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -488,7 +490,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -497,7 +499,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -506,7 +508,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
