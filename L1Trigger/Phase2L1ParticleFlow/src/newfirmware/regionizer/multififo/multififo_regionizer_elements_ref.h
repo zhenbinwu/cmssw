@@ -21,50 +21,18 @@ namespace l1ct {
       from.pop_back();
     }
 
-    inline int dphi_wrap(int local_phi) {
-      if (local_phi > l1ct::Scales::INTPHI_PI)
-        local_phi -= l1ct::Scales::INTPHI_TWOPI;
-      else if (local_phi <= -l1ct::Scales::INTPHI_PI)
-        local_phi += l1ct::Scales::INTPHI_TWOPI;
-      return local_phi;
-    }
-
-    template <typename T>
-    inline void push_to_fifo(const T& t, int local_eta, int local_phi, std::list<T>& fifo) {
-      fifo.push_front(t);
-      fifo.front().hwEta = local_eta;
-      fifo.front().hwPhi = local_phi;
-    }
-
-    template <typename T>
-    inline void maybe_push(const T& t,
-                           const l1ct::PFRegionEmu& sector,
-                           const l1ct::PFRegionEmu& region,
-                           std::list<T>& fifo,
-                           bool useAlsoVtxCoords);
-    template <>
-    inline void maybe_push<l1ct::TkObjEmu>(const l1ct::TkObjEmu& t,
-                                           const l1ct::PFRegionEmu& sector,
-                                           const l1ct::PFRegionEmu& region,
-                                           std::list<l1ct::TkObjEmu>& fifo,
-                                           bool useAlsoVtxCoords);
-
     template <typename T>
     class RegionBuffer {
     public:
       RegionBuffer() : nfifos_(0) {}
       void initFifos(unsigned int nfifos);
-      void initRegion(const l1ct::PFRegionEmu& region, bool useAlsoVtxCoords) {
-        region_ = region;
-        useAlsoVtxCoords_ = useAlsoVtxCoords;
-      }
+      void initRegion(const l1ct::PFRegionEmu& region) { region_ = region; }
       void flush();
       void maybe_push(int fifo, const T& t, const l1ct::PFRegionEmu& sector);
       T pop();
 
     private:
       unsigned int nfifos_;
-      bool useAlsoVtxCoords_;
       l1ct::PFRegionEmu region_;
       std::vector<std::list<T>> fifos_;
       std::vector<T> staging_area_, queue_, staging_area2_, queue2_;
@@ -134,11 +102,7 @@ namespace l1ct {
     class Regionizer {
     public:
       Regionizer() {}
-      Regionizer(unsigned int nsorted,
-                 unsigned int nout,
-                 bool streaming,
-                 unsigned int outii = 0,
-                 bool useAlsoVtxCoords = false);
+      Regionizer(unsigned int nsorted, unsigned int nout, bool streaming, unsigned int outii = 0);
       void initSectors(const std::vector<DetectorSector<T>>& sectors);
       void initSectors(const DetectorSector<T>& sector);
       void initRegions(const std::vector<PFInputRegion>& regions);
@@ -152,14 +116,11 @@ namespace l1ct {
       // single clock emulation
       bool step(bool newEvent, const std::vector<T>& links, std::vector<T>& out, bool mux = true);
 
-      // single clock emulation
-      bool muxonly_step(bool newEvent, bool mayFlush, const std::vector<T>& nomux_out, std::vector<T>& out);
-
       void destream(int iclock, const std::vector<T>& streams, std::vector<T>& out);
 
     private:
       unsigned int nsectors_, nregions_, nsorted_, nout_, outii_;
-      bool streaming_, useAlsoVtxCoords_;
+      bool streaming_;
       std::vector<l1ct::PFRegionEmu> sectors_;
       std::vector<RegionBuffer<T>> buffers_;
       std::vector<RegionBuilder<T>> builders_;

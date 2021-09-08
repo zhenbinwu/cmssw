@@ -6,12 +6,6 @@
 #include <memory>
 
 #ifdef CMSSW_GIT_HASH
-#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
-#else
-#include "../../../utils/dbgPrintf.h"
-#endif
-
-#ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 l1ct::PFAlgoDummyEmulator::PFAlgoDummyEmulator(const edm::ParameterSet& iConfig)
@@ -29,9 +23,9 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nCALO; ++i) {
       if (in.hadcalo[i].hwPt == 0)
         continue;
-      dbgPrintf(
+      printf(
           "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  calo emPt %8.2f [ "
-          "%6d ]   emID %2d \n",
+          "%6d ]   isEM %d \n",
           i,
           in.hadcalo[i].floatPt(),
           in.hadcalo[i].intPt(),
@@ -41,26 +35,26 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
           in.hadcalo[i].intPhi(),
           in.hadcalo[i].floatEmPt(),
           in.hadcalo[i].intEmPt(),
-          in.hadcalo[i].hwEmID.to_int());
+          int(in.hadcalo[i].hwIsEM));
     }
     for (unsigned int i = 0; i < nMU; ++i) {
       if (in.muon[i].hwPt == 0)
         continue;
-      dbgPrintf("FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]   \n",
-                i,
-                in.muon[i].floatPt(),
-                in.muon[i].intPt(),
-                in.muon[i].floatEta(),
-                in.muon[i].intEta(),
-                in.muon[i].floatPhi(),
-                in.muon[i].intPhi());
+      printf("FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]   \n",
+             i,
+             in.muon[i].floatPt(),
+             in.muon[i].intPt(),
+             in.muon[i].floatEta(),
+             in.muon[i].intEta(),
+             in.muon[i].floatPhi(),
+             in.muon[i].intPhi());
     }
   }
 
   out.pfneutral.resize(nCALO);
   for (unsigned int ic = 0; ic < nCALO; ++ic) {
     if (in.hadcalo[ic].hwPt > 0) {
-      fillPFCand(in.hadcalo[ic], out.pfneutral[ic], in.hadcalo[ic].hwIsEM());
+      fillPFCand(in.hadcalo[ic], out.pfneutral[ic], in.hadcalo[ic].hwIsEM);
     } else {
       out.pfneutral[ic].clear();
     }
@@ -70,15 +64,15 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nCALO; ++i) {
       if (out.pfneutral[i].hwPt == 0)
         continue;
-      dbgPrintf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  pid %d\n",
-                i,
-                out.pfneutral[i].floatPt(),
-                out.pfneutral[i].intPt(),
-                out.pfneutral[i].floatEta(),
-                out.pfneutral[i].intEta(),
-                out.pfneutral[i].floatPhi(),
-                out.pfneutral[i].intPhi(),
-                out.pfneutral[i].intId());
+      printf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  pid %d\n",
+             i,
+             out.pfneutral[i].floatPt(),
+             out.pfneutral[i].intPt(),
+             out.pfneutral[i].floatEta(),
+             out.pfneutral[i].intEta(),
+             out.pfneutral[i].floatPhi(),
+             out.pfneutral[i].intPhi(),
+             out.pfneutral[i].intId());
     }
   }
 }

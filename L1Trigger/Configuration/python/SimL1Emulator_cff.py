@@ -115,14 +115,9 @@ _phase2_siml1emulator.add(L1CaloJetHTT)
 # ########################################################################
 # Phase-2 L1T - TrackTrigger dependent modules
 # ########################################################################
-from L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi import *
 from L1Trigger.VertexFinder.VertexProducer_cff import *
 L1VertexFinder = VertexProducer.clone()
-L1VertexFinderEmulator = VertexProducer.clone()
-L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
 _phase2_siml1emulator.add(L1VertexFinder)
-_phase2_siml1emulator.add(L1GTTInputProducer)
-_phase2_siml1emulator.add(L1VertexFinderEmulator)
 
 # Tk + StandaloneObj, including L1TkPrimaryVertex
 # ########################################################################
@@ -150,9 +145,6 @@ from L1Trigger.L1TTrackMatch.L1TrackJetProducer_cfi import *
 from L1Trigger.L1TTrackMatch.L1TrackFastJetProducer_cfi import *
 from L1Trigger.L1TTrackMatch.L1TrackerEtMissProducer_cfi import *
 from L1Trigger.L1TTrackMatch.L1TkHTMissProducer_cfi import *
-# make the input tags consistent with the choice L1VertexFinder above
-L1TrackerEtMiss.L1VertexInputTag = cms.InputTag("L1VertexFinder", L1VertexFinder.l1VertexCollectionName.value())
-L1TrackerEtMissExtended.L1VertexInputTag = cms.InputTag("L1VertexFinder", L1VertexFinder.l1VertexCollectionName.value())
 _phase2_siml1emulator.add(L1TrackJets)
 _phase2_siml1emulator.add(L1TrackJetsExtended)
 _phase2_siml1emulator.add(L1TrackFastJets)
@@ -167,8 +159,6 @@ _phase2_siml1emulator.add(L1TrackerHTMissExtended)
 # ########################################################################
 from L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff import *
 _phase2_siml1emulator.add(l1ParticleFlowTask)
-from L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff import *
-_phase2_siml1emulator.add(l1ctLayer1TaskInputsTask, l1ctLayer1Task)
 
 # PF Jet
 # ########################################################################

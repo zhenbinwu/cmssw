@@ -19,7 +19,7 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
       float glbEta = sec.region.floatGlbEtaOf(tk), glbPhi = sec.region.floatGlbPhiOf(tk);
       float glbEtaV = sec.region.floatGlbEta(tk.hwVtxEta()), glbPhiV = sec.region.floatGlbPhi(tk.hwVtxPhi());
       for (auto& r : out) {
-        if (r.region.contains(glbEta, glbPhi) || (useAlsoVtxCoords_ && r.region.contains(glbEtaV, glbPhiV))) {
+        if (r.region.contains(glbEta, glbPhi) || r.region.contains(glbEtaV, glbPhiV)) {
           r.track.push_back(tk);
           r.track.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(glbEta));
           r.track.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(glbPhi));

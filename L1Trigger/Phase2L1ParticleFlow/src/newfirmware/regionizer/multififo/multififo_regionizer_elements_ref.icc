@@ -1,36 +1,3 @@
-#ifdef CMSSW_GIT_HASH
-#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
-#else
-#include "../../utils/dbgPrintf.h"
-#endif
-
-template <typename T>
-void l1ct::multififo_regionizer::maybe_push(const T& t,
-                                            const l1ct::PFRegionEmu& sector,
-                                            const l1ct::PFRegionEmu& region,
-                                            std::list<T>& fifo,
-                                            bool /*useAlsoVtxCoords*/) {
-  int local_eta = sector.hwGlbEtaOf(t).to_int() - region.hwEtaCenter.to_int();
-  int local_phi = dphi_wrap(sector.hwGlbPhiOf(t).to_int() - region.hwPhiCenter.to_int());
-  if (region.isInside(local_eta, local_phi)) {
-    push_to_fifo(t, local_eta, local_phi, fifo);
-  }
-}
-template <>
-void l1ct::multififo_regionizer::maybe_push<l1ct::TkObjEmu>(const l1ct::TkObjEmu& t,
-                                                            const l1ct::PFRegionEmu& sector,
-                                                            const l1ct::PFRegionEmu& region,
-                                                            std::list<l1ct::TkObjEmu>& fifo,
-                                                            bool useAlsoVtxCoords) {
-  int local_eta_c = sector.hwGlbEtaOf(t).to_int() - region.hwEtaCenter.to_int();
-  int local_phi_c = dphi_wrap(sector.hwGlbPhiOf(t).to_int() - region.hwPhiCenter.to_int());
-  int local_eta_v = sector.hwGlbEta(t.hwVtxEta()).to_int() - region.hwEtaCenter.to_int();
-  int local_phi_v = dphi_wrap(sector.hwGlbPhi(t.hwVtxPhi()).to_int() - region.hwPhiCenter.to_int());
-  if (region.isInside(local_eta_c, local_phi_c) || (useAlsoVtxCoords && region.isInside(local_eta_v, local_phi_v))) {
-    push_to_fifo(t, local_eta_c, local_phi_c, fifo);
-  }
-}
-
 template <typename T>
 void l1ct::multififo_regionizer::RegionBuffer<T>::initFifos(unsigned int nfifos) {
   assert(nfifos_ == 0);
@@ -45,7 +12,7 @@ void l1ct::multififo_regionizer::RegionBuffer<T>::initFifos(unsigned int nfifos)
     }
   }
   if (!(nfifos == 1 || nfifos == 2 || nfifos == 4 || nfifos == 6 || nfifos == 8)) {
-    dbgCerr() << "Error, created regionizer for nfifos == " << nfifos << ", not supported." << std::endl;
+    std::cerr << "Error, created regionizer for nfifos == " << nfifos << ", not supported." << std::endl;
   }
   assert(nfifos == 1 || nfifos == 2 || nfifos == 4 || nfifos == 6 || nfifos == 8);
 }
@@ -66,8 +33,19 @@ void l1ct::multififo_regionizer::RegionBuffer<T>::flush() {
 
 template <typename T>
 void l1ct::multififo_regionizer::RegionBuffer<T>::maybe_push(int fifo, const T& t, const l1ct::PFRegionEmu& sector) {
-  if (t.hwPt != 0)
-    l1ct::multififo_regionizer::maybe_push<T>(t, sector, region_, fifos_[fifo], useAlsoVtxCoords_);
+  if (t.hwPt == 0)
+    return;
+  int local_eta = sector.hwGlbEtaOf(t).to_int() - region_.hwEtaCenter.to_int();
+  int local_phi = sector.hwGlbPhiOf(t).to_int() - region_.hwPhiCenter.to_int();
+  if (local_phi > l1ct::Scales::INTPHI_PI)
+    local_phi -= l1ct::Scales::INTPHI_TWOPI;
+  else if (local_phi <= -l1ct::Scales::INTPHI_PI)
+    local_phi += l1ct::Scales::INTPHI_TWOPI;
+  if (region_.isInside(local_eta, local_phi)) {
+    fifos_[fifo].push_front(t);
+    fifos_[fifo].front().hwEta = local_eta;
+    fifos_[fifo].front().hwPhi = local_phi;
+  }
 }
 
 template <typename T>
@@ -232,16 +210,11 @@ bool l1ct::multififo_regionizer::RegionMux<T>::stream(bool newevt, std::vector<T
 }
 
 template <typename T>
-l1ct::multififo_regionizer::Regionizer<T>::Regionizer(
-    unsigned int nsorted, unsigned int nout, bool streaming, unsigned int outii, bool useAlsoVtxCoords)
-    : nsectors_(0),
-      nregions_(0),
-      nsorted_(nsorted),
-      nout_(nout),
-      outii_(outii),
-      streaming_(streaming),
-      useAlsoVtxCoords_(useAlsoVtxCoords),
-      nevt_(0) {}
+l1ct::multififo_regionizer::Regionizer<T>::Regionizer(unsigned int nsorted,
+                                                      unsigned int nout,
+                                                      bool streaming,
+                                                      unsigned int outii)
+    : nsectors_(0), nregions_(0), nsorted_(nsorted), nout_(nout), outii_(outii), streaming_(streaming), nevt_(0) {}
 
 template <typename T>
 void l1ct::multififo_regionizer::Regionizer<T>::initSectors(const std::vector<DetectorSector<T>>& sectors) {
@@ -269,7 +242,7 @@ void l1ct::multififo_regionizer::Regionizer<T>::initRegions(const std::vector<PF
   buffers_.resize(nregions);
   builders_.resize(nregions);
   for (unsigned int i = 0; i < nregions; ++i) {
-    buffers_[i].initRegion(regions[i].region, useAlsoVtxCoords_);
+    buffers_[i].initRegion(regions[i].region);
     builders_[i] = RegionBuilder<T>(i, nsorted_);
   }
   // bigmux
@@ -304,36 +277,21 @@ bool l1ct::multififo_regionizer::Regionizer<T>::step(bool newEvent,
     unsigned int index = nlinks_sector * r.sector + r.link;
     buffers_[r.region].maybe_push(r.fifo, links[index], sectors_[r.sector]);
   }
-  out.resize(nregions_);
-  for (unsigned int i = 0; i < nregions_; ++i) {
-    out[i] = buffers_[i].pop();
-  }
   if (mux) {
-    std::vector<T> work;
-    std::swap(work, out);
-    return muxonly_step(newEvent, /*flush=*/false, work, out);  // don't flush twice
+    out.resize(nout_);
+    for (unsigned int i = 0; i < nregions_; ++i) {
+      if (newEvent)
+        builders_[i].pop(bigmux_);
+      builders_[i].push(buffers_[i].pop());
+    }
+    return bigmux_.stream(newEvent && (nevt_ > 1), out);
   } else {
+    out.resize(nregions_);
+    for (unsigned int i = 0; i < nregions_; ++i) {
+      out[i] = buffers_[i].pop();
+    }
     return true;
   }
-}
-
-template <typename T>
-bool l1ct::multififo_regionizer::Regionizer<T>::muxonly_step(bool newEvent,
-                                                             bool mayFlush,
-                                                             const std::vector<T>& nomux_out,
-                                                             std::vector<T>& out) {
-  if (newEvent && mayFlush) {
-    flush();
-    nevt_++;
-  }
-  assert(nomux_out.size() == nregions_);
-  out.resize(nout_);
-  for (unsigned int i = 0; i < nregions_; ++i) {
-    if (newEvent)
-      builders_[i].pop(bigmux_);
-    builders_[i].push(nomux_out[i]);
-  }
-  return bigmux_.stream(newEvent && (nevt_ > 1), out);
 }
 
 template <typename T>

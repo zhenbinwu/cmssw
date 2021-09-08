@@ -17,14 +17,9 @@ namespace l1ct {
     static const int BITS_Z0_START = 0;
     static const int BITS_DXY_START = BITS_Z0_START + z0_t::width;
     static const int BITS_TKQUAL_START = BITS_DXY_START + dxy_t::width;
-    static const int DATA_CHARGED_BITS_TOTAL = BITS_TKQUAL_START + tkquality_t::width;
+    static const int DATA_BITS_TOTAL = BITS_TKQUAL_START + tkquality_t::width;
 
     static const int BITS_PUPPIW_START = 0;
-    static const int BITS_EMID_START = BITS_PUPPIW_START + puppiWgt_t::width;
-    static const int DATA_NEUTRAL_BITS_TOTAL = BITS_TKQUAL_START + emid_t::width;
-
-    static const int DATA_BITS_TOTAL =
-        DATA_CHARGED_BITS_TOTAL >= DATA_NEUTRAL_BITS_TOTAL ? DATA_CHARGED_BITS_TOTAL : DATA_NEUTRAL_BITS_TOTAL;
 
     ap_uint<DATA_BITS_TOTAL> hwData;
 
@@ -84,20 +79,6 @@ namespace l1ct {
       hwData(BITS_PUPPIW_START + puppiWgt_t::width - 1, BITS_PUPPIW_START) = w(puppiWgt_t::width - 1, 0);
     }
 
-    inline puppiWgt_t hwEmID() const {
-#ifndef __SYNTHESIS__
-      assert(hwId.neutral());
-#endif
-      return puppiWgt_t(hwData(BITS_EMID_START + emid_t::width - 1, BITS_EMID_START));
-    }
-
-    inline void setHwEmID(emid_t w) {
-#ifndef __SYNTHESIS__
-      assert(hwId.neutral());
-#endif
-      hwData(BITS_EMID_START + emid_t::width - 1, BITS_EMID_START) = w(emid_t::width - 1, 0);
-    }
-
     inline bool operator==(const PuppiObj &other) const {
       return hwPt == other.hwPt && hwEta == other.hwEta && hwPhi == other.hwPhi && hwId == other.hwId &&
              hwData == other.hwData;
@@ -131,16 +112,14 @@ namespace l1ct {
       hwPt = puppiPt;
       hwData = 0;
       setHwPuppiW(puppiWgt);
-      setHwEmID(src.hwEmID);
     }
     inline void fill(const PFRegion &region, const HadCaloObj &src, pt_t puppiPt, puppiWgt_t puppiWgt) {
       hwEta = region.hwGlbEta(src.hwEta);
       hwPhi = region.hwGlbPhi(src.hwPhi);
-      hwId = src.hwIsEM() ? ParticleID::PHOTON : ParticleID::HADZERO;
+      hwId = src.hwIsEM ? ParticleID::PHOTON : ParticleID::HADZERO;
       hwPt = puppiPt;
       hwData = 0;
       setHwPuppiW(puppiWgt);
-      setHwEmID(src.hwEmID);
     }
 
     int intPt() const { return Scales::intPt(hwPt); }
@@ -168,20 +147,18 @@ namespace l1ct {
       _pack_into_bits(ret, start, hwData);
       return ret;
     }
-    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
-      unsigned int start = 0;
-      _unpack_from_bits(src, start, hwPt);
-      _unpack_from_bits(src, start, hwEta);
-      _unpack_from_bits(src, start, hwPhi);
-      _unpack_from_bits(src, start, hwId.bits);
-      _unpack_from_bits(src, start, hwData);
-    }
     inline static PuppiObj unpack(const ap_uint<BITWIDTH> &src) {
       PuppiObj ret;
-      ret.initFromBits(src);
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, ret.hwPt);
+      _unpack_from_bits(src, start, ret.hwEta);
+      _unpack_from_bits(src, start, ret.hwPhi);
+      _unpack_from_bits(src, start, ret.hwId.bits);
+      _unpack_from_bits(src, start, ret.hwData);
       return ret;
     }
   };
+
   inline void clear(PuppiObj &c) { c.clear(); }
 
 }  // namespace l1ct

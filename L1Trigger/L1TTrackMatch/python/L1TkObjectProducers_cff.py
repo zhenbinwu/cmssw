@@ -66,8 +66,8 @@ pVertexProducer = cms.Path( VertexProducer )
 from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuons, L1TkMuonsTP
 pL1TkMuon = cms.Path( L1TkMuons * L1TkMuonsTP )
 
-from L1Trigger.L1TTrackMatch.L1TkGlbMuonProducer_cfi import L1TkGlbMuons
-pL1TkGlbMuon = cms.Path( L1TkGlbMuons )
+# from L1Trigger.L1TTrackMatch.L1TkGlbMuonProducer_cfi import L1TkGlbMuons
+# pL1TkGlbMuon = cms.Path( L1TkGlbMuons )
 
 # from L1Trigger.L1TTrackMatch.L1TrkTauFromCaloProducer_cfi import L1TrkTauFromCalo
 # pL1TrkTauFromCalo = cms.Path( L1TrkTauFromCalo )

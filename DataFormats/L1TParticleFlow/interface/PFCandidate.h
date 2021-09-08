@@ -56,14 +56,12 @@ namespace l1t {
     int16_t hwDxy() const { return hwDxy_; }
     uint16_t hwTkQuality() const { return hwTkQuality_; }
     uint16_t hwPuppiWeight() const { return hwPuppiWeight_; }
-    uint16_t hwEmID() const { return hwEmID_; }
     uint64_t encodedPuppi64() const { return encodedPuppi64_; }
 
     void setHwZ0(int16_t hwZ0) { hwZ0_ = hwZ0; }
     void setHwDxy(int16_t hwDxy) { hwDxy_ = hwDxy; }
     void setHwTkQuality(uint16_t hwTkQuality) { hwTkQuality_ = hwTkQuality; }
     void setHwPuppiWeight(uint16_t hwPuppiWeight) { hwPuppiWeight_ = hwPuppiWeight; }
-    void setHwEmID(uint16_t hwEmID) { hwEmID_ = hwEmID; }
     void setEncodedPuppi64(uint64_t encodedPuppi64) { encodedPuppi64_ = encodedPuppi64; }
 
   private:
@@ -73,7 +71,7 @@ namespace l1t {
     float dxy_, puppiWeight_;
 
     int16_t hwZ0_, hwDxy_;
-    uint16_t hwTkQuality_, hwPuppiWeight_, hwEmID_;
+    uint16_t hwTkQuality_, hwPuppiWeight_;
     uint64_t encodedPuppi64_;
 
     void setPdgIdFromParticleType(int charge, ParticleType kind);

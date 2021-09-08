@@ -15,15 +15,13 @@
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
 #include "DataFormats/L1TParticleFlow/interface/PFCandidate.h"
-#include "DataFormats/L1Trigger/interface/Vertex.h"
-#include "DataFormats/L1Trigger/interface/VertexWord.h"
+#include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/common/regionizer_base_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/multififo/multififo_regionizer_ref.h"
-#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/tdr/tdr_regionizer_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo2hgc_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo3_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo_dummy_ref.h"
@@ -55,9 +53,7 @@ private:
   bool hasTracks_;
   edm::EDGetTokenT<l1t::PFTrackCollection> tkCands_;
   float trkPt_;
-  bool emuTkVtx_;
-  edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
-  edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
+  edm::EDGetTokenT<std::vector<l1t::TkPrimaryVertex>> extTkVtx_;
 
   edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
   edm::EDGetTokenT<l1t::TkMuonCollection> tkMuCands_;  // tk muons
@@ -178,9 +174,6 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   } else if (regalgo == "Multififo") {
     regionizer_ = std::make_unique<l1ct::MultififoRegionizerEmulator>(
         iConfig.getParameter<edm::ParameterSet>("regionizerAlgoParameters"));
-  } else if (regalgo == "TDR") {
-    regionizer_ = std::make_unique<l1ct::TDRRegionizerEmulator>(
-        iConfig.getParameter<edm::ParameterSet>("regionizerAlgoParameters"));
   } else
     throw cms::Exception("Configuration", "Unsupported regionizerAlgo");
 
@@ -209,12 +202,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   produces<l1t::TkElectronCollection>("L1TkEle");
   produces<l1t::TkEmCollection>("L1TkEm");
 
-  emuTkVtx_ = iConfig.getParameter<bool>("vtxCollectionEmulation");
-  if (emuTkVtx_) {
-    tkVtxEmu_ = consumes<std::vector<l1t::VertexWord>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
-  } else {
-    extTkVtx_ = consumes<std::vector<l1t::Vertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
-  }
+  extTkVtx_ = consumes<std::vector<l1t::TkPrimaryVertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
 
   const char *iprefix[4] = {"totNReg", "maxNReg", "totNSec", "maxNSec"};
   for (int i = 0; i <= l1muType; ++i) {
@@ -326,37 +314,23 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   iEvent.put(fetchTracks(), "TK");
 
   // Then do the vertexing, and save it out
-
   float z0 = 0;
   double ptsum = 0;
-  l1t::VertexWord pvwd;
-  // FIXME: collections seem to be already sorted
-  if (emuTkVtx_) {
-    edm::Handle<std::vector<l1t::VertexWord>> vtxEmuHandle;
-    iEvent.getByToken(tkVtxEmu_, vtxEmuHandle);
-    for (const auto &vtx : *vtxEmuHandle) {
-      if (ptsum == 0 || vtx.pt() > ptsum) {
-        ptsum = vtx.pt();
-        z0 = vtx.z0();
-        pvwd = vtx;
+  edm::Handle<std::vector<l1t::TkPrimaryVertex>> vtxHandle;
+  iEvent.getByToken(extTkVtx_, vtxHandle);
+  for (const l1t::TkPrimaryVertex &vtx : *vtxHandle) {
+    if (ptsum == 0 || vtx.sum() > ptsum) {
+      z0 = vtx.zvertex();
+      ptsum = vtx.sum();
+      l1ct::PVObjEmu hwpv;
+      hwpv.hwZ0 = l1ct::Scales::makeZ0(z0);
+      if (event_.pvs.empty()) {
+        event_.pvs.push_back(hwpv);
+      } else {
+        event_.pvs[0] = hwpv;
       }
     }
-  } else {
-    edm::Handle<std::vector<l1t::Vertex>> vtxHandle;
-    iEvent.getByToken(extTkVtx_, vtxHandle);
-    for (const auto &vtx : *vtxHandle) {
-      if (ptsum == 0 || vtx.pt() > ptsum) {
-        ptsum = vtx.pt();
-        z0 = vtx.z0();
-      }
-    }
-    pvwd = l1t::VertexWord(1, z0, 1, ptsum, 1, 1, 1);
   }
-
-  l1ct::PVObjEmu hwpv;
-  hwpv.hwZ0 = l1ct::Scales::makeZ0(pvwd.z0());
-  event_.pvs.push_back(hwpv);
-  event_.pvs_emu.push_back(pvwd.vertexWord());
 
   // Then also save the tracks with a vertex cut
 #if 0
@@ -461,7 +435,8 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     }
   }
 
-  event_.decoded.muon.region = l1ct::PFRegionEmu(0., 0.);  // centered at (0,0)
+  event_.decoded.muon.region = l1ct::PFRegionEmu(
+      -l1ct::Scales::maxAbsGlbEta(), l1ct::Scales::maxAbsGlbEta(), 0.f, 2 * l1ct::Scales::maxAbsGlbPhi(), 0.f, 0.f);
 
   event_.pfinputs.clear();
   for (const edm::ParameterSet &preg : iConfig.getParameter<std::vector<edm::ParameterSet>>("regions")) {
@@ -540,8 +515,8 @@ void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkO
 void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t) {
   l1ct::MuObjEmu mu;
   mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
-  mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
+  mu.hwEta = l1ct::Scales::makeEta(t.eta());
+  mu.hwPhi = l1ct::Scales::makePhi(t.phi());
   mu.hwCharge = t.charge() > 0;
   mu.hwQuality = t.hwQual();
   mu.hwDEta = 0;
@@ -559,7 +534,7 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
   calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwEmPt = l1ct::Scales::makePtFromFloat(c.emEt());
-  calo.hwEmID = c.hwEmID();
+  calo.hwIsEM = c.isEM();
   calo.src = &c;
   sec.obj.push_back(calo);
 }
@@ -571,7 +546,7 @@ void L1TCorrelatorLayer1Producer::addDecodedEmCalo(l1ct::DetectorSector<l1ct::Em
   calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwPtErr = l1ct::Scales::makePtFromFloat(c.ptError());
-  calo.hwEmID = c.hwEmID();
+  calo.hwFlags = c.hwQual();
   calo.src = &c;
   sec.obj.push_back(calo);
 }
@@ -663,9 +638,8 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchHa
       if (p.hwPt == 0 || !reg.isFiducial(p))
         continue;
       reco::Particle::PolarLorentzVector p4(p.floatPt(), reg.floatGlbEtaOf(p), reg.floatGlbPhiOf(p), 0.13f);
-      l1t::PFCandidate::ParticleType type = p.hwIsEM() ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
+      l1t::PFCandidate::ParticleType type = p.hwIsEM ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
       ret->emplace_back(type, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
-      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -680,7 +654,6 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchEm
         continue;
       reco::Particle::PolarLorentzVector p4(p.floatPt(), reg.floatGlbEtaOf(p), reg.floatGlbPhiOf(p), 0.13f);
       ret->emplace_back(l1t::PFCandidate::Photon, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
-      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -731,7 +704,6 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchPF
       l1t::PFCandidate::ParticleType type =
           p.hwId.isPhoton() ? l1t::PFCandidate::Photon : l1t::PFCandidate::NeutralHadron;
       ret->emplace_back(type, 0, p4, 1, p.intPt(), p.intEta(), p.intPhi());
-      ret->back().setHwEmID(p.hwEmID);
       setRefs_(ret->back(), p);
     }
   }
@@ -774,10 +746,8 @@ void L1TCorrelatorLayer1Producer::putPuppi(edm::Event &iEvent) const {
         coll->back().setHwTkQuality(p.hwTkQuality());
       } else {
         coll->back().setHwPuppiWeight(p.hwPuppiW());
-        coll->back().setHwEmID(p.hwEmID());
       }
       coll->back().setEncodedPuppi64(p.pack().to_uint64());
-      setRefs_(coll->back(), p);
       nobj.push_back(coll->size() - 1);
     }
     reg->addRegion(nobj);
@@ -799,13 +769,11 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
   if (writeEgSta)
     ref_egs = iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(egLablel);
 
-  edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
-  // FIXME: in case more BXes are introduced shuld probably use egs->key(egs->end(bx));
-
   for (unsigned int ir = 0, nr = event_.pfinputs.size(); ir < nr; ++ir) {
     const auto &reg = event_.pfinputs[ir].region;
 
     std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
+    edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
 
     if (writeEgSta) {
       egsta_refs.resize(event_.out[ir].egsta.size());

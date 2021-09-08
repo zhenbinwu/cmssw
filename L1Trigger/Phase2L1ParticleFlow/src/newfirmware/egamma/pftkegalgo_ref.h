@@ -19,8 +19,8 @@ namespace l1ct {
 
   struct PFTkEGAlgoEmuConfig {
     unsigned int nTRACK;
-    unsigned int nTRACK_EGIN;
-    unsigned int nEMCALO_EGIN;
+    unsigned int nEMCALO;
+    unsigned int nEMCALOSEL_EGIN;
     unsigned int nEM_EGOUT;
 
     bool filterHwQuality;
@@ -40,14 +40,11 @@ namespace l1ct {
     struct IsoParameters {
       IsoParameters(const edm::ParameterSet &);
       IsoParameters(float tkQualityPtMin, float dZ, float dRMin, float dRMax)
-          : tkQualityPtMin(Scales::makePtFromFloat(tkQualityPtMin)),
-            dZ(Scales::makeZ0(dZ)),
-            dRMin2(Scales::makeDR2FromFloatDR(dRMin)),
-            dRMax2(Scales::makeDR2FromFloatDR(dRMax)) {}
-      pt_t tkQualityPtMin;
-      ap_int<z0_t::width + 1> dZ;
-      int dRMin2;
-      int dRMax2;
+          : tkQualityPtMin(tkQualityPtMin), dZ(dZ), dRMin2(dRMin * dRMin), dRMax2(dRMax * dRMax) {}
+      float tkQualityPtMin;
+      float dZ;
+      float dRMin2;
+      float dRMax2;
     };
 
     IsoParameters tkIsoParams_tkEle;
@@ -62,8 +59,8 @@ namespace l1ct {
 
     PFTkEGAlgoEmuConfig(const edm::ParameterSet &iConfig);
     PFTkEGAlgoEmuConfig(unsigned int nTrack,
-                        unsigned int nTrack_in,
-                        unsigned int nEmCalo_in,
+                        unsigned int nEmCalo,
+                        unsigned int nEmCaloSel_in,
                         unsigned int nEmOut,
                         bool filterHwQuality,
                         bool doBremRecovery,
@@ -82,13 +79,13 @@ namespace l1ct {
                         const IsoParameters &pfIsoParams_tkEle = {1., 0.6, 0.03, 0.2},
                         const IsoParameters &pfIsoParams_tkEm = {1., 0.6, 0.07, 0.3},
                         bool doTkIso = true,
-                        bool doPfIso = false,
+                        bool doPfIso = true,
                         EGIsoEleObjEmu::IsoType hwIsoTypeTkEle = EGIsoEleObjEmu::IsoType::TkIso,
                         EGIsoObjEmu::IsoType hwIsoTypeTkEm = EGIsoObjEmu::IsoType::TkIsoPV)
 
         : nTRACK(nTrack),
-          nTRACK_EGIN(nTrack_in),
-          nEMCALO_EGIN(nEmCalo_in),
+          nEMCALO(nEmCalo),
+          nEMCALOSEL_EGIN(nEmCaloSel_in),
           nEM_EGOUT(nEmOut),
           filterHwQuality(filterHwQuality),
           doBremRecovery(doBremRecovery),
@@ -120,11 +117,6 @@ namespace l1ct {
 
     void toFirmware(const PFInputRegion &in, PFRegion &region, EmCaloObj calo[/*nCALO*/], TkObj track[/*nTRACK*/]) const;
     void toFirmware(const OutputRegion &out, EGIsoObj out_egphs[], EGIsoEleObj out_egeles[]) const;
-    void toFirmware(const PFInputRegion &in,
-                    const l1ct::PVObjEmu &pvin,
-                    PFRegion &region,
-                    TkObj track[/*nTRACK*/],
-                    PVObj &pv) const;
 
     void run(const PFInputRegion &in, OutputRegion &out) const;
     void runIso(const PFInputRegion &in, const std::vector<l1ct::PVObjEmu> &pvs, OutputRegion &out) const;
@@ -209,86 +201,85 @@ namespace l1ct {
     }
 
     template <typename T>
-    int deltaR2(const T &charged, const EGIsoObjEmu &egphoton) const {
+    float deltaR2(const T &charged, const EGIsoObjEmu &egphoton) const {
       // NOTE: we compare Tk at vertex against the calo variable...
-      return dr2_int(charged.hwVtxEta(), charged.hwVtxPhi(), egphoton.hwEta, egphoton.hwPhi);
+      float d_phi = deltaPhi(charged.floatVtxPhi(), egphoton.floatPhi());
+      float d_eta = charged.floatVtxEta() - egphoton.floatEta();
+      return d_phi * d_phi + d_eta * d_eta;
     }
 
     template <typename T>
-    int deltaR2(const T &charged, const EGIsoEleObjEmu &egele) const {
-      return dr2_int(charged.hwVtxEta(), charged.hwVtxPhi(), egele.hwVtxEta(), egele.hwVtxPhi());
+    float deltaR2(const T &charged, const EGIsoEleObjEmu &egele) const {
+      float d_phi = deltaPhi(charged.floatVtxPhi(), egele.floatVtxPhi());
+      float d_eta = charged.floatVtxEta() - egele.floatVtxEta();
+      return d_phi * d_phi + d_eta * d_eta;
     }
 
-    int deltaR2(const PFNeutralObjEmu &neutral, const EGIsoObjEmu &egphoton) const {
-      return dr2_int(neutral.hwEta, neutral.hwPhi, egphoton.hwEta, egphoton.hwPhi);
+    float deltaR2(const PFNeutralObjEmu &neutral, const EGIsoObjEmu &egphoton) const {
+      float d_phi = deltaPhi(neutral.floatPhi(), egphoton.floatPhi());
+      float d_eta = neutral.floatEta() - egphoton.floatEta();
+      return d_phi * d_phi + d_eta * d_eta;
     }
 
-    int deltaR2(const PFNeutralObjEmu &neutral, const EGIsoEleObjEmu &egele) const {
+    float deltaR2(const PFNeutralObjEmu &neutral, const EGIsoEleObjEmu &egele) const {
       // NOTE: we compare Tk at vertex against the calo variable...
-      return dr2_int(neutral.hwEta, neutral.hwPhi, egele.hwVtxEta(), egele.hwVtxPhi());
+      float d_phi = deltaPhi(neutral.floatPhi(), egele.floatVtxPhi());
+      float d_eta = neutral.floatEta() - egele.floatVtxEta();
+      return d_phi * d_phi + d_eta * d_eta;
     }
 
     template <typename T>
-    ap_int<z0_t::width + 1> deltaZ0(const T &charged, const EGIsoObjEmu &egphoton, z0_t z0) const {
-      ap_int<z0_t::width + 1> delta = charged.hwZ0 - z0;
-      if (delta < 0)
-        delta = -delta;
-      return delta;
+    float deltaZ0(const T &charged, const EGIsoObjEmu &egphoton, float z0) const {
+      return std::abs(charged.floatZ0() - z0);
     }
 
     template <typename T>
-    ap_int<z0_t::width + 1> deltaZ0(const T &charged, const EGIsoEleObjEmu &egele, z0_t z0) const {
-      ap_int<z0_t::width + 1> delta = charged.hwZ0 - egele.hwZ0;
-      if (delta < 0)
-        delta = -delta;
-      return delta;
+    float deltaZ0(const T &charged, const EGIsoEleObjEmu &egele, float z0) const {
+      return std::abs(charged.floatZ0() - egele.floatZ0());
     }
 
     template <typename TCH, typename TEG>
-    void compute_sumPt(iso_t &sumPt,
-                       iso_t &sumPtPV,
+    void compute_sumPt(float &sumPt,
+                       float &sumPtPV,
                        const std::vector<TCH> &objects,
-                       unsigned int nMaxObj,
                        const TEG &egobj,
                        const PFTkEGAlgoEmuConfig::IsoParameters &params,
-                       z0_t z0) const {
-      for (unsigned int itk = 0; itk < std::min<unsigned>(objects.size(), nMaxObj); ++itk) {
+                       const float z0) const {
+      for (int itk = 0, ntk = objects.size(); itk < ntk; ++itk) {
         const auto &obj = objects[itk];
 
-        if (obj.hwPt < params.tkQualityPtMin)
+        if (obj.floatPt() < params.tkQualityPtMin)
           continue;
 
-        int dR2 = deltaR2(obj, egobj);
+        float dR2 = deltaR2(obj, egobj);
 
         if (dR2 > params.dRMin2 && dR2 < params.dRMax2) {
-          sumPt += obj.hwPt;
-          if (deltaZ0(obj, egobj, z0) < params.dZ) {
-            sumPtPV += obj.hwPt;
-          }
+          sumPt += obj.floatPt();
+          if (deltaZ0(obj, egobj, z0) < params.dZ)
+            sumPtPV += obj.floatPt();
         }
       }
     }
 
     template <typename TEG>
-    void compute_sumPt(iso_t &sumPt,
-                       iso_t &sumPtPV,
+    void compute_sumPt(float &sumPt,
+                       float &sumPtPV,
                        const std::vector<PFNeutralObjEmu> &objects,
-                       unsigned int nMaxObj,
                        const TEG &egobj,
                        const PFTkEGAlgoEmuConfig::IsoParameters &params,
-                       z0_t z0) const {
-      for (unsigned int itk = 0; itk < std::min<unsigned>(objects.size(), nMaxObj); ++itk) {
+                       const float z0) const {
+      for (int itk = 0, ntk = objects.size(); itk < ntk; ++itk) {
         const auto &obj = objects[itk];
 
-        if (obj.hwPt < params.tkQualityPtMin)
+        if (obj.floatPt() < params.tkQualityPtMin)
           continue;
 
-        int dR2 = deltaR2(obj, egobj);
+        float dR2 = deltaR2(obj, egobj);
 
         if (dR2 > params.dRMin2 && dR2 < params.dRMax2) {
-          sumPt += obj.hwPt;
+          sumPt += obj.floatPt();
           // PF neutrals are not constrained by PV (since their Z0 is 0 by design)
-          sumPtPV += obj.hwPt;
+          sumPtPV += obj.floatPt();
         }
       }
     }
@@ -296,21 +287,21 @@ namespace l1ct {
     void compute_isolation(std::vector<EGIsoObjEmu> &egobjs,
                            const std::vector<TkObjEmu> &objects,
                            const PFTkEGAlgoEmuConfig::IsoParameters &params,
-                           z0_t z0) const;
+                           const float z0) const;
     void compute_isolation(std::vector<EGIsoEleObjEmu> &egobjs,
                            const std::vector<TkObjEmu> &objects,
                            const PFTkEGAlgoEmuConfig::IsoParameters &params,
-                           z0_t z0) const;
+                           const float z0) const;
     void compute_isolation(std::vector<EGIsoObjEmu> &egobjs,
                            const std::vector<PFChargedObjEmu> &charged,
                            const std::vector<PFNeutralObjEmu> &neutrals,
                            const PFTkEGAlgoEmuConfig::IsoParameters &params,
-                           z0_t z0) const;
+                           const float z0) const;
     void compute_isolation(std::vector<EGIsoEleObjEmu> &egobjs,
                            const std::vector<PFChargedObjEmu> &charged,
                            const std::vector<PFNeutralObjEmu> &neutrals,
                            const PFTkEGAlgoEmuConfig::IsoParameters &params,
-                           z0_t z0) const;
+                           const float z0) const;
 
     PFTkEGAlgoEmuConfig cfg;
     int debug_;

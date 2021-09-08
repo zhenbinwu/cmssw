@@ -109,7 +109,7 @@ namespace l1ct {
 
   struct PFNeutralObj : public PFCommonObj {
     pt_t hwEmPt;
-    emid_t hwEmID;
+    ap_uint<6> hwEmID;
     ap_uint<6> hwPUID;
 
     inline bool operator==(const PFNeutralObj &other) const {

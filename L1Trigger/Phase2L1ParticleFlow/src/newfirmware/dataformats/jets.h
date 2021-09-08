@@ -3,8 +3,6 @@
 
 #include "datatypes.h"
 #include "bit_encoding.h"
-#include <array>
-#include <cstdint>
 
 namespace l1ct {
 
@@ -34,7 +32,7 @@ namespace l1ct {
     float floatPhi() const { return Scales::floatPhi(hwPhi); }
 
     static const int BITWIDTH = pt_t::width + glbeta_t::width + glbphi_t::width;
-    inline ap_uint<BITWIDTH> pack_ap() const {
+    inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
       _pack_into_bits(ret, start, hwPt);
@@ -42,28 +40,13 @@ namespace l1ct {
       _pack_into_bits(ret, start, hwPhi);
       return ret;
     }
-
-    inline std::array<uint64_t, 2> pack() const {
-      std::array<uint64_t, 2> packed;
-      ap_uint<BITWIDTH> bits = this->pack_ap();
-      packed[0] = bits;
-      //packed[1] = bits[slice]; // for when there are more than 64 bits in the word
-      return packed;
-    }
-
-    inline static Jet unpack_ap(const ap_uint<BITWIDTH> &src) {
+    inline static Jet unpack(const ap_uint<BITWIDTH> &src) {
       Jet ret;
       unsigned int start = 0;
       _unpack_from_bits(src, start, ret.hwPt);
       _unpack_from_bits(src, start, ret.hwEta);
       _unpack_from_bits(src, start, ret.hwPhi);
       return ret;
-    }
-
-    inline static Jet unpack(const std::array<uint64_t, 2> &src) {
-      // just one set while the word has fewer than 64 bits
-      ap_uint<BITWIDTH> bits = src[0];
-      return unpack_ap(bits);
     }
   };
 

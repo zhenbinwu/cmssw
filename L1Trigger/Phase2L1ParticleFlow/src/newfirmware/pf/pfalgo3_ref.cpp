@@ -7,12 +7,6 @@
 #include <memory>
 
 #ifdef CMSSW_GIT_HASH
-#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
-#else
-#include "../../utils/dbgPrintf.h"
-#endif
-
-#ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 l1ct::PFAlgo3Emulator::PFAlgo3Emulator(const edm::ParameterSet& iConfig)
@@ -114,7 +108,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
       tk2em[it] = tk_best_match_ref(dR2MAX_TK_EM_, in.emcalo, in.track[it]);
       if (tk2em[it] != -1) {
         if (debug_)
-          dbgPrintf(
+          printf(
               "FW  \t track  %3d pt %8.2f matched to em calo %3d pt %8.2f (int deltaR2 %d)\n",
               it,
               in.track[it].floatPt(),
@@ -131,10 +125,10 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
   if (debug_) {
     for (unsigned int ic = 0; ic < nEMCALO; ++ic) {
       if (in.emcalo[ic].hwPt > 0)
-        dbgPrintf("FW  \t emcalo %3d pt %8.2f has sumtk %8.2f\n",
-                  ic,
-                  in.emcalo[ic].floatPt(),
-                  Scales::floatPt(calo_sumtk[ic]));
+        printf("FW  \t emcalo %3d pt %8.2f has sumtk %8.2f\n",
+               ic,
+               in.emcalo[ic].floatPt(),
+               Scales::floatPt(calo_sumtk[ic]));
     }
   }
 
@@ -153,18 +147,18 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
         photonPt = 0;
         isEM[ic] = true;
         if (debug_)
-          dbgPrintf("FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron\n",
-                    ic,
-                    in.emcalo[ic].floatPt(),
-                    Scales::floatPt(ptdiff),
-                    std::sqrt(Scales::floatPt(sigma2Lo)),
-                    std::sqrt(float(sigma2Hi)));
+          printf("FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron\n",
+                 ic,
+                 in.emcalo[ic].floatPt(),
+                 Scales::floatPt(ptdiff),
+                 std::sqrt(Scales::floatPt(sigma2Lo)),
+                 std::sqrt(float(sigma2Hi)));
       } else if (ptdiff > 0) {
         // electron + photon
         photonPt = ptdiff;
         isEM[ic] = true;
         if (debug_)
-          dbgPrintf(
+          printf(
               "FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron + photon of "
               "pt %8.2f\n",
               ic,
@@ -178,19 +172,19 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
         photonPt = 0;
         isEM[ic] = false;
         if (debug_)
-          dbgPrintf("FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as pion\n",
-                    ic,
-                    in.emcalo[ic].floatPt(),
-                    Scales::floatPt(ptdiff),
-                    std::sqrt(Scales::floatPt(sigma2Lo)),
-                    std::sqrt(Scales::floatPt(sigma2Hi)));
+          printf("FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as pion\n",
+                 ic,
+                 in.emcalo[ic].floatPt(),
+                 Scales::floatPt(ptdiff),
+                 std::sqrt(Scales::floatPt(sigma2Lo)),
+                 std::sqrt(Scales::floatPt(sigma2Hi)));
       }
     } else {
       // photon
       isEM[ic] = true;
       photonPt = in.emcalo[ic].hwPt;
       if (debug_ && in.emcalo[ic].hwPt > 0)
-        dbgPrintf("FW  \t emcalo %3d pt %8.2f flagged as photon\n", ic, in.emcalo[ic].floatPt());
+        printf("FW  \t emcalo %3d pt %8.2f flagged as photon\n", ic, in.emcalo[ic].floatPt());
     }
     if (photonPt) {
       fillPFCand(in.emcalo[ic], out.pfphoton[ic]);
@@ -205,22 +199,21 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
   for (unsigned int it = 0; it < nTRACK; ++it) {
     iEle[it] = ((tk2em[it] != -1) && isEM[tk2em[it]]) ? tk2em[it] : -1;
     if (debug_ && (iEle[it] != -1))
-      dbgPrintf(
-          "FW  \t track  %3d pt %8.2f flagged as electron (emcluster %d).\n", it, in.track[it].floatPt(), iEle[it]);
+      printf("FW  \t track  %3d pt %8.2f flagged as electron (emcluster %d).\n", it, in.track[it].floatPt(), iEle[it]);
   }
 
   std::vector<int> em2calo(nEMCALO);
   for (unsigned int ic = 0; ic < nEMCALO; ++ic) {
     em2calo[ic] = em_best_match_ref(dR2MAX_EM_CALO_, in.hadcalo, in.emcalo[ic]);
     if (debug_ && (in.emcalo[ic].hwPt > 0)) {
-      dbgPrintf("FW  \t emcalo %3d pt %8.2f isEM %d matched to hadcalo %3d pt %8.2f emPt %8.2f isEM %d\n",
-                ic,
-                in.emcalo[ic].floatPt(),
-                int(isEM[ic]),
-                em2calo[ic],
-                (em2calo[ic] >= 0 ? in.hadcalo[em2calo[ic]].floatPt() : -1),
-                (em2calo[ic] >= 0 ? in.hadcalo[em2calo[ic]].floatEmPt() : -1),
-                (em2calo[ic] >= 0 ? int(in.hadcalo[em2calo[ic]].hwIsEM()) : 0));
+      printf("FW  \t emcalo %3d pt %8.2f isEM %d matched to hadcalo %3d pt %8.2f emPt %8.2f isEM %d\n",
+             ic,
+             in.emcalo[ic].floatPt(),
+             int(isEM[ic]),
+             em2calo[ic],
+             (em2calo[ic] >= 0 ? in.hadcalo[em2calo[ic]].floatPt() : -1),
+             (em2calo[ic] >= 0 ? in.hadcalo[em2calo[ic]].floatEmPt() : -1),
+             (em2calo[ic] >= 0 ? int(in.hadcalo[em2calo[ic]].hwIsEM) : 0));
     }
   }
 
@@ -240,25 +233,25 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
     dpt_t emdiff = dpt_t(in.hadcalo[ih].hwEmPt) - sub;  // ok to saturate at zero here
     dpt_t alldiff = dpt_t(in.hadcalo[ih].hwPt) - sub;
     if (debug_ && (in.hadcalo[ih].hwPt > 0)) {
-      dbgPrintf("FW  \t calo   %3d pt %8.2f has a subtracted pt of %8.2f, empt %8.2f -> %8.2f   isem %d mustkeep %d \n",
-                ih,
-                in.hadcalo[ih].floatPt(),
-                Scales::floatPt(alldiff),
-                in.hadcalo[ih].floatEmPt(),
-                Scales::floatPt(emdiff),
-                int(in.hadcalo[ih].hwIsEM()),
-                keep);
+      printf("FW  \t calo   %3d pt %8.2f has a subtracted pt of %8.2f, empt %8.2f -> %8.2f   isem %d mustkeep %d \n",
+             ih,
+             in.hadcalo[ih].floatPt(),
+             Scales::floatPt(alldiff),
+             in.hadcalo[ih].floatEmPt(),
+             Scales::floatPt(emdiff),
+             int(in.hadcalo[ih].hwIsEM),
+             keep);
     }
     if (alldiff <= (in.hadcalo[ih].hwPt >> 4)) {
       hadcalo_out[ih].hwPt = 0;    // kill
       hadcalo_out[ih].hwEmPt = 0;  // kill
       if (debug_ && (in.hadcalo[ih].hwPt > 0))
-        dbgPrintf("FW  \t calo   %3d pt %8.2f --> discarded (zero pt)\n", ih, in.hadcalo[ih].floatPt());
-    } else if ((in.hadcalo[ih].hwIsEM() && emdiff <= (in.hadcalo[ih].hwEmPt >> 3)) && !keep) {
+        printf("FW  \t calo   %3d pt %8.2f --> discarded (zero pt)\n", ih, in.hadcalo[ih].floatPt());
+    } else if ((in.hadcalo[ih].hwIsEM && emdiff <= (in.hadcalo[ih].hwEmPt >> 3)) && !keep) {
       hadcalo_out[ih].hwPt = 0;    // kill
       hadcalo_out[ih].hwEmPt = 0;  // kill
       if (debug_ && (in.hadcalo[ih].hwPt > 0))
-        dbgPrintf("FW  \t calo   %3d pt %8.2f --> discarded (zero em)\n", ih, in.hadcalo[ih].floatPt());
+        printf("FW  \t calo   %3d pt %8.2f --> discarded (zero em)\n", ih, in.hadcalo[ih].floatPt());
     } else {
       hadcalo_out[ih].hwPt = alldiff;
       hadcalo_out[ih].hwEmPt = (emdiff > 0 ? pt_t(emdiff) : pt_t(0));
@@ -276,27 +269,24 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
   unsigned int nMU = std::min<unsigned>(nMU_, in.muon.size());
 
   if (debug_) {
-    dbgPrintf("FW\nFW  \t region eta %+5.2f [ %+5.2f , %+5.2f ], phi %+5.2f [ %+5.2f , %+5.2f ]   packed %s\n",
-              in.region.floatEtaCenter(),
-              in.region.floatEtaMinExtra(),
-              in.region.floatEtaMaxExtra(),
-              in.region.floatPhiCenter(),
-              in.region.floatPhiCenter() - in.region.floatPhiHalfWidthExtra(),
-              in.region.floatPhiCenter() + in.region.floatPhiHalfWidthExtra(),
-              in.region.pack().to_string(16).c_str());
+    printf("FW\nFW  \t region eta [ %+5.2f , %+5.2f ], phi [ %+5.2f , %+5.2f ]\n",
+           in.region.floatEtaMinExtra(),
+           in.region.floatEtaMaxExtra(),
+           in.region.floatPhiCenter() - in.region.floatPhiHalfWidthExtra(),
+           in.region.floatPhiCenter() + in.region.floatPhiHalfWidthExtra());
 
-    dbgPrintf("FW  \t N(track) %3lu   N(em) %3lu   N(calo) %3lu   N(mu) %3lu\n",
-              in.track.size(),
-              in.emcalo.size(),
-              in.hadcalo.size(),
-              in.muon.size());
+    printf("FW  \t N(track) %3lu   N(em) %3lu   N(calo) %3lu   N(mu) %3lu\n",
+           in.track.size(),
+           in.emcalo.size(),
+           in.hadcalo.size(),
+           in.muon.size());
 
     for (unsigned int i = 0; i < nTRACK; ++i) {
       if (in.track[i].hwPt == 0)
         continue;
-      dbgPrintf(
-          "FW  \t track %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  vtx eta %+5.2f  "
-          "vtx phi %+5.2f   charge %+2d  qual %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s\n",
+      printf(
+          "FW  \t track %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  vtx eta %+5.2f   "
+          "vtx phi %+5.2f   charge %+2d  quality %d\n",
           i,
           in.track[i].floatPt(),
           in.track[i].intPt(),
@@ -307,18 +297,14 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.track[i].floatVtxEta(),
           in.track[i].floatVtxPhi(),
           in.track[i].intCharge(),
-          int(in.track[i].hwQuality),
-          int(in.region.isFiducial(in.track[i].hwEta, in.track[i].hwPhi)),
-          in.region.floatGlbEta(in.track[i].hwVtxEta()),
-          in.region.floatGlbPhi(in.track[i].hwVtxPhi()),
-          in.track[i].pack().to_string(16).c_str());
+          int(in.track[i].hwQuality));
     }
     for (unsigned int i = 0; i < nEMCALO; ++i) {
       if (in.emcalo[i].hwPt == 0)
         continue;
-      dbgPrintf(
+      printf(
           "FW  \t EM    %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo ptErr %8.2f [ "
-          "%6d ]  emID %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s \n",
+          "%6d ] \n",
           i,
           in.emcalo[i].floatPt(),
           in.emcalo[i].intPt(),
@@ -327,19 +313,14 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.emcalo[i].floatPhi(),
           in.emcalo[i].intPhi(),
           in.emcalo[i].floatPtErr(),
-          in.emcalo[i].intPtErr(),
-          in.emcalo[i].hwEmID.to_int(),
-          int(in.region.isFiducial(in.emcalo[i].hwEta, in.emcalo[i].hwPhi)),
-          in.region.floatGlbEtaOf(in.emcalo[i]),
-          in.region.floatGlbPhiOf(in.emcalo[i]),
-          in.emcalo[i].pack().to_string(16).c_str());
+          in.emcalo[i].intPtErr());
     }
     for (unsigned int i = 0; i < nCALO; ++i) {
       if (in.hadcalo[i].hwPt == 0)
         continue;
-      dbgPrintf(
+      printf(
           "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt  %8.2f [ "
-          "%6d ]   emID %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s \n",
+          "%6d ]   isEM %d \n",
           i,
           in.hadcalo[i].floatPt(),
           in.hadcalo[i].intPt(),
@@ -349,34 +330,22 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.hadcalo[i].intPhi(),
           in.hadcalo[i].floatEmPt(),
           in.hadcalo[i].intEmPt(),
-          in.hadcalo[i].hwEmID.to_int(),
-          int(in.region.isFiducial(in.hadcalo[i].hwEta, in.hadcalo[i].hwPhi)),
-          in.region.floatGlbEtaOf(in.hadcalo[i]),
-          in.region.floatGlbPhiOf(in.hadcalo[i]),
-          in.hadcalo[i].pack().to_string(16).c_str());
+          int(in.hadcalo[i].hwIsEM));
     }
     for (unsigned int i = 0; i < nMU; ++i) {
       if (in.muon[i].hwPt == 0)
         continue;
-      dbgPrintf(
-          "FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  "
-          "vtx eta %+5.2f  vtx phi %+5.2f  charge %+2d  qual %2d  glb eta %+5.2f phi %+5.2f  packed %s \n",
-          i,
-          in.muon[i].floatPt(),
-          in.muon[i].intPt(),
-          in.muon[i].floatEta(),
-          in.muon[i].intEta(),
-          in.muon[i].floatPhi(),
-          in.muon[i].intPhi(),
-          in.muon[i].floatVtxEta(),
-          in.muon[i].floatVtxPhi(),
-          in.muon[i].intCharge(),
-          int(in.muon[i].hwQuality),
-          in.region.floatGlbEta(in.muon[i].hwVtxEta()),
-          in.region.floatGlbPhi(in.muon[i].hwVtxPhi()),
-          in.muon[i].pack().to_string(16).c_str());
+      printf("FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  charge %+2d  \n",
+             i,
+             in.muon[i].floatPt(),
+             in.muon[i].intPt(),
+             in.muon[i].floatEta(),
+             in.muon[i].intEta(),
+             in.muon[i].floatPhi(),
+             in.muon[i].intPhi(),
+             in.muon[i].intCharge());
     }
-    dbgPrintf("FW\n");
+    printf("FW\n");
   }
 
   ////////////////////////////////////////////////////
@@ -426,7 +395,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       int ibest = best_match_with_pt_ref(dR2MAX_TK_CALO_, hadcalo_subem, in.track[it], tkCaloPtErr);
       if (ibest != -1) {
         if (debug_)
-          dbgPrintf(
+          printf(
               "FW  \t track  %3d pt %8.2f matched to calo %3d pt %8.2f (int deltaR2 %d)\n",
               it,
               in.track[it].floatPt(),
@@ -447,7 +416,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       pt2_t sigmamult = calo_sumtkErr2
           [ic];  // before we did (calo_sumtkErr2[ic] + (calo_sumtkErr2[ic] >> 1)); to multiply by 1.5 = sqrt(1.5)^2 ~ (1.2)^2
       if (debug_ && (hadcalo_subem[ic].hwPt > 0)) {
-        dbgPrintf(
+        printf(
             "FW  \t calo  %3d pt %8.2f [ %7d ] eta %+5.2f [ %+5d ] has a sum track pt %8.2f, difference %7.2f +- %.2f "
             "\n",
             ic,
@@ -468,7 +437,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       calo_subpt[ic] = hadcalo_subem[ic].hwPt;
     }
     if (debug_ && (hadcalo_subem[ic].hwPt > 0))
-      dbgPrintf(
+      printf(
           "FW  \t calo  %3d pt %8.2f ---> %8.2f \n", ic, hadcalo_subem[ic].floatPt(), Scales::floatPt(calo_subpt[ic]));
   }
 
@@ -492,54 +461,54 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
     if (calo_subpt[ic] > 0) {
       fillPFCand(hadcalo_subem[ic], outne_all[ic]);
       outne_all[ic].hwPt = calo_subpt[ic];
-      outne_all[ic].hwEmPt = hadcalo_subem[ic].hwIsEM() ? calo_subpt[ic] : pt_t(0);  // FIXME
+      outne_all[ic].hwEmPt = hadcalo_subem[ic].hwIsEM ? calo_subpt[ic] : pt_t(0);  // FIXME
     }
   }
 
   ptsort_ref(nCALO, nSELCALO, outne_all, out.pfneutral);
 
   if (debug_) {
-    dbgPrintf("FW\n");
+    printf("FW\n");
     for (unsigned int i = 0; i < nTRACK; ++i) {
       if (out.pfcharged[i].hwPt == 0)
         continue;
-      dbgPrintf("FW  \t outch %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
-                i,
-                out.pfcharged[i].floatPt(),
-                out.pfcharged[i].intPt(),
-                out.pfcharged[i].floatEta(),
-                out.pfcharged[i].intEta(),
-                out.pfcharged[i].floatPhi(),
-                out.pfcharged[i].intPhi(),
-                out.pfcharged[i].intId());
+      printf("FW  \t outch %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
+             i,
+             out.pfcharged[i].floatPt(),
+             out.pfcharged[i].intPt(),
+             out.pfcharged[i].floatEta(),
+             out.pfcharged[i].intEta(),
+             out.pfcharged[i].floatPhi(),
+             out.pfcharged[i].intPhi(),
+             out.pfcharged[i].intId());
     }
     for (unsigned int i = 0; i < nPHOTON; ++i) {
       if (out.pfphoton[i].hwPt == 0)
         continue;
-      dbgPrintf("FW  \t outph %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
-                i,
-                out.pfphoton[i].floatPt(),
-                out.pfphoton[i].intPt(),
-                out.pfphoton[i].floatEta(),
-                out.pfphoton[i].intEta(),
-                out.pfphoton[i].floatPhi(),
-                out.pfphoton[i].intPhi(),
-                out.pfphoton[i].intId());
+      printf("FW  \t outph %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
+             i,
+             out.pfphoton[i].floatPt(),
+             out.pfphoton[i].intPt(),
+             out.pfphoton[i].floatEta(),
+             out.pfphoton[i].intEta(),
+             out.pfphoton[i].floatPhi(),
+             out.pfphoton[i].intPhi(),
+             out.pfphoton[i].intId());
     }
     for (unsigned int i = 0; i < nSELCALO; ++i) {
       if (out.pfneutral[i].hwPt == 0)
         continue;
-      dbgPrintf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
-                i,
-                out.pfneutral[i].floatPt(),
-                out.pfneutral[i].intPt(),
-                out.pfneutral[i].floatEta(),
-                out.pfneutral[i].intEta(),
-                out.pfneutral[i].floatPhi(),
-                out.pfneutral[i].intPhi(),
-                out.pfneutral[i].intId());
+      printf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
+             i,
+             out.pfneutral[i].floatPt(),
+             out.pfneutral[i].intPt(),
+             out.pfneutral[i].floatEta(),
+             out.pfneutral[i].intEta(),
+             out.pfneutral[i].floatPhi(),
+             out.pfneutral[i].intPhi(),
+             out.pfneutral[i].intId());
     }
-    dbgPrintf("FW\n");
+    printf("FW\n");
   }
 }
 

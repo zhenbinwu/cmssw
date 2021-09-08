@@ -66,15 +66,6 @@ namespace l1ct {
     return to.good();
   }
 
-  bool writeMany(const std::vector<ap_uint<64>> &objs, std::fstream &to) {
-    uint32_t number = objs.size();
-    writeVar(number, to);
-    for (uint32_t i = 0; i < number; ++i) {
-      writeAP(objs[i], to);
-    }
-    return to.good();
-  }
-
   template <typename T>
   bool readMany(std::fstream &from, std::vector<T> &objs) {
     uint32_t number = 0;
@@ -82,15 +73,6 @@ namespace l1ct {
     objs.resize(number);
     for (uint32_t i = 0; i < number; ++i)
       objs[i].read(from);
-    return from.good();
-  }
-
-  bool readMany(std::fstream &from, std::vector<ap_uint<64>> &objs) {
-    uint32_t number = 0;
-    readVar(from, number);
-    objs.resize(number);
-    for (uint32_t i = 0; i < number; ++i)
-      readAP(from, objs[i]);
     return from.good();
   }
 

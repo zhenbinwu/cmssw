@@ -1,10 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-from L1Trigger.Phase2L1ParticleFlow.pfTracksFromL1Tracks_cfi import pfTracksFromL1Tracks
-from L1Trigger.Phase2L1ParticleFlow.pfClustersFromL1EGClusters_cfi import pfClustersFromL1EGClusters
-from L1Trigger.Phase2L1ParticleFlow.pfClustersFromCombinedCalo_cff import pfClustersFromCombinedCaloHCal, pfClustersFromCombinedCaloHF
-from L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi import pfClustersFromHGC3DClusters
-
 from l1TkEgAlgoEmulator_cfi import tkEgAlgoParameters
 
 l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
@@ -14,8 +9,7 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     useTrackerMuons = cms.bool(False),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromL1EGClusters')),
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromCombinedCaloHCal:calibrated')),
-    vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
-    vtxCollectionEmulation = cms.bool(True),
+    vtxCollection = cms.InputTag("L1TkPrimaryVertex",""),
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
@@ -26,13 +20,13 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         useAlsoVtxCoords = cms.bool(True),
     ),
     pfAlgoParameters = cms.PSet(
-        nTrack = cms.uint32(25), 
-        nCalo = cms.uint32(18), 
-        nMu = cms.uint32(2), 
-        nSelCalo = cms.uint32(18), 
-        nEmCalo = cms.uint32(12), 
-        nPhoton = cms.uint32(12), 
-        nAllNeutral = cms.uint32(25), 
+        nTrack = cms.uint32(50), # very large numbers for first test
+        nCalo = cms.uint32(50), # very large numbers for first test
+        nMu = cms.uint32(5), # very large numbers for first test
+        nSelCalo = cms.uint32(50), # very large numbers for first test
+        nEmCalo = cms.uint32(50), # very large numbers for first test
+        nPhoton = cms.uint32(50), # very large numbers for first test
+        nAllNeutral = cms.uint32(50), # very large numbers for first test
         trackMuDR    = cms.double(0.2), # accounts for poor resolution of standalone, and missing propagations
         trackEmDR   = cms.double(0.04), # 1 Ecal crystal size is 0.02, and ~2 cm in HGCal is ~0.007
         emCaloDR    = cms.double(0.10),    # 1 Hcal tower size is ~0.09
@@ -47,11 +41,9 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     puAlgoParameters = cms.PSet(
-        nTrack = cms.uint32(22), 
-        nIn = cms.uint32(25), 
-        nOut = cms.uint32(25), 
-        nFinalSort = cms.uint32(18), 
-        finalSortAlgo = cms.string("Insertion"),
+        nTrack = cms.uint32(50), # very large numbers for first test
+        nIn = cms.uint32(50), # very large numbers for first test
+        nOut = cms.uint32(50), # very large numbers for first test
         dZ     = cms.double(0.5),
         dr     = cms.double(0.3),
         drMin  = cms.double(0.07),
@@ -69,12 +61,7 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         priorsPhoton      = cms.vdouble( 1.0 ),
         debug = cms.untracked.bool(False)
     ),
-    tkEgAlgoParameters=tkEgAlgoParameters.clone(
-        nTRACK = 25,
-        nTRACK_EGIN = 13,
-        nEMCALO_EGIN = 10,
-        nEM_EGOUT = 10,
-    ),
+    tkEgAlgoParameters=tkEgAlgoParameters.clone(),
     caloSectors = cms.VPSet(
         cms.PSet( 
             etaBoundaries = cms.vdouble(-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5),
@@ -109,10 +96,9 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     muons = cms.InputTag('simGmtStage2Digis',),
     useStandaloneMuons = cms.bool(True),
     useTrackerMuons = cms.bool(False),
-    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
+    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:em')),
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
-    vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
-    vtxCollectionEmulation = cms.bool(True),
+    vtxCollection = cms.InputTag("L1TkPrimaryVertex",""),
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
@@ -123,10 +109,10 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         useAlsoVtxCoords = cms.bool(True),
     ),
     pfAlgoParameters = cms.PSet(
-        nTrack = cms.uint32(30),
-        nCalo = cms.uint32(20),
-        nMu = cms.uint32(4),
-        nSelCalo = cms.uint32(20),
+        nTrack = cms.uint32(50), # very large numbers for first test
+        nCalo = cms.uint32(50), # very large numbers for first test
+        nMu = cms.uint32(5), # very large numbers for first test
+        nSelCalo = cms.uint32(50), # very large numbers for first test
         trackMuDR    = cms.double(0.2), # accounts for poor resolution of standalone, and missing propagations
         trackCaloDR = cms.double(0.1),
         maxInvisiblePt = cms.double(10.0), # max allowed pt of a track with no calo energy
@@ -139,11 +125,9 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     puAlgoParameters = cms.PSet(
-        nTrack = cms.uint32(30),
-        nIn = cms.uint32(20),
-        nOut = cms.uint32(20),
-        nFinalSort = cms.uint32(18), 
-        finalSortAlgo = cms.string("Hybrid"),
+        nTrack = cms.uint32(50), # very large numbers for first test
+        nIn = cms.uint32(50), # very large numbers for first test
+        nOut = cms.uint32(50), # very large numbers for first test
         dZ     = cms.double(1.33),
         dr     = cms.double(0.3),
         drMin  = cms.double(0.04),
@@ -162,11 +146,8 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
-        nTRACK = 30,
-        nTRACK_EGIN = 10,
-        nEMCALO_EGIN = 10, 
-        nEM_EGOUT = 5,
         doBremRecovery=True,
+        filterHwQuality=True,
         writeEGSta=True),
     caloSectors = _hgcalSectors,
     regions = cms.VPSet(
@@ -192,10 +173,9 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     muons = cms.InputTag('simGmtStage2Digis',),
     useStandaloneMuons = cms.bool(False),
     useTrackerMuons = cms.bool(False),
-    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
+    emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:em')),
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
-    vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
-    vtxCollectionEmulation = cms.bool(True),
+    vtxCollection = cms.InputTag("L1TkPrimaryVertex",""),
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
@@ -206,16 +186,14 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         useAlsoVtxCoords = cms.bool(True),
     ),
     pfAlgoParameters = cms.PSet(
-        nCalo = cms.uint32(12), 
-        nMu = cms.uint32(4), # unused
+        nCalo = cms.uint32(50), # very large numbers for first test
+        nMu = cms.uint32(5), # very large numbers for first test
         debug = cms.untracked.bool(False)
     ),
     puAlgoParameters = cms.PSet(
-        nTrack = cms.uint32(0),  # unused
-        nIn = cms.uint32(12), 
-        nOut = cms.uint32(12), 
-        nFinalSort = cms.uint32(12), # to be tuned
-        finalSortAlgo = cms.string("Hybrid"), 
+        nTrack = cms.uint32(50), # very large numbers for first test
+        nIn = cms.uint32(50), # very large numbers for first test
+        nOut = cms.uint32(50), # very large numbers for first test
         dZ     = cms.double(1.33),
         dr     = cms.double(0.3),
         drMin  = cms.double(0.04),
@@ -234,11 +212,8 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
-        nTRACK = 30,
-        nTRACK_EGIN = 10,
-        nEMCALO_EGIN = 10, 
-        nEM_EGOUT = 5,
         doBremRecovery=True,
+        filterHwQuality=True,
         writeEGSta=True),
     caloSectors = _hgcalSectors,
     regions = cms.VPSet(
@@ -265,8 +240,7 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
     useTrackerMuons = cms.bool(False),
     emClusters = cms.VInputTag(),
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromCombinedCaloHF:calibrated')),
-    vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
-    vtxCollectionEmulation = cms.bool(True),
+    vtxCollection = cms.InputTag("L1TkPrimaryVertex",""),
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(15.0),
     trkPtCut    = cms.double(2.0),
@@ -277,16 +251,14 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
         useAlsoVtxCoords = cms.bool(True),
     ),
     pfAlgoParameters = cms.PSet(
-        nCalo = cms.uint32(18), 
-        nMu = cms.uint32(4), # unused
+        nCalo = cms.uint32(50), # very large numbers for first test
+        nMu = cms.uint32(5), # very large numbers for first test
         debug = cms.untracked.bool(False)
     ),
     puAlgoParameters = cms.PSet(
-        nTrack = cms.uint32(0), # unused
-        nIn = cms.uint32(18), 
-        nOut = cms.uint32(18), 
-        nFinalSort = cms.uint32(10), # to be tuned
-        finalSortAlgo = cms.string("Insertion"),
+        nTrack = cms.uint32(0), # very large numbers for first test
+        nIn = cms.uint32(50), # very large numbers for first test
+        nOut = cms.uint32(50), # very large numbers for first test
         dZ     = cms.double(1.33),
         dr     = cms.double(0.3),
         drMin  = cms.double(0.1),
@@ -305,11 +277,8 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
         debug = cms.untracked.bool(False)
     ),
     tkEgAlgoParameters=tkEgAlgoParameters.clone(
-        nTRACK = 5,           # to be defined
-        nTRACK_EGIN = 5,          # to be defined
-        nEMCALO_EGIN = 5,  # to be defined
-        nEM_EGOUT = 5,        # to be defined
         doBremRecovery=True,
+        filterHwQuality=True,
         writeEGSta=True),
     caloSectors = cms.VPSet(
         cms.PSet( 
@@ -345,7 +314,7 @@ l1ctLayer1 = cms.EDProducer("L1TPFCandMultiMerger",
         cms.InputTag("l1ctLayer1HGCalNoTK"),
         cms.InputTag("l1ctLayer1HF")
     ),
-    labelsToMerge = cms.vstring("PF", "Puppi", "Calo", "TK"),
+    labelsToMerge = cms.vstring("PF", "Puppi"),
     regionalLabelsToMerge = cms.vstring("Puppi"),
 )
 
@@ -389,21 +358,4 @@ l1ctLayer1EG = cms.EDProducer(
             )
         )    
     )
-)
-
-l1ctLayer1TaskInputsTask = cms.Task(
-    pfClustersFromL1EGClusters,
-    pfClustersFromCombinedCaloHCal,
-    pfClustersFromCombinedCaloHF,
-    pfClustersFromHGC3DClusters,
-    pfTracksFromL1Tracks
-)
-
-l1ctLayer1Task = cms.Task(
-     l1ctLayer1Barrel,
-     l1ctLayer1HGCal,
-     l1ctLayer1HGCalNoTK,
-     l1ctLayer1HF,
-     l1ctLayer1,
-     l1ctLayer1EG
 )

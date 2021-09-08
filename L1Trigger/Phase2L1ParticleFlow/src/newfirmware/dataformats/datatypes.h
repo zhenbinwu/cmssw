@@ -33,7 +33,6 @@ namespace l1ct {
   typedef ap_int<8> dxy_t;         // tbd
   typedef ap_uint<3> tkquality_t;  // tbd
   typedef ap_uint<9> puppiWgt_t;   // 256 = 1.0
-  typedef ap_uint<6> emid_t;
   typedef ap_uint<14> tk2em_dr_t;
   typedef ap_uint<14> tk2calo_dr_t;
   typedef ap_uint<10> em2calo_dr_t;

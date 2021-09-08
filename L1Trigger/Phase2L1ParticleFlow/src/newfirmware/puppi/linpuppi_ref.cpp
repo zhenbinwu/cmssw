@@ -8,15 +8,6 @@
 #include "firmware/linpuppi_bits.h"
 #endif
 
-#include "../common/bitonic_hybrid_sort_ref.h"
-#include "../common/bitonic_sort_ref.h"
-
-#ifdef CMSSW_GIT_HASH
-#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
-#else
-#include "../utils/dbgPrintf.h"
-#endif
-
 #ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/transform.h"
@@ -52,9 +43,7 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(unsigned int nTrack,
                                          double priorPh_0,
                                          double priorPh_1,
                                          pt_t ptCut_0,
-                                         pt_t ptCut_1,
-                                         unsigned int nFinalSort,
-                                         SortAlgo finalSortAlgo)
+                                         pt_t ptCut_1)
     : nTrack_(nTrack),
       nIn_(nIn),
       nOut_(nOut),
@@ -73,10 +62,7 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(unsigned int nTrack,
       priorNe_(2),
       priorPh_(2),
       ptCut_(2),
-      nFinalSort_(nFinalSort ? nFinalSort : nOut),
-      finalSortAlgo_(finalSortAlgo),
-      debug_(false),
-      fakePuppi_(false) {
+      debug_(false) {
   ptSlopeNe_[0] = ptSlopeNe_0;
   ptSlopeNe_[1] = ptSlopeNe_1;
   ptSlopePh_[0] = ptSlopePh_0;
@@ -120,11 +106,7 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(const edm::ParameterSet &iConfig)
       priorNe_(iConfig.getParameter<std::vector<double>>("priors")),
       priorPh_(iConfig.getParameter<std::vector<double>>("priorsPhoton")),
       ptCut_(edm::vector_transform(iConfig.getParameter<std::vector<double>>("ptCut"), l1ct::Scales::makePtFromFloat)),
-      nFinalSort_(iConfig.getParameter<uint32_t>("nFinalSort")),
-      debug_(iConfig.getUntrackedParameter<bool>("debug", false)),
-      fakePuppi_(iConfig.existsAs<bool>("fakePuppi") ? iConfig.getParameter<bool>("fakePuppi")
-                                                     : false)  // it's only for debug, but still better be tracked
-{
+      debug_(iConfig.getUntrackedParameter<bool>("debug", false)) {
   if (absEtaBins_.size() + 1 != ptSlopeNe_.size())
     throw cms::Exception("Configuration", "size mismatch for ptSlopes parameter");
   if (absEtaBins_.size() + 1 != ptSlopePh_.size())
@@ -145,46 +127,28 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(const edm::ParameterSet &iConfig)
     throw cms::Exception("Configuration", "size mismatch for alphaCrop parameter");
   if (absEtaBins_.size() + 1 != ptCut_.size())
     throw cms::Exception("Configuration", "size mismatch for ptCut parameter");
-  const std::string &sortAlgo = iConfig.getParameter<std::string>("finalSortAlgo");
-  if (sortAlgo == "Insertion")
-    finalSortAlgo_ = SortAlgo::Insertion;
-  else if (sortAlgo == "BitonicRUFL")
-    finalSortAlgo_ = SortAlgo::BitonicRUFL;
-  else if (sortAlgo == "BitonicHLS")
-    finalSortAlgo_ = SortAlgo::BitonicHLS;
-  else if (sortAlgo == "Hybrid")
-    finalSortAlgo_ = SortAlgo::Hybrid;
-  else
-    throw cms::Exception("Configuration", "unsupported finalSortAlgo '" + sortAlgo + "'");
 }
 #endif
 
 void l1ct::LinPuppiEmulator::puppisort_and_crop_ref(unsigned int nOutMax,
-                                                    const std::vector<l1ct::PuppiObjEmu> &in,
-                                                    std::vector<l1ct::PuppiObjEmu> &out,
-                                                    SortAlgo sortAlgo) {
+                                                    const std::vector<PuppiObjEmu> &in,
+                                                    std::vector<PuppiObjEmu> &out) const {
   const unsigned int nOut = std::min<unsigned int>(nOutMax, in.size());
   out.resize(nOut);
   for (unsigned int iout = 0; iout < nOut; ++iout) {
     out[iout].clear();
   }
 
-  if (sortAlgo == SortAlgo::Insertion) {
-    for (unsigned int it = 0, nIn = in.size(); it < nIn; ++it) {
-      for (int iout = int(nOut) - 1; iout >= 0; --iout) {
-        if (out[iout].hwPt <= in[it].hwPt) {
-          if (iout == 0 || out[iout - 1].hwPt > in[it].hwPt) {
-            out[iout] = in[it];
-          } else {
-            out[iout] = out[iout - 1];
-          }
+  for (unsigned int it = 0, nIn = in.size(); it < nIn; ++it) {
+    for (int iout = int(nOut) - 1; iout >= 0; --iout) {
+      if (out[iout].hwPt <= in[it].hwPt) {
+        if (iout == 0 || out[iout - 1].hwPt > in[it].hwPt) {
+          out[iout] = in[it];
+        } else {
+          out[iout] = out[iout - 1];
         }
       }
     }
-  } else if (sortAlgo == SortAlgo::BitonicRUFL) {
-    bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0]);
-  } else if (sortAlgo == SortAlgo::BitonicHLS || sortAlgo == SortAlgo::Hybrid) {
-    hybrid_bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0], sortAlgo == SortAlgo::Hybrid);
   }
 }
 
@@ -196,36 +160,26 @@ void l1ct::LinPuppiEmulator::linpuppi_chs_ref(const PFRegionEmu &region,
   outallch.resize(nTrack);
   for (unsigned int i = 0; i < nTrack; ++i) {
     int z0diff = pfch[i].hwZ0 - pv.hwZ0;
-    bool accept = pfch[i].hwPt != 0;
-    if (!fakePuppi_)
-      accept = accept && region.isFiducial(pfch[i]) && (std::abs(z0diff) <= int(dzCut_) || pfch[i].hwId.isMuon());
-    if (accept) {
+    if (pfch[i].hwPt != 0 && region.isFiducial(pfch[i]) && (std::abs(z0diff) <= int(dzCut_) || pfch[i].hwId.isMuon())) {
       outallch[i].fill(region, pfch[i]);
-      if (fakePuppi_) {  // overwrite Dxy & TkQuality with debug information
-        outallch[i].setHwDxy(dxy_t(pv.hwZ0));
-        outallch[i].setHwTkQuality(region.isFiducial(pfch[i]) ? 1 : 0);
-      }
       if (debug_ && pfch[i].hwPt > 0)
-        dbgPrintf("ref candidate %02u pt %7.2f pid %1d   vz %+6d  dz %+6d (cut %5d), fid %1d -> pass, packed %s\n",
-                  i,
-                  pfch[i].floatPt(),
-                  pfch[i].intId(),
-                  int(pfch[i].hwZ0),
-                  z0diff,
-                  dzCut_,
-                  region.isFiducial(pfch[i]),
-                  outallch[i].pack().to_string(16).c_str());
+        printf("ref candidate %02u pt %7.2f pid %1d   vz %+6d  dz %+6d (cut %5d) -> pass\n",
+               i,
+               pfch[i].floatPt(),
+               pfch[i].intId(),
+               int(pfch[i].hwZ0),
+               z0diff,
+               dzCut_);
     } else {
       outallch[i].clear();
       if (debug_ && pfch[i].hwPt > 0)
-        dbgPrintf("ref candidate %02u pt %7.2f pid %1d   vz %+6d  dz %+6d (cut %5d), fid %1d -> fail\n",
-                  i,
-                  pfch[i].floatPt(),
-                  pfch[i].intId(),
-                  int(pfch[i].hwZ0),
-                  z0diff,
-                  dzCut_,
-                  region.isFiducial(pfch[i]));
+        printf("ref candidate %02u pt %7.2f pid %1d   vz %+6d  dz %+6d (cut %5d) -> fail\n",
+               i,
+               pfch[i].floatPt(),
+               pfch[i].intId(),
+               int(pfch[i].hwZ0),
+               z0diff,
+               dzCut_);
     }
   }
 }
@@ -299,13 +253,13 @@ std::pair<pt_t, puppiWgt_t> l1ct::LinPuppiEmulator::sum2puppiPt_ref(
       x2a_lut += alphaSlope * (1 << alpha_bits);
     }
     x2a_lut += alphaSlope * int(std::log2(float(logarg)) * (1 << alpha_bits));
-    /*if (in <= 3) dbgPrintf("ref [%d]:  x2a(sum = %9lu): logarg = %9lu, sumterm = %9d, table[logarg] = %9d, ret pre-crop = %9d\n", 
+    /*if (in <= 3) printf("ref [%d]:  x2a(sum = %9lu): logarg = %9lu, sumterm = %9d, table[logarg] = %9d, ret pre-crop = %9d\n", 
           in, sum, logarg, 
           alphaSlope * int((std::log2(LINPUPPI_pt2DR2_scale) - sum_bitShift)*(1 << alpha_bits) + 0.5) - alphaSlope * alphaZero,
           alphaSlope * int(std::log2(float(logarg))*(1 << alpha_bits)), 
           x2a_lut); */
   } else {
-    //if (in <= 3) dbgPrintf("ref [%d]:  x2a(sum = %9lu): logarg = %9lu, ret pre-crop = %9d\n",
+    //if (in <= 3) printf("ref [%d]:  x2a(sum = %9lu): logarg = %9lu, ret pre-crop = %9d\n",
     //        in, sum, logarg, x2a_lut);
   }
   x2a_lut = std::min(std::max(x2a_lut >> (alphaSlope_bits + alpha_bits - x2_bits), -alphaCrop), alphaCrop);
@@ -325,7 +279,7 @@ std::pair<pt_t, puppiWgt_t> l1ct::LinPuppiEmulator::sum2puppiPt_ref(
   pt_t ptPuppi = Scales::makePt((Scales::ptToInt(pt) * weight) >> weight_bits);
 
   if (debug_)
-    dbgPrintf(
+    printf(
         "ref candidate %02d pt %7.2f  em %1d  ieta %1d: alpha %+7.2f   x2a %+5d = %+7.3f  x2pt %+5d = %+7.3f   x2 %+5d "
         "= %+7.3f  --> weight %4d = %.4f  puppi pt %7.2f\n",
         icand,
@@ -376,18 +330,18 @@ void l1ct::LinPuppiEmulator::fwdlinpuppi_ref(const PFRegionEmu &region,
         //      dr2short >= (dR2Min_ >> 5) = 2
         //      num <= (PTMAX2 >> 5) << sum_bitShift = (2^11) << 15 = 2^26
         //      ==> term <= 2^25
-        //dbgPrintf("ref term [%2d,%2d]: dr = %8d  pt2_shift = %8lu  term = %12lu\n", in, it, dr2, std::min<uint64_t>(pt2 >> 5, PTMAX2 >> 5), term);
+        //printf("ref term [%2d,%2d]: dr = %8d  pt2_shift = %8lu  term = %12lu\n", in, it, dr2, std::min<uint64_t>(pt2 >> 5, PTMAX2 >> 5), term);
         assert(uint64_t(PTMAX2 << (sum_bitShift - 5)) / (dR2Min_ >> 5) <= (1 << 25));
         assert(term < (1 << 25));
         sum += term;
-        //dbgPrintf("    pT cand %5.1f    pT item %5.1f    dR = %.3f   term = %.1f [dbl] = %lu [int]\n",
+        //printf("    pT cand %5.1f    pT item %5.1f    dR = %.3f   term = %.1f [dbl] = %lu [int]\n",
         //            caloin[in].floatPt(), caloin[it].floatPt(), std::sqrt(dr2*LINPUPPI_DR2LSB),
         //            double(std::min<uint64_t>(pt2 >> 5, 131071)<<15)/double(std::max<int>(dr2,dR2Min_) >> 5),
         //            term);
       }
     }
     unsigned int ieta = find_ieta(region, caloin[in].hwEta);
-    std::pair<pt_t, puppiWgt_t> ptAndW = sum2puppiPt_ref(sum, caloin[in].hwPt, ieta, caloin[in].hwIsEM(), in);
+    std::pair<pt_t, puppiWgt_t> ptAndW = sum2puppiPt_ref(sum, caloin[in].hwPt, ieta, caloin[in].hwIsEM, in);
 
     outallne_nocut[in].fill(region, caloin[in], ptAndW.first, ptAndW.second);
     if (region.isFiducial(caloin[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
@@ -432,11 +386,11 @@ void l1ct::LinPuppiEmulator::linpuppi_ref(const PFRegionEmu &region,
         //      dr2short >= (dR2Min_ >> 5) = 2
         //      num <= (PTMAX2 >> 5) << sum_bitShift = (2^11) << 15 = 2^26
         //      ==> term <= 2^25
-        //dbgPrintf("ref term [%2d,%2d]: dr = %8d  pt2_shift = %8lu  term = %12lu\n", in, it, dr2, std::min<uint64_t>(pt2 >> 5, PTMAX2 >> 5), term);
+        //printf("ref term [%2d,%2d]: dr = %8d  pt2_shift = %8lu  term = %12lu\n", in, it, dr2, std::min<uint64_t>(pt2 >> 5, PTMAX2 >> 5), term);
         assert(uint64_t(PTMAX2 << (sum_bitShift - 5)) / (dR2Min_ >> 5) <= (1 << 25));
         assert(term < (1 << 25));
         sum += term;
-        //dbgPrintf("    pT cand %5.1f    pT item %5.1f    dR = %.3f   term = %.1f [dbl] = %lu [int]\n",
+        //printf("    pT cand %5.1f    pT item %5.1f    dR = %.3f   term = %.1f [dbl] = %lu [int]\n",
         //            pfallne[in].floatPt(), track[it].floatPt(), std::sqrt(dr2*LINPUPPI_DR2LSB),
         //            double(std::min<uint64_t>(pt2 >> 5, 131071)<<15)/double(std::max<int>(dr2,dR2Min_) >> 5),
         //            term);
@@ -446,27 +400,11 @@ void l1ct::LinPuppiEmulator::linpuppi_ref(const PFRegionEmu &region,
     unsigned int ieta = find_ieta(region, pfallne[in].hwEta);
     bool isEM = (pfallne[in].hwId.isPhoton());
     std::pair<pt_t, puppiWgt_t> ptAndW = sum2puppiPt_ref(sum, pfallne[in].hwPt, ieta, isEM, in);
-    if (!fakePuppi_) {
-      outallne_nocut[in].fill(region, pfallne[in], ptAndW.first, ptAndW.second);
-      if (region.isFiducial(pfallne[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
-        outallne[in] = outallne_nocut[in];
-      }
-    } else {  // fakePuppi: keep the full candidate, but set the Puppi weight and some debug info into it
-      outallne_nocut[in].fill(region, pfallne[in], pfallne[in].hwPt, ptAndW.second);
-      outallne_nocut[in].hwData[9] = region.isFiducial(pfallne[in]);
-      outallne_nocut[in].hwData(20, 10) = ptAndW.first(10, 0);
+    outallne_nocut[in].fill(region, pfallne[in], ptAndW.first, ptAndW.second);
+    if (region.isFiducial(pfallne[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
       outallne[in] = outallne_nocut[in];
     }
-    if (debug_ && pfallne[in].hwPt > 0 && outallne_nocut[in].hwPt > 0) {
-      dbgPrintf("ref candidate %02u pt %7.2f  -> puppi pt %7.2f, fiducial %1d, packed %s\n",
-                in,
-                pfallne[in].floatPt(),
-                outallne_nocut[in].floatPt(),
-                int(region.isFiducial(pfallne[in])),
-                outallne_nocut[in].pack().to_string(16).c_str());
-    }
   }
-
   puppisort_and_crop_ref(nOut_, outallne, outselne);
 }
 
@@ -488,7 +426,7 @@ std::pair<float, float> l1ct::LinPuppiEmulator::sum2puppiPt_flt(
 
   float puppiPt = pt * weight;
   if (debug_)
-    dbgPrintf(
+    printf(
         "flt candidate %02d pt %7.2f  em %1d  ieta %1d: alpha %+7.2f   x2a         %+7.3f  x2pt         %+7.3f   x2    "
         "     %+7.3f  --> weight        %.4f  puppi pt %7.2f\n",
         icand,
@@ -533,7 +471,7 @@ void l1ct::LinPuppiEmulator::fwdlinpuppi_flt(const PFRegionEmu &region,
     }
 
     unsigned int ieta = find_ieta(region, caloin[in].hwEta);
-    std::pair<float, float> ptAndW = sum2puppiPt_flt(sum, caloin[in].floatPt(), ieta, caloin[in].hwIsEM(), in);
+    std::pair<float, float> ptAndW = sum2puppiPt_flt(sum, caloin[in].floatPt(), ieta, caloin[in].hwIsEM, in);
     outallne_nocut[in].fill(region, caloin[in], Scales::makePtFromFloat(ptAndW.first), int(ptAndW.second * 256));
     if (region.isFiducial(caloin[in]) && outallne_nocut[in].hwPt >= ptCut_[ieta]) {
       outallne[in] = outallne_nocut[in];
@@ -592,21 +530,8 @@ void l1ct::LinPuppiEmulator::run(const PFInputRegion &in,
     std::vector<PuppiObjEmu> outallch, outallne_nocut, outallne, outselne;
     linpuppi_chs_ref(in.region, pvs.front(), out.pfcharged, outallch);
     linpuppi_ref(in.region, in.track, pvs.front(), out.pfneutral, outallne_nocut, outallne, outselne);
-    // ensure proper sizes of the vectors, to get accurate sorting wrt firmware
-    const std::vector<PuppiObjEmu> &ne = (nOut_ == nIn_ ? outallne : outselne);
-    unsigned int nch = outallch.size(), nne = ne.size(), i;
-    outallch.resize(nTrack_ + nOut_);
-    for (i = nch; i < nTrack_; ++i)
-      outallch[i].clear();
-    for (unsigned int j = 0; j < nne; ++i, ++j)
-      outallch[i] = ne[j];
-    for (; i < nTrack_ + nOut_; ++i)
-      outallch[i].clear();
-    puppisort_and_crop_ref(nFinalSort_, outallch, out.puppi, finalSortAlgo_);
-    // trim if needed
-    while (!out.puppi.empty() && out.puppi.back().hwPt == 0)
-      out.puppi.pop_back();
-    out.puppi.shrink_to_fit();
+    outallch.insert(outallch.end(), outselne.begin(), outselne.end());
+    puppisort_and_crop_ref(nOut_, outallch, out.puppi);
   } else {  // forward
     std::vector<PuppiObjEmu> outallne_nocut, outallne;
     fwdlinpuppi_ref(in.region, in.hadcalo, outallne_nocut, outallne, out.puppi);

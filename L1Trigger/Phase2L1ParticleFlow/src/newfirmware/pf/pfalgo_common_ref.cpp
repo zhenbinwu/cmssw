@@ -4,12 +4,6 @@
 #include <cstdio>
 
 #ifdef CMSSW_GIT_HASH
-#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
-#else
-#include "../../utils/dbgPrintf.h"
-#endif
-
-#ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #endif
 
@@ -24,14 +18,14 @@ void l1ct::PFAlgoEmulatorBase::loadPtErrBins(
     ptErrBins_[i].offs = offs[i];
 
     if (verbose || debug_)
-      dbgPrintf("loadPtErrBins: #%d: abseta %5.3f -> %8d, scale %7.4f -> %7.4f, offs %7.3f -> %7.4f\n",
-                i,
-                absetas[i],
-                ptErrBins_[i].abseta.to_int(),
-                scales[i],
-                ptErrBins_[i].scale.to_float(),
-                offs[i],
-                ptErrBins_[i].offs.to_float());
+      printf("loadPtErrBins: #%d: abseta %5.3f -> %8d, scale %7.4f -> %7.4f, offs %7.3f -> %7.4f\n",
+             i,
+             absetas[i],
+             ptErrBins_[i].abseta.to_int(),
+             scales[i],
+             ptErrBins_[i].scale.to_float(),
+             offs[i],
+             ptErrBins_[i].offs.to_float());
   }
 }
 
@@ -91,7 +85,7 @@ void l1ct::PFAlgoEmulatorBase::pfalgo_mu_ref(const PFInputRegion &in, OutputRegi
         if (!in.track[it].isPFLoose())
           continue;
         unsigned int dr = dr2_int(in.muon[im].hwEta, in.muon[im].hwPhi, in.track[it].hwEta, in.track[it].hwPhi);
-        //dbgPrintf("deltaR2(mu %d float pt %5.1f, tk %2d float pt %5.1f) = int %d  (float deltaR = %.3f); int cut at %d\n", im, 0.25*int(in.muon[im].hwPt), it, 0.25*int(in.track[it].hwPt), dr, std::sqrt(float(dr))/229.2, dR2MAX_TK_MU_);
+        //printf("deltaR2(mu %d float pt %5.1f, tk %2d float pt %5.1f) = int %d  (float deltaR = %.3f); int cut at %d\n", im, 0.25*int(in.muon[im].hwPt), it, 0.25*int(in.track[it].hwPt), dr, std::sqrt(float(dr))/229.2, dR2MAX_TK_MU_);
         if (dr < dR2MAX_TK_MU_) {
           dpt_t dpt = (dpt_t(in.track[it].hwPt) - dpt_t(in.muon[im].hwPt));
           pt_t absdpt = dpt >= 0 ? pt_t(dpt) : pt_t(-dpt);
@@ -107,10 +101,10 @@ void l1ct::PFAlgoEmulatorBase::pfalgo_mu_ref(const PFInputRegion &in, OutputRegi
         // extra emulator info
         out.pfmuon[im].srcMu = in.muon[im].src;
         if (debug_)
-          dbgPrintf("FW  \t muon %3d linked to track %3d \n", im, ibest);
+          printf("FW  \t muon %3d linked to track %3d \n", im, ibest);
       } else {
         if (debug_)
-          dbgPrintf("FW  \t muon %3d not linked to any track\n", im);
+          printf("FW  \t muon %3d not linked to any track\n", im);
       }
     }
   }
@@ -143,7 +137,7 @@ void l1ct::PFAlgoEmulatorBase::fillPFCand(const HadCaloObjEmu &calo, PFNeutralOb
   pf.hwPhi = calo.hwPhi;
   pf.hwId = isPhoton ? ParticleID::PHOTON : ParticleID::HADZERO;
   pf.hwEmPt = calo.hwEmPt;  // FIXME
-  pf.hwEmID = calo.hwEmID;
+  pf.hwEmID = calo.hwIsEM;
   pf.hwPUID = 0;
   // extra emulator information
   pf.srcCluster = calo.src;
@@ -155,7 +149,7 @@ void l1ct::PFAlgoEmulatorBase::fillPFCand(const EmCaloObjEmu &calo, PFNeutralObj
   pf.hwPhi = calo.hwPhi;
   pf.hwId = isPhoton ? ParticleID::PHOTON : ParticleID::HADZERO;
   pf.hwEmPt = calo.hwPt;
-  pf.hwEmID = calo.hwEmID;
+  pf.hwEmID = calo.hwFlags;
   pf.hwPUID = 0;
   // more emulator info
   pf.srcCluster = calo.src;

@@ -3,8 +3,8 @@ import FWCore.ParameterSet.Config as cms
 
 tkEgAlgoParameters = cms.PSet(
     nTRACK=cms.uint32(50),  # very large numbers for first test
-    nTRACK_EGIN=cms.uint32(50),  # very large numbers for first test
-    nEMCALO_EGIN=cms.uint32(50),  # very large numbers for first test
+    nEMCALO=cms.uint32(50),  # very large numbers for first test
+    nEMCALOSEL_EGIN=cms.uint32(50),  # very large numbers for first test
     nEM_EGOUT=cms.uint32(50),  # very large numbers for first test
     doBremRecovery=cms.bool(False),
     writeBeforeBremRecovery=cms.bool(True),

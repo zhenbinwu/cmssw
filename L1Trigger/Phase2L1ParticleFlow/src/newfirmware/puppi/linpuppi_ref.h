@@ -13,8 +13,6 @@ namespace l1ct {
 
   class LinPuppiEmulator {
   public:
-    enum class SortAlgo { Insertion, BitonicRUFL, BitonicHLS, Hybrid };
-
     LinPuppiEmulator(unsigned int nTrack,
                      unsigned int nIn,
                      unsigned int nOut,
@@ -31,9 +29,7 @@ namespace l1ct {
                      double alphaCrop,
                      double priorNe,
                      double priorPh,
-                     pt_t ptCut,
-                     unsigned int nFinalSort = 0,
-                     SortAlgo finalSortAlgo = SortAlgo::Insertion)
+                     pt_t ptCut)
         : nTrack_(nTrack),
           nIn_(nIn),
           nOut_(nOut),
@@ -52,10 +48,7 @@ namespace l1ct {
           priorNe_(1, priorNe),
           priorPh_(1, priorPh),
           ptCut_(1, ptCut),
-          nFinalSort_(nFinalSort ? nFinalSort : nOut),
-          finalSortAlgo_(finalSortAlgo),
-          debug_(false),
-          fakePuppi_(false) {}
+          debug_(false) {}
 
     LinPuppiEmulator(unsigned int nTrack,
                      unsigned int nIn,
@@ -84,9 +77,7 @@ namespace l1ct {
                      double priorPh_0,
                      double priorPh_1,
                      pt_t ptCut_0,
-                     pt_t ptCut_1,
-                     unsigned int nFinalSort = 0,
-                     SortAlgo finalSortAlgo = SortAlgo::Insertion);
+                     pt_t ptCut_1);
 
     LinPuppiEmulator(unsigned int nTrack,
                      unsigned int nIn,
@@ -105,9 +96,7 @@ namespace l1ct {
                      const std::vector<double> &alphaCrop,
                      const std::vector<double> &priorNe,
                      const std::vector<double> &priorPh,
-                     const std::vector<pt_t> &ptCut,
-                     unsigned int nFinalSort,
-                     SortAlgo finalSortAlgo)
+                     const std::vector<pt_t> &ptCut)
         : nTrack_(nTrack),
           nIn_(nIn),
           nOut_(nOut),
@@ -126,10 +115,7 @@ namespace l1ct {
           priorNe_(priorNe),
           priorPh_(priorPh),
           ptCut_(ptCut),
-          nFinalSort_(nFinalSort),
-          finalSortAlgo_(finalSortAlgo),
-          debug_(false),
-          fakePuppi_(false) {}
+          debug_(false) {}
 
     LinPuppiEmulator(const edm::ParameterSet &iConfig);
 
@@ -175,18 +161,15 @@ namespace l1ct {
                          std::vector<PuppiObjEmu> &outallne /*[nIn]*/,
                          std::vector<PuppiObjEmu> &outselne /*[nOut]*/) const;
 
-    static void puppisort_and_crop_ref(unsigned int nOutMax,
-                                       const std::vector<PuppiObjEmu> &in,
-                                       std::vector<PuppiObjEmu> &out,
-                                       SortAlgo algo = SortAlgo::Insertion);
+    // utility
+    void puppisort_and_crop_ref(unsigned int nOutMax,
+                                const std::vector<PuppiObjEmu> &in,
+                                std::vector<PuppiObjEmu> &out /*nOut*/) const;
 
     // for CMSSW
     void run(const PFInputRegion &in, const std::vector<l1ct::PVObjEmu> &pvs, OutputRegion &out) const;
 
     void setDebug(bool debug = true) { debug_ = debug; }
-
-    // instead of running Puppi, write Puppi debug information into the output Puppi candidates
-    void setFakePuppi(bool fakePuppi = true) { fakePuppi_ = fakePuppi; }
 
   protected:
     unsigned int nTrack_, nIn_,
@@ -197,11 +180,9 @@ namespace l1ct {
     std::vector<double> alphaSlope_, alphaZero_, alphaCrop_;
     std::vector<double> priorNe_, priorPh_;
     std::vector<pt_t> ptCut_;
-    unsigned int nFinalSort_;  // output after a full sort of charged + neutral
-    SortAlgo finalSortAlgo_;
 
     bool debug_;
-    bool fakePuppi_;
+
     // utility
     unsigned int find_ieta(const PFRegionEmu &region, eta_t eta) const;
     std::pair<pt_t, puppiWgt_t> sum2puppiPt_ref(uint64_t sum, pt_t pt, unsigned int ieta, bool isEM, int icand) const;

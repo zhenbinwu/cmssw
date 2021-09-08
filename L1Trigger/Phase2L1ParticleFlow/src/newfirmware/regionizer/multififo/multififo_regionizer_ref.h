@@ -2,18 +2,12 @@
 #define multififo_regionizer_ref_h
 
 #include "../common/regionizer_base_ref.h"
-#include <memory>
 
 #include "multififo_regionizer_elements_ref.h"
 
 namespace edm {
   class ParameterSet;
 }
-
-namespace l1ct {
-  class EGInputSelectorEmulator;
-  class EGInputSelectorEmuConfig;
-}  // namespace l1ct
 
 namespace l1ct {
   class MultififoRegionizerEmulator : public RegionizerEmulator {
@@ -25,8 +19,7 @@ namespace l1ct {
                                 unsigned int nem,
                                 unsigned int nmu,
                                 bool streaming,
-                                unsigned int outii = 0,
-                                bool useAlsoVtxCoords = false);
+                                unsigned int outii = 0);
 
     // note: this one will work only in CMSSW
     MultififoRegionizerEmulator(const edm::ParameterSet& iConfig);
@@ -37,7 +30,6 @@ namespace l1ct {
     static const int NCALO_SECTORS = 3, NCALO_LINKS = 4;
     static const int NMU_LINKS = 2;
 
-    void setEgInterceptMode(bool afterFifo, const l1ct::EGInputSelectorEmuConfig& interceptorConfig);
     void initSectorsAndRegions(const RegionizerDecodedInputs& in, const std::vector<PFInputRegion>& out) override;
 
     // TODO: implement
@@ -59,16 +51,6 @@ namespace l1ct {
     bool step(bool newEvent,
               const std::vector<l1ct::MuObjEmu>& links,
               std::vector<l1ct::MuObjEmu>& out,
-              bool mux = true);
-    bool step(bool newEvent,
-              const std::vector<l1ct::TkObjEmu>& links_tk,
-              const std::vector<l1ct::HadCaloObjEmu>& links_hadCalo,
-              const std::vector<l1ct::EmCaloObjEmu>& links_emCalo,
-              const std::vector<l1ct::MuObjEmu>& links_mu,
-              std::vector<l1ct::TkObjEmu>& out_tk,
-              std::vector<l1ct::HadCaloObjEmu>& out_hadCalo,
-              std::vector<l1ct::EmCaloObjEmu>& out_emCalo,
-              std::vector<l1ct::MuObjEmu>& out_mu,
               bool mux = true);
     void destream(int iclock,
                   const std::vector<l1ct::TkObjEmu>& tk_out,
@@ -92,8 +74,6 @@ namespace l1ct {
   private:
     unsigned int nendcaps_, nclocks_, ntk_, ncalo_, nem_, nmu_, outii_, nregions_;
     bool streaming_;
-    enum EmInterceptMode { noIntercept = 0, interceptPreFifo, interceptPostFifo } emInterceptMode_;
-    std::unique_ptr<EGInputSelectorEmulator> interceptor_;
     bool init_;
 
     multififo_regionizer::Regionizer<l1ct::TkObjEmu> tkRegionizer_;
