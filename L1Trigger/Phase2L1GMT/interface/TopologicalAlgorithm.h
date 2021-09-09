@@ -41,11 +41,6 @@ namespace Phase2L1GMT {
     std::vector<ConvertedTTTrack> *convertedTracks;
     std::ofstream dumpInput;
 
-    // Current setting in Luca's code
-    const double lsb_pt = 0.025;  // 25MeV
-    const double lsb_eta = 2. * M_PI / pow(2, BITSETA);
-    const double lsb_phi = 2. * M_PI / pow(2, BITSPHI);
-    const double lsb_z0 = 60. / pow(2, BITSZ0);
   };
 
   TopoAlgo::TopoAlgo() {}
@@ -70,18 +65,18 @@ namespace Phase2L1GMT {
     int exptotal = 12 + 18 * 100;  // N_Muon + N_TRK_LINKS * NTRKperlinks
     for (unsigned int i = 0; i < 12; ++i) {
       if (i < trkMus->size())
-        dumpInput << " " << nevti << " 0 " << i << " " << trkMus->at(i).hwPt() * lsb_pt << " "
-                  << trkMus->at(i).hwEta() * lsb_eta << " " << trkMus->at(i).hwPhi() * lsb_phi << " "
-                  << trkMus->at(i).hwZ0() * lsb_z0 << " " << trkMus->at(i).charge() << std::endl;
+        dumpInput << " " << nevti << " 0 " << i << " " << trkMus->at(i).hwPt() * LSBpt << " "
+                  << trkMus->at(i).hwEta() * LSBeta << " " << trkMus->at(i).hwPhi() * LSBphi << " "
+                  << trkMus->at(i).hwZ0() * LSBGTz0 << " " << trkMus->at(i).charge() << std::endl;
       else
         dumpInput << " " << nevti << " 0 " << i << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0
                   << std::endl;
       totalsize++;
     }
     for (unsigned int i = 0; i < convertedTracks->size(); ++i) {
-      dumpInput << " " << nevti << " 1 " << i << " " << convertedTracks->at(i).pt() * lsb_pt << " "
-                << convertedTracks->at(i).eta() * lsb_eta << " " << convertedTracks->at(i).phi() * lsb_phi << " "
-                << convertedTracks->at(i).z0() * lsb_z0 << " " << convertedTracks->at(i).charge() << " "
+      dumpInput << " " << nevti << " 1 " << i << " " << convertedTracks->at(i).pt() * LSBpt << " "
+                << convertedTracks->at(i).eta() * LSBeta << " " << convertedTracks->at(i).phi() * LSBphi << " "
+                << convertedTracks->at(i).z0() * LSBGTz0 << " " << convertedTracks->at(i).charge() << " "
                 << convertedTracks->at(i).quality() << std::endl;
       totalsize++;
     }

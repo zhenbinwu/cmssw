@@ -102,7 +102,7 @@ namespace Phase2L1GMT {
         if (out.size() == maximum)
           break;
         l1t::TrackerMuon muon(mu.trkPtr(), mu.charge(), mu.pt(), mu.eta(), mu.phi(), mu.z0(), mu.d0(), mu.quality());
-        muon.setMuonRef(mu.muonRef());
+        //muon.setMuonRef(mu.muonRef());
         for (const auto& stub : mu.stubs())
           muon.addStub(stub);
         out.push_back(muon);
@@ -112,6 +112,30 @@ namespace Phase2L1GMT {
         }
       }
       return out;
+    }
+
+    bool outputGT(std::vector<l1t::TrackerMuon>& muons) {
+      for (auto& mu : muons) {
+        wordtype word1 = 0;
+        wordtype word2 = 0;
+
+        int bstart = 0;
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwPt(), BITSGTPT);
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwPhi(), BITSGTPHI);
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwEta(), BITSGTETA);
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwZ0(), BITSGTZ0);
+        bstart = wordconcat<wordtype>(word1, bstart, (mu.hwD0() >> 2), BITSGTD0);
+
+        bstart = 0;
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwCharge(), 1);
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwQual(), BITSGTQUALITY);
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwIso(), BITSGTISO);
+        bstart = wordconcat<wordtype>(word2, bstart, mu.hwBeta(), BITSMUONBETA);
+
+        std::array<uint64_t, 2> wordout = {{word1, word2}};
+        mu.setWord(wordout);
+      }
+      return true;
     }
 
     std::vector<l1t::TrackerMuon> sort(std::vector<l1t::TrackerMuon>& muons, uint maximum) {
@@ -417,6 +441,12 @@ namespace Phase2L1GMT {
         for (const auto& stub : roi.stubs()) {
           match_t m = propagateAndMatch(track, stub);
           if (m.valid == 1) {
+            
+            if (roi.isGlobalMuon() && roi.muonRef().isNonnull()) {
+              m.isGlobal = true;
+              m.muRef = roi.muonRef();
+            }
+
             if (stub->tfLayer() == 0)
               matchInfo0.push_back(m);
             else if (stub->tfLayer() == 1)
@@ -428,10 +458,6 @@ namespace Phase2L1GMT {
             else if (stub->tfLayer() == 4)
               matchInfo4.push_back(m);
 
-            if (roi.isGlobalMuon() && roi.muonRef().isNonnull()) {
-              m.isGlobal = true;
-              m.muRef = roi.muonRef();
-            }
           }
         }
       }
@@ -446,7 +472,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -455,7 +481,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -464,7 +490,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -473,7 +499,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
@@ -482,7 +508,7 @@ namespace Phase2L1GMT {
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
-            muon.setMuonRef(b.muRef);
+            muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
       }
