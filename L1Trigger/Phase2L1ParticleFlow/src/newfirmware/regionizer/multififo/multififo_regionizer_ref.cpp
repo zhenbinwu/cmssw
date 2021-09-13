@@ -13,17 +13,20 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(const edm::ParameterSet& iConfig)
-    : MultififoRegionizerEmulator(
-          /*nendcaps=*/2,
-          iConfig.getParameter<uint32_t>("nClocks"),
-          iConfig.getParameter<uint32_t>("nTrack"),
-          iConfig.getParameter<uint32_t>("nCalo"),
-          iConfig.getParameter<uint32_t>("nEmCalo"),
-          iConfig.getParameter<uint32_t>("nMu"),
-          /*streaming=*/false,
-          /*outii=*/1,
-          iConfig.getParameter<bool>("useAlsoVtxCoords")) {
+    : MultififoRegionizerEmulator(iConfig.getParameter<uint32_t>("nEndcaps"),
+                                  iConfig.getParameter<uint32_t>("nClocks"),
+                                  iConfig.getParameter<uint32_t>("nTrack"),
+                                  iConfig.getParameter<uint32_t>("nCalo"),
+                                  iConfig.getParameter<uint32_t>("nEmCalo"),
+                                  iConfig.getParameter<uint32_t>("nMu"),
+                                  /*streaming=*/false,
+                                  /*outii=*/1,
+                                  iConfig.getParameter<bool>("useAlsoVtxCoords")) {
   debug_ = iConfig.getUntrackedParameter<bool>("debug", false);
+  if (iConfig.existsAs<edm::ParameterSet>("egInterceptMode")) {
+    const auto& emSelCfg = iConfig.getParameter<edm::ParameterSet>("egInterceptMode");
+    setEgInterceptMode(emSelCfg.getParameter<bool>("afterFifo"), emSelCfg);
+  }
 }
 #endif
 

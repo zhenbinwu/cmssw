@@ -588,6 +588,12 @@ void l1ct::LinPuppiEmulator::linpuppi_flt(const PFRegionEmu &region,
 void l1ct::LinPuppiEmulator::run(const PFInputRegion &in,
                                  const std::vector<l1ct::PVObjEmu> &pvs,
                                  OutputRegion &out) const {
+  if (debug_) {
+    dbgPrintf("\nWill run LinPuppi in region eta %+5.2f, phi %+5.2f, pv0 int Z %+d\n",
+              in.region.floatEtaCenter(),
+              in.region.floatPhiCenter(),
+              pvs.front().hwZ0.to_int());
+  }
   if (std::abs(in.region.floatEtaCenter()) < 2.5) {  // within tracker
     std::vector<PuppiObjEmu> outallch, outallne_nocut, outallne, outselne;
     linpuppi_chs_ref(in.region, pvs.front(), out.pfcharged, outallch);
