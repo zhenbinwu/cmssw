@@ -73,6 +73,7 @@ private:
   bool writeEgSta_;
   // Region dump
   const std::string regionDumpName_;
+  bool writeRawHgcalCluster_;
   std::fstream fRegionDump_;
 
   // region of interest debugging
@@ -100,6 +101,9 @@ private:
   void addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::SAMuon &t);
   void addDecodedHadCalo(l1ct::DetectorSector<l1ct::HadCaloObjEmu> &sec, const l1t::PFCluster &t);
   void addDecodedEmCalo(l1ct::DetectorSector<l1ct::EmCaloObjEmu> &sec, const l1t::PFCluster &t);
+
+  void addRawHgcalCluster(l1ct::DetectorSector<ap_uint<256>> &sec, const l1t::PFCluster &c);
+
   // fetching outputs
   std::unique_ptr<l1t::PFCandidateCollection> fetchHadCalo() const;
   std::unique_ptr<l1t::PFCandidateCollection> fetchEmCalo() const;
@@ -144,6 +148,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
       l1pualgo_(nullptr),
       l1tkegalgo_(nullptr),
       regionDumpName_(iConfig.getUntrackedParameter<std::string>("dumpFileName", "")),
+      writeRawHgcalCluster_(iConfig.getUntrackedParameter<bool>("writeRawHgcalCluster", false)),
       debugEta_(iConfig.getUntrackedParameter<double>("debugEta", 0)),
       debugPhi_(iConfig.getUntrackedParameter<double>("debugPhi", 0)),
       debugR_(iConfig.getUntrackedParameter<double>("debugR", -1)) {
@@ -439,6 +444,8 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
 
   event_.decoded.emcalo.clear();
   event_.decoded.hadcalo.clear();
+  event_.raw.hgcalcluster.clear();
+
   for (const edm::ParameterSet &preg : iConfig.getParameter<std::vector<edm::ParameterSet>>("caloSectors")) {
     std::vector<double> etaBoundaries = preg.getParameter<std::vector<double>>("etaBoundaries");
     if (!std::is_sorted(etaBoundaries.begin(), etaBoundaries.end()))
@@ -456,6 +463,7 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
                                             M_PI / 6.);  //L1 TrackFinder phi sector and HGCal sectors shifted by 30deg
         event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
         event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
       }
     }
   }
@@ -507,10 +515,14 @@ void L1TCorrelatorLayer1Producer::addMuon(const l1t::SAMuon &mu, l1t::PFCandidat
   muonRefMap_[&mu] = ref;
 }
 void L1TCorrelatorLayer1Producer::addHadCalo(const l1t::PFCluster &c, l1t::PFClusterRef ref) {
+  int sidx = 0;
   for (auto &sec : event_.decoded.hadcalo) {
     if (sec.region.contains(c.eta(), c.phi())) {
       addDecodedHadCalo(sec, c);
+      if (writeRawHgcalCluster_)
+        addRawHgcalCluster(event_.raw.hgcalcluster[sidx], c);
     }
+    sidx++;
   }
   clusterRefMap_[&c] = ref;
 }
@@ -589,6 +601,24 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
   calo.hwEmID = c.hwEmID();
   calo.src = &c;
   sec.obj.push_back(calo);
+}
+
+void L1TCorrelatorLayer1Producer::addRawHgcalCluster(l1ct::DetectorSector<ap_uint<256>> &sec, const l1t::PFCluster &c) {
+  ap_uint<256> cwrd = 0;
+  ap_uint<14> w_pt = round(c.pt() / 0.25);
+  ap_uint<14> w_empt = round(c.emEt() / 0.25);
+  constexpr float ETAPHI_LSB = M_PI / 720;
+  ap_int<9> w_eta = round(sec.region.localEta(c.eta()) / ETAPHI_LSB);
+  ap_int<9> w_phi = round(sec.region.localPhi(c.phi()) / ETAPHI_LSB);
+  ap_uint<10> w_qual = c.hwQual();
+
+  cwrd(13, 0) = w_pt;
+  cwrd(27, 14) = w_empt;
+  cwrd(72, 64) = w_eta;
+  cwrd(81, 73) = w_phi;
+  cwrd(115, 106) = w_qual;
+
+  sec.obj.push_back(cwrd);
 }
 
 void L1TCorrelatorLayer1Producer::addDecodedEmCalo(l1ct::DetectorSector<l1ct::EmCaloObjEmu> &sec,
