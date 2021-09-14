@@ -73,7 +73,7 @@ namespace Phase2L1GMT {
   }
 
   template <class T>
-  inline int wordconcat(T& word, int bstart, long int input, int bitsize) {
+  inline int wordconcat(T word, int bstart, long int input, int bitsize) {
     int bend = bstart + bitsize - 1;
     word.range(bend, bstart) = twos_complement(input, bitsize);
     return bend + 1;

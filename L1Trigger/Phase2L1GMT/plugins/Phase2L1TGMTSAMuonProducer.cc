@@ -144,7 +144,7 @@ SAMuon Phase2L1TGMTSAMuonProducer::Convertl1tMuon(const l1t::Muon& mu, const int
   // We might not need to send BX info
   //ap_int<BITSBX> bx(bx_);
   int charge = mu.charge() > 0 ? 0 : 1;
-  ap_uint<BITSPT> pt = round(mu.pt() / 0.03125);
+  ap_uint<BITSPT> pt = round(mu.pt() / 0.025);
   ap_int<BITSPHI> phi = round(mu.phi() * (1 << (BITSPHI - 1)) / (M_PI));
   ap_int<BITSETA> eta = round(mu.eta() * (1 << (BITSETA - 1)) / (M_PI));
   // FIXME: Below are not well defined in phase1 GMT
