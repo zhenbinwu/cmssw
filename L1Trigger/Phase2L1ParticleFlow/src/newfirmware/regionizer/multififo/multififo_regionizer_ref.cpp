@@ -70,10 +70,13 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
   for (unsigned int ie = 0; ie < nendcaps; ++ie) {
     for (unsigned int is = 0; is < NCALO_SECTORS; ++is) {  // NCALO_SECTORS sectors
       for (unsigned int il = 0; il < NCALO_LINKS; ++il) {  // max clusters per sector per clock
-        for (unsigned int j = 0; j < 3; ++j) {
+        for (unsigned int j = 0; j < 3; ++j) {             // PF REGION
           caloRoutes_.emplace_back(is + 3 * ie, il, 3 * is + j + 9 * ie, il);
-          if (j) {
-            caloRoutes_.emplace_back((is + 1) % 3 + 3 * ie, il, 3 * is + j + 9 * ie, il + 4);
+          if (j == 0 || j == 2) {
+            int other = (j == 0) ? 2 : 1;  // pf region 0, takes from prev. pf region 2 takes from next
+            //                       from sector      , from link, to region, to fifo
+            caloRoutes_.emplace_back(
+                (is + other) % 3 + 3 * ie, il, 3 * is + j + 9 * ie, il + 2);  //last 2 = NCALOFIBERS
           }
         }
       }

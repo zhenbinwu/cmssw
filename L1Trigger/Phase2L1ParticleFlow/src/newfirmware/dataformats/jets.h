@@ -53,11 +53,15 @@ namespace l1ct {
 
     inline static Jet unpack_ap(const ap_uint<BITWIDTH> &src) {
       Jet ret;
-      unsigned int start = 0;
-      _unpack_from_bits(src, start, ret.hwPt);
-      _unpack_from_bits(src, start, ret.hwEta);
-      _unpack_from_bits(src, start, ret.hwPhi);
+      ret.initFromBits(src);
       return ret;
+    }
+
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, hwPt);
+      _unpack_from_bits(src, start, hwEta);
+      _unpack_from_bits(src, start, hwPhi);
     }
 
     inline static Jet unpack(const std::array<uint64_t, 2> &src) {

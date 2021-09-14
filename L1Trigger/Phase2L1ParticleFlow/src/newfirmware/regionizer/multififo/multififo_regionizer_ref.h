@@ -33,8 +33,8 @@ namespace l1ct {
 
     ~MultififoRegionizerEmulator() override;
 
-    static const int NTK_SECTORS = 9, NTK_LINKS = 2;  // max objects per sector per clock cycle
-    static const int NCALO_SECTORS = 3, NCALO_LINKS = 4;
+    static const int NTK_SECTORS = 9, NTK_LINKS = 2;      // max objects per sector per clock cycle
+    static const int NCALO_SECTORS = 3, NCALO_LINKS = 2;  //
     static const int NMU_LINKS = 1;
 
     void setEgInterceptMode(bool afterFifo, const l1ct::EGInputSelectorEmuConfig& interceptorConfig);
