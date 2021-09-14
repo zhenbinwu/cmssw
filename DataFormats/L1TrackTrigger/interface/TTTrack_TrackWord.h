@@ -15,14 +15,22 @@
 
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 #include <ap_int.h>
 
 #include <algorithm>
 #include <array>
 #include <bitset>
+#include <cmath>
+#include <limits>
 #include <string>
 #include <vector>
+
+namespace tttrack_trackword {
+  void infoTestDigitizationScheme(
+      const unsigned int, const double, const double, const unsigned int, const double, const unsigned int);
+}
 
 class TTTrack_TrackWord {
 public:
@@ -32,12 +40,12 @@ public:
     kMVAOtherSize = 6,    // Space for two specialized MVA selections
     kMVAQualitySize = 3,  // Width of track quality MVA
     kHitPatternSize = 7,  // Width of the hit pattern for stubs
-    kBendChi2Size = 3,    // Width of the Bend-Chi2
+    kBendChi2Size = 3,    // Width of the bend-chi2/dof
     kD0Size = 13,         // Width of D0
-    kChi2RZSize = 4,      // Width of Chi2 for r-z
+    kChi2RZSize = 4,      // Width of chi2/dof for r-z
     kZ0Size = 12,         // Width of z-position (40cm / 0.1)
     kTanlSize = 16,       // Width of tan(lambda)
-    kChi2RPhiSize = 4,    // Width of Chi2 for r-phi
+    kChi2RPhiSize = 4,    // Width of chi2/dof for r-phi
     kPhiSize = 12,        // Width of phi
     kRinvSize = 15,       // Width of Rinv
     kValidSize = 1,       // Valid bit
@@ -88,12 +96,17 @@ public:
   static constexpr double stepZ0 = (2. * std::abs(minZ0)) / (1 << TrackBitWidths::kZ0Size);
   static constexpr double stepD0 = (1. / (1 << 8));
 
+  // Bin edges for chi2/dof
   static constexpr std::array<double, 1 << TrackBitWidths::kChi2RPhiSize> chi2RPhiBins = {
-      {0., 0.25, 0.5, 1., 2., 3., 5., 7., 10., 20., 40., 100., 200., 500., 1000., 3000.}};
+      {0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0}};
   static constexpr std::array<double, 1 << TrackBitWidths::kChi2RZSize> chi2RZBins = {
-      {0., 0.25, 0.5, 1., 2., 3., 5., 7., 10., 20., 40., 100., 200., 500., 1000., 3000.}};
+      {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0}};
   static constexpr std::array<double, 1 << TrackBitWidths::kBendChi2Size> bendChi2Bins = {
-      {0., 0.5, 1.25, 2., 3., 5., 10., 50.}};
+      {0.0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0}};
+
+  // Sector constants
+  static constexpr unsigned int nSectors = 9;
+  static constexpr double sectorWidth = (2. * M_PI) / nSectors;
 
   // Track flags
   typedef ap_uint<TrackBitWidths::kValidSize> valid_t;  // valid bit
@@ -129,10 +142,11 @@ public:
                     double bendChi2,
                     unsigned int hitPattern,
                     unsigned int mvaQuality,
-                    unsigned int mvaOther);
+                    unsigned int mvaOther,
+                    unsigned int sector);
   TTTrack_TrackWord(unsigned int valid,
                     unsigned int rInv,
-                    unsigned int phi0,
+                    unsigned int phi0,  // local phi
                     unsigned int tanl,
                     unsigned int z0,
                     unsigned int d0,
@@ -200,11 +214,11 @@ public:
   // These functions return the unpacked and converted values
   // These functions return real numbers converted from the digitized quantities by unpacking the 96-bit track word
   bool getValid() const { return getValidWord().to_bool(); }
-  double getRinv() const { return unpackSignedValue(getRinvBits(), TrackBitWidths::kRinvSize, stepRinv); }
-  double getPhi() const { return unpackSignedValue(getPhiBits(), TrackBitWidths::kPhiSize, stepPhi0); }
-  double getTanl() const { return unpackSignedValue(getTanlBits(), TrackBitWidths::kTanlSize, stepTanL); }
-  double getZ0() const { return unpackSignedValue(getZ0Bits(), TrackBitWidths::kZ0Size, stepZ0); }
-  double getD0() const { return unpackSignedValue(getD0Bits(), TrackBitWidths::kD0Size, stepD0); }
+  double getRinv() const { return undigitizeSignedValue(getRinvBits(), TrackBitWidths::kRinvSize, stepRinv); }
+  double getPhi() const { return undigitizeSignedValue(getPhiBits(), TrackBitWidths::kPhiSize, stepPhi0); }
+  double getTanl() const { return undigitizeSignedValue(getTanlBits(), TrackBitWidths::kTanlSize, stepTanL); }
+  double getZ0() const { return undigitizeSignedValue(getZ0Bits(), TrackBitWidths::kZ0Size, stepZ0); }
+  double getD0() const { return undigitizeSignedValue(getD0Bits(), TrackBitWidths::kD0Size, stepD0); }
   double getChi2RPhi() const { return chi2RPhiBins[getChi2RPhiBits()]; }
   double getChi2RZ() const { return chi2RZBins[getChi2RZBits()]; }
   double getBendChi2() const { return bendChi2Bins[getBendChi2Bits()]; }
@@ -222,11 +236,12 @@ public:
                     double bendChi2,
                     unsigned int hitPattern,
                     unsigned int mvaQuality,
-                    unsigned int mvaOther);
+                    unsigned int mvaOther,
+                    unsigned int sector);
 
   void setTrackWord(unsigned int valid,
                     unsigned int rInv,
-                    unsigned int phi0,
+                    unsigned int phi0,  // local phi
                     unsigned int tanl,
                     unsigned int z0,
                     unsigned int d0,
@@ -239,7 +254,7 @@ public:
 
   void setTrackWord(ap_uint<TrackBitWidths::kValidSize> valid,
                     ap_uint<TrackBitWidths::kRinvSize> rInv,
-                    ap_uint<TrackBitWidths::kPhiSize> phi0,
+                    ap_uint<TrackBitWidths::kPhiSize> phi0,  // local phi
                     ap_uint<TrackBitWidths::kTanlSize> tanl,
                     ap_uint<TrackBitWidths::kZ0Size> z0,
                     ap_uint<TrackBitWidths::kD0Size> d0,
@@ -250,16 +265,36 @@ public:
                     ap_uint<TrackBitWidths::kMVAQualitySize> mvaQuality,
                     ap_uint<TrackBitWidths::kMVAOtherSize> mvaOther);
 
+  // ----------member functions (testers) ------------
+  bool singleDigitizationSchemeTest(const double floatingPointValue, const unsigned int nBits, const double lsb) const;
+  void testDigitizationScheme() const;
+
+protected:
+  // ----------protected member functions ------------
+  float localPhi(float globalPhi, unsigned int sector) const {
+    return reco::deltaPhi(globalPhi, (sector * sectorWidth));
+  }
+
 private:
   // ----------private member functions --------------
   unsigned int digitizeSignedValue(double value, unsigned int nBits, double lsb) const {
-    unsigned int digitized_value = std::floor(std::abs(value) / lsb);
-    unsigned int digitized_maximum = (1 << (nBits - 1)) - 1;  // The remove 1 bit from nBits to account for the sign
-    if (digitized_value > digitized_maximum)
-      digitized_value = digitized_maximum;
-    if (value < 0)
-      digitized_value = (1 << nBits) - digitized_value;  // two's complement encoding
-    return digitized_value;
+    // Digitize the incoming value
+    int digitizedValue = std::floor(value / lsb);
+
+    // Calculate the maxmum possible positive value given an output of nBits in size
+    int digitizedMaximum = (1 << (nBits - 1)) - 1;  // The remove 1 bit from nBits to account for the sign
+    int digitizedMinimum = -1. * (digitizedMaximum + 1);
+
+    // Saturate the digitized value
+    digitizedValue = std::clamp(digitizedValue, digitizedMinimum, digitizedMaximum);
+
+    // Do the two's compliment encoding
+    unsigned int twosValue = digitizedValue;
+    if (digitizedValue < 0) {
+      twosValue += (1 << nBits);
+    }
+
+    return twosValue;
   }
 
   template <typename T>
@@ -268,14 +303,20 @@ private:
     return (up - bins.begin() - 1);
   }
 
-  double unpackSignedValue(unsigned int bits, unsigned int nBits, double lsb) const {
-    int isign = 1;
-    unsigned int digitized_maximum = (1 << nBits) - 1;
-    if (bits & (1 << (nBits - 1))) {  // check the sign
-      isign = -1;
-      bits = (1 << (nBits + 1)) - bits;  // if negative, flip everything for two's complement encoding
+  double undigitizeSignedValue(unsigned int twosValue, unsigned int nBits, double lsb) const {
+    // Check that none of the bits above the nBits-1 bit, in a range of [0, nBits-1], are set.
+    // This makes sure that it isn't possible for the value represented by `twosValue` to be
+    //  any bigger than ((1 << nBits) - 1).
+    assert((twosValue >> nBits) == 0);
+
+    // Convert from twos compliment to C++ signed integer (normal digitized value)
+    int digitizedValue = twosValue;
+    if (twosValue & (1 << (nBits - 1))) {  // check if the twosValue is negative
+      digitizedValue -= (1 << nBits);
     }
-    return (double(bits & digitized_maximum) + 0.5) * lsb * isign;
+
+    // Convert to floating point value
+    return (double(digitizedValue) + 0.5) * lsb;
   }
 
   // ----------member data ---------------------------

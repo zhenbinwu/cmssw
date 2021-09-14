@@ -71,6 +71,10 @@ _phase2_siml1emulator = SimL1EmulatorTask.copy()
 # ########################################################################
 # Phase-2 Trigger Primitives
 # ########################################################################
+from L1Trigger.DTTriggerPhase2.CalibratedDigis_cfi import *
+_phase2_siml1emulator.add(CalibratedDigis)
+from L1Trigger.DTTriggerPhase2.dtTriggerPhase2PrimitiveDigis_cfi import *
+_phase2_siml1emulator.add(dtTriggerPhase2PrimitiveDigis)
 
 # HGCAL TP 
 # ########################################################################
@@ -120,6 +124,7 @@ from L1Trigger.VertexFinder.VertexProducer_cff import *
 L1VertexFinder = VertexProducer.clone()
 L1VertexFinderEmulator = VertexProducer.clone()
 L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
+L1VertexFinderEmulator.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
 _phase2_siml1emulator.add(L1VertexFinder)
 _phase2_siml1emulator.add(L1GTTInputProducer)
 _phase2_siml1emulator.add(L1VertexFinderEmulator)
@@ -148,7 +153,9 @@ _phase2_siml1emulator.add( L1TkGlbMuons )
 # ########################################################################
 from L1Trigger.Phase2L1GMT.gmt_cfi  import *
 L1TkStubsGmt = gmtStubs.clone()
-L1TkMuonsGmt = gmtMuons.clone()
+L1TkMuonsGmt = gmtMuons.clone(
+    srcStubs  = cms.InputTag('L1TkStubsGmt')
+)
 L1SAMuonsGmt = standaloneMuons.clone()
 _phase2_siml1emulator.add( L1TkStubsGmt )
 _phase2_siml1emulator.add( L1TkMuonsGmt )

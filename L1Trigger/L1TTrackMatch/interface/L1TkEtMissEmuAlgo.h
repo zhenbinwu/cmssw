@@ -12,6 +12,7 @@
 
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 using namespace std;
 // Namespace that defines constants and types used by the EtMiss Emulation
