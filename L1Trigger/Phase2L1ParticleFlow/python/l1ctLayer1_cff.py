@@ -8,8 +8,8 @@ from L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi import pfClu
 from l1TkEgAlgoEmulator_cfi import tkEgAlgoParameters
 
 muonInputConversionParameters = cms.PSet(
-    z0Scale = cms.double(1.8),
-    dxyScale = cms.double(3.0)
+    z0Scale = cms.double(1.875),
+    dxyScale = cms.double(3.85)
 )
 
 l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
