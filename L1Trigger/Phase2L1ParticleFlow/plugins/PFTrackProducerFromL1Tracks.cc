@@ -15,19 +15,6 @@
 
 #include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
-namespace {
-  unsigned int reDigitize(float val, float lsb, int bits, bool isSigned = true) {
-    int digi = std::floor(val / lsb);  // tracker convention is to round down
-    if (isSigned) {
-      digi = std::min(std::max(digi, -(1 << (bits - 1))), (1 << (bits - 1)) - 1);
-      return (digi >= 0) ? digi : digi + (1 << bits);
-    } else {
-      digi = std::min(std::max(digi, 0), (1 << bits) - 1);
-      return digi;
-    }
-  }
-}  // namespace
-
 namespace l1tpf {
   class PFTrackProducerFromL1Tracks : public edm::stream::EDProducer<> {
   public:
@@ -108,27 +95,22 @@ void l1tpf::PFTrackProducerFromL1Tracks::produce(edm::Event &iEvent, const edm::
                       quality);
 
     if (redigitizeTrackWord_) {
+      // Force re-digitization if an old TTrack object is read from an EDM file, and update the quaility bit for now
+      l1t::PFTrack::L1TTTrackType trackCopy = tk;
+      trackCopy.setTrackWordBits();  // important
       TTTrack_TrackWord &tw = out->back().trackWord();
-      float localPhi = reco::deltaPhi(phi, tk.phiSector() * (2 * M_PI / 9));
-      unsigned int packed_rInv = reDigitize(tk.rInv(), TTTrack_TrackWord::stepRinv, TTTrack_TrackWord::kRinvSize);
-      unsigned int packed_phi0 = reDigitize(localPhi, TTTrack_TrackWord::stepPhi0, TTTrack_TrackWord::kPhiSize);
-      unsigned int packed_tanl =
-          reDigitize(tk.momentum().z() / pt, TTTrack_TrackWord::stepTanL, TTTrack_TrackWord::kTanlSize);
-      unsigned int packed_z0 = reDigitize(z0, TTTrack_TrackWord::stepZ0, TTTrack_TrackWord::kZ0Size);
-      unsigned int packed_d0 = reDigitize(tk.POCA().perp(), TTTrack_TrackWord::stepD0, TTTrack_TrackWord::kD0Size);
-
-      tw.setTrackWord(tw.getValid(),
-                      packed_rInv,
-                      packed_phi0,
-                      packed_tanl,
-                      packed_z0,
-                      packed_d0,
-                      tw.getChi2RPhi(),
-                      tw.getChi2RZ(),
-                      tw.getBendChi2(),
-                      tw.getHitPattern(),
-                      tw.getMVAQuality(),
-                      quality);
+      tw.setTrackWord(trackCopy.getValidWord(),
+                      trackCopy.getRinvWord(),
+                      trackCopy.getPhiWord(),
+                      trackCopy.getTanlWord(),
+                      trackCopy.getZ0Word(),
+                      trackCopy.getD0Word(),
+                      trackCopy.getChi2RPhiWord(),
+                      trackCopy.getChi2RZWord(),
+                      trackCopy.getBendChi2Word(),
+                      trackCopy.getHitPatternWord(),
+                      trackCopy.getMVAQualityWord(),
+                      ap_uint<TTTrack_TrackWord::kMVAOtherSize>(quality));
     }
   }
   iEvent.put(std::move(out));
