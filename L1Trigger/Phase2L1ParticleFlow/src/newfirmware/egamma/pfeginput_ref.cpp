@@ -29,7 +29,8 @@ void EGInputSelectorEmulator::select_eginput(const l1ct::HadCaloObjEmu &in,
   out.hwEta = in.hwEta;
   out.hwPhi = in.hwPhi;
   out.hwPtErr = 0;
-  out.hwEmID = in.hwEmID;
+  // shift to get rid of PFEM ID bit (more usable final EG quality)
+  out.hwEmID = (in.hwEmID >> 1);
   valid_out = (in.hwEmID & cfg.idMask) != 0;
 }
 
