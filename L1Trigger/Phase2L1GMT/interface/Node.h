@@ -109,26 +109,30 @@ namespace Phase2L1GMT {
       std::vector<l1t::TrackerMuon> trackMatchedMuonsNoIso = track_mu_match_->convert(muCleaned, 32);
 
       //Isolation and tau3mu will read those muons and all 9 collections of convertedTracks*
-      std::vector<ConvertedTTTrack> convertedTracks = convertedTracks0;
-      std::copy(convertedTracks1.begin(), convertedTracks1.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks2.begin(), convertedTracks2.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks3.begin(), convertedTracks3.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks4.begin(), convertedTracks4.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks5.begin(), convertedTracks5.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks6.begin(), convertedTracks6.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks7.begin(), convertedTracks7.end(), std::back_inserter(convertedTracks));
-      std::copy(convertedTracks8.begin(), convertedTracks8.end(), std::back_inserter(convertedTracks));
+      convertedTracks_ = convertedTracks0;
+      std::copy(convertedTracks1.begin(), convertedTracks1.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks2.begin(), convertedTracks2.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks3.begin(), convertedTracks3.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks4.begin(), convertedTracks4.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks5.begin(), convertedTracks5.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks6.begin(), convertedTracks6.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks7.begin(), convertedTracks7.end(), std::back_inserter(convertedTracks_));
+      std::copy(convertedTracks8.begin(), convertedTracks8.end(), std::back_inserter(convertedTracks_));
 
       //sorter here:
       std::vector<l1t::TrackerMuon> sortedTrackMuonsNoIso = track_mu_match_->sort(trackMatchedMuonsNoIso, 12);
 
-      isolation_->isolation_allmu_alltrk(sortedTrackMuonsNoIso, convertedTracks);
-
-      tauto3mu_->GetTau3Mu(sortedTrackMuonsNoIso, convertedTracks);
+      isolation_->isolation_allmu_alltrk(sortedTrackMuonsNoIso, convertedTracks_);
 
       track_mu_match_->outputGT(sortedTrackMuonsNoIso);
 
       return sortedTrackMuonsNoIso;  //when we add more collections like tau3mu etc we change that
+    }
+
+
+    std::vector<l1t::Tau23Mu> prodTau23Mu(std::vector<l1t::TrackerMuon> &sortedTrackMuonsNoIso)
+    {
+      return tauto3mu_->GetTau3Mu(sortedTrackMuonsNoIso, convertedTracks_);
     }
 
   private:
@@ -138,6 +142,8 @@ namespace Phase2L1GMT {
     std::unique_ptr<TrackMuonMatchAlgorithm> track_mu_match_;
     std::unique_ptr<Isolation> isolation_;
     std::unique_ptr<Tauto3Mu> tauto3mu_;
+
+    std::vector<ConvertedTTTrack> convertedTracks_;
 
     std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> > associateTracksWithNonant(
         const std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> >& tracks, uint processor) {

@@ -28,7 +28,7 @@ namespace Phase2L1GMT {
     ~Tauto3Mu();
     Tauto3Mu(const Tauto3Mu &cpy);
     // Interface function
-    bool GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks);
+    std::vector<l1t::Tau23Mu> GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks);
 
   private:
     bool Find3MuComb(std::vector<l1t::TrackerMuon> &trkMus);
@@ -49,6 +49,7 @@ namespace Phase2L1GMT {
     bool verbose_;
     bool dumpForHLS_;
     std::ofstream dumpOutput;
+    std::vector<l1t::Tau23Mu> outtau;
   };
 
   Tauto3Mu::Tauto3Mu(const edm::ParameterSet &iConfig):
@@ -107,13 +108,14 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::GetTau3Mu
   //  Description:
   // ===========================================================================
-  bool Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks) {
+  std::vector<l1t::Tau23Mu> Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks) {
+    outtau.clear();
     if (trkMus.size() < 3)
-      return false;
+      return outtau;
 
     load(trkMus, convertedTracks);
     Find3MuComb(trkMus);
-    return true;
+    return outtau;
   }  // -----  end of function Tauto3Mu::GetTau3Mu  -----
 
   // ===  FUNCTION  ============================================================
@@ -136,6 +138,9 @@ namespace Phase2L1GMT {
     for (unsigned i = 0; i < trkMus.size(); ++i) {
       float trimass = Get3MuMass(i, nearby3mu.at(i).first, nearby3mu.at(i).second);
       mu3mass.push_back(trimass);
+
+      l1t::Tau23Mu temp(0, 0, 0, trimass, 0, i, nearby3mu.at(i).first, nearby3mu.at(i).second);
+      outtau.push_back(temp);
 
       if (dumpForHLS_) {
         float expMass = DumpInputs(i, nearby3mu.at(i).first, nearby3mu.at(i).second);
@@ -227,7 +232,9 @@ namespace Phase2L1GMT {
   int Tauto3Mu::Get3MuDphi(unsigned target, unsigned obj1, unsigned obj2) {
     int dPhi1 = deltaPhi(trkMus->at(target).hwPhi(), trkMus->at(obj1).hwPhi());
     int dPhi2 = deltaPhi(trkMus->at(target).hwPhi(), trkMus->at(obj2).hwPhi());
-    return dPhi1 + dPhi2;
+    int dEta1 = deltaEta(trkMus->at(target).hwEta(), trkMus->at(obj1).hwEta());
+    int dEta2 = deltaEta(trkMus->at(target).hwEta(), trkMus->at(obj2).hwEta());
+    return dPhi1 + dPhi2 + dEta1 + dEta2;
   }
 }  // namespace Phase2L1GMT
 

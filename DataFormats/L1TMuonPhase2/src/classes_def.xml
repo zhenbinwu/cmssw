@@ -25,5 +25,13 @@
  <class name="edm::Wrapper<std::vector<l1t::SAMuon > >"/>
  <class name="edm::Ref<l1t::SAMuonCollection>" splitLevel="0"/>
  <class name="edm::Wrapper<edm::Ref<l1t::SAMuonCollection > >"/>
+
+ <class name="l1t::Tau23Mu"/>
+ <class name="std::vector<l1t::Tau23Mu>"/>
+ <class name="l1t::Tau23MuCollection"/>
+ <class name="edm::Wrapper<l1t::Tau23MuCollection >"/>
+ <class name="edm::Wrapper<std::vector<l1t::Tau23Mu > >"/>
+ <class name="edm::Ref<l1t::Tau23MuCollection>" splitLevel="0"/>
+ <class name="edm::Wrapper<edm::Ref<l1t::Tau23MuCollection > >"/>
  </selection>
 </lcgdict>

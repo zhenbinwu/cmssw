@@ -8,6 +8,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/StreamID.h"
 #include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
+#include "DataFormats/L1TMuonPhase2/interface/Tau23Mu.h"
 #include "L1Trigger/Phase2L1GMT/interface/Node.h"
 
 //
@@ -51,6 +52,7 @@ Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig)
 
 {
   produces<std::vector<l1t::TrackerMuon> >();
+  produces<std::vector<l1t::Tau23Mu> >();
 }
 
 Phase2L1TGMTProducer::~Phase2L1TGMTProducer() {
@@ -116,6 +118,10 @@ void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
   std::vector<l1t::TrackerMuon> out = node_->processEvent(tracks, muonTracks, stubs);
   std::unique_ptr<std::vector<l1t::TrackerMuon> > out1 = std::make_unique<std::vector<l1t::TrackerMuon> >(out);
   iEvent.put(std::move(out1));
+
+  std::vector<l1t::Tau23Mu> outtau = node_->prodTau23Mu(out);
+  std::unique_ptr<std::vector<l1t::Tau23Mu> > out2 = std::make_unique<std::vector<l1t::Tau23Mu> >(outtau);
+  iEvent.put(std::move(out2));
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------
