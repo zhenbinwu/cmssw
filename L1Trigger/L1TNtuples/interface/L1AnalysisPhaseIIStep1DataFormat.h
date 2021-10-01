@@ -240,6 +240,7 @@ namespace L1Analysis {
       gmtTkMuonIso.clear();
       gmtTkMuonQual.clear();
       gmtTkMuonBeta.clear();
+      gmtTkMuonNStubs.clear();
       gmtTkMuonBx.clear();
 
       nSeededConePuppiJets = 0;
@@ -538,6 +539,7 @@ namespace L1Analysis {
     std::vector<double> gmtTkMuonIso;
     std::vector<double> gmtTkMuonQual;
     std::vector<double> gmtTkMuonBeta;
+    std::vector<unsigned int> gmtTkMuonNStubs;
     std::vector<short int> gmtTkMuonBx;
 
 

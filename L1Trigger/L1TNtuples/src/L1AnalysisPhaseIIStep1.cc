@@ -1,6 +1,7 @@
 //This code is for filling the step1 menu objects, for full tree go for L1AnalysisPhaseII.c
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisPhaseIIStep1.h"
 #include "L1Trigger/L1TMuon/interface/MicroGMTConfiguration.h"
+#include "L1Trigger/Phase2L1GMT/interface/Constants.h"
 
 L1Analysis::L1AnalysisPhaseIIStep1::L1AnalysisPhaseIIStep1() {}
 
@@ -639,26 +640,14 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHTDisplaced(const edm::Handle<l1t
 
 //gmt muons
 void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon> > gmtMuon, unsigned maxL1Extra) {
-    const int BITSPHI = 13;
-    const int BITSETA = 13;
-    const int BITSZ0 = 10;
-    const int BITSD0 = 12;
 
-    const float maxZ0_ = 30.;
-    const float maxD0_ = 15.4;
+    const float lsb_pt = Phase2L1GMT::LSBpt;
+    const float lsb_phi = Phase2L1GMT::LSBphi;
+    const float lsb_eta = Phase2L1GMT::LSBeta;
+    const float lsb_z0 = Phase2L1GMT::LSBSAz0;
+    const float lsb_d0 = Phase2L1GMT::LSBSAd0;
 
-    const float lsb_pt = 0.03125;
-    const float lsb_phi = 2. * M_PI / pow(2, BITSPHI);
-    const float lsb_eta = 2. * M_PI / pow(2, BITSETA);
-    const float lsb_z0 = 2. * maxZ0_ / pow(2, BITSZ0);
-    const float lsb_d0 = 2. * maxD0_ / pow(2, BITSD0);
-    const float LSBSAz0 = 1.875;
-    const float LSBSAd0 = 3.85;
 
-    //const double lsb_pt = 0.025;  // 25MeV
-    //const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
-    //const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
-    //const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
     for (unsigned int i = 0; i < gmtMuon->size() && l1extra_.nGmtMuons < maxL1Extra; i++) {
       if (lsb_pt*gmtMuon->at(i).hwPt() > 0) {
         l1extra_.gmtMuonPt.push_back(lsb_pt*gmtMuon->at(i).hwPt()); //use pT
@@ -687,27 +676,13 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vecto
 
 //tkmuon gmt
 void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon,unsigned maxL1Extra) {
-    const int BITSPHI = 13;
-    const int BITSETA = 13;
-    const int BITSZ0 = 10;
-    const int BITSD0 = 12;
 
-    const float maxZ0_ = 30.;
-    const float maxD0_ = 15.4;
+    const float lsb_pt = Phase2L1GMT::LSBpt;
+    const float lsb_phi = Phase2L1GMT::LSBphi;
+    const float lsb_eta = Phase2L1GMT::LSBeta;
+    const float lsb_z0 = Phase2L1GMT::LSBGTz0;
+    const float lsb_d0 = Phase2L1GMT::LSBGTd0;
 
-    const float lsb_pt = 0.03125;
-    const float lsb_phi = 2. * M_PI / pow(2, BITSPHI);
-    const float lsb_eta = 2. * M_PI / pow(2, BITSETA);
-    const float lsb_z0 = 2. * maxZ0_ / pow(2, BITSZ0);
-    const float lsb_d0 = 2. * maxD0_ / pow(2, BITSD0);
-    const float LSBSAz0 = 1.875;
-    const float LSBSAd0 = 3.85;
-
-
-    //const double lsb_pt = 0.025;  // 25MeV
-    //const double lsb_eta = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSETA
-    //const double lsb_phi = 2. * M_PI / pow(2, 2); //this needs to be fixed for BITSPHI
-    //const double lsb_z0 = 60. / pow(2, 2); //this neess to be fixed for BITSZ0
     for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
       if (lsb_pt*gmtTkMuon->at(i).hwPt() > 0) {
         l1extra_.gmtTkMuonPt.push_back(lsb_pt*gmtTkMuon->at(i).hwPt()); //use pT
@@ -727,6 +702,7 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vec
         l1extra_.gmtTkMuonQual.push_back(gmtTkMuon->at(i).hwQual());
         l1extra_.gmtTkMuonBeta.push_back(gmtTkMuon->at(i).hwBeta());
 
+        l1extra_.gmtTkMuonNStubs.push_back(gmtTkMuon->at(i).stubs().size());
         l1extra_.gmtTkMuonBx.push_back(0); //is this just 0 always?
 
         l1extra_.nGmtTkMuons++;
