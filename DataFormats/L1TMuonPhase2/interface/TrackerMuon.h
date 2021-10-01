@@ -44,8 +44,8 @@ namespace l1t {
     void setHwIsoSum(int isoSum) { hwIsoSum_ = isoSum; }
     void setHwIsoSumAp(int isoSum) { hwIsoSumAp_ = isoSum; }
 
-    const uint64_t word() const { return word_; }
-    void setWord(uint64_t word) { word_ = word; }
+    const std::array<uint64_t, 2> word() const { return word_; }
+    void setWord(std::array<uint64_t, 2> word) { word_ = word; }
     void print() const;
     const MuonStubRefVector stubs() const { return stubs_; }
     void addStub(const MuonStubRef& stub) { stubs_.push_back(stub); }
@@ -60,7 +60,8 @@ namespace l1t {
     int hwZ0_;
     int hwD0_;
     uint hwBeta_;
-    uint64_t word_;
+    // The tracker muon is encoded in 96 bits as a 2-element array of uint64_t
+    std::array<uint64_t, 2> word_ = {{0, 0}};
     //Store the eneryg sum for isolation
     int hwIsoSum_;
     //Store the eneryg sum for isolation with ap_type

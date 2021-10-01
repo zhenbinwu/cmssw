@@ -124,7 +124,9 @@ namespace Phase2L1GMT {
 
       isolation_->isolation_allmu_alltrk(sortedTrackMuonsNoIso, convertedTracks);
 
-      //tauto3mu_->GetTau3Mu(sortedTrackMuonsNoIso, convertedTracks );
+      //tauto3mu_->GetTau3Mu(sortedTrackMuonsNoIso, convertedTracks);
+
+      track_mu_match_->outputGT(sortedTrackMuonsNoIso);
 
       return sortedTrackMuonsNoIso;  //when we add more collections like tau3mu etc we change that
     }
