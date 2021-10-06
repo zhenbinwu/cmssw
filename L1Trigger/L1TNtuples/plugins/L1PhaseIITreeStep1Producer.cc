@@ -544,12 +544,7 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   }
 
   if (muon.isValid()) {
-    l1Extra->SetMuon(muon, maxL1Extra_);  if (TkGlbMuon.isValid()) {
-    l1Extra->SetTkGlbMuon(TkGlbMuon, maxL1Extra_);
-  } else {
-    edm::LogWarning("MissingProduct") << "L1PhaseII TkGlbMuons not found. Branch will not be filled" << std::endl;
-  }
-
+    l1Extra->SetMuon(muon, maxL1Extra_);  
   } else {
     edm::LogWarning("MissingProduct") << "L1Upgrade Muons not found. Branch will not be filled" << std::endl;
   }
