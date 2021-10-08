@@ -21,6 +21,8 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/l1-converters/tracks/tkinput_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/l1-converters/muons/muonGmtToL1ct_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/common/regionizer_base_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/multififo/multififo_regionizer_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/regionizer/tdr/tdr_regionizer_ref.h"
@@ -29,9 +31,6 @@
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo_dummy_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/puppi/linpuppi_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/pftkegalgo_ref.h"
-
-#include "DataFormats/L1TCorrelator/interface/TkMuon.h"
-#include "DataFormats/L1TCorrelator/interface/TkMuonFwd.h"
 
 #include "DataFormats/L1TCorrelator/interface/TkElectron.h"
 #include "DataFormats/L1TCorrelator/interface/TkElectronFwd.h"
@@ -49,9 +48,6 @@ private:
   edm::ParameterSet config_;
   int debug_;
 
-  bool useStandaloneMuons_;
-  bool useTrackerMuons_;
-
   bool hasTracks_;
   edm::EDGetTokenT<l1t::PFTrackCollection> tkCands_;
   float trkPt_;
@@ -59,8 +55,7 @@ private:
   edm::EDGetTokenT<std::vector<l1t::Vertex>> extTkVtx_;
   edm::EDGetTokenT<std::vector<l1t::VertexWord>> tkVtxEmu_;
 
-  edm::EDGetTokenT<l1t::MuonBxCollection> muCands_;    // standalone muons
-  edm::EDGetTokenT<l1t::TkMuonCollection> tkMuCands_;  // tk muons
+  edm::EDGetTokenT<l1t::SAMuonCollection> muCands_;  // standalone muons
 
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> emCands_;
   std::vector<edm::EDGetTokenT<l1t::PFClusterCollection>> hadCands_;
@@ -68,6 +63,8 @@ private:
   float emPtCut_, hadPtCut_;
 
   l1ct::Event event_;
+  std::unique_ptr<l1ct::TrackInputEmulator> trackInput_;
+  std::unique_ptr<l1ct::GMTMuonDecoderEmulator> muonInput_;
   std::unique_ptr<l1ct::RegionizerEmulator> regionizer_;
   std::unique_ptr<l1ct::PFAlgoEmulatorBase> l1pfalgo_;
   std::unique_ptr<l1ct::LinPuppiEmulator> l1pualgo_;
@@ -76,6 +73,7 @@ private:
   bool writeEgSta_;
   // Region dump
   const std::string regionDumpName_;
+  bool writeRawHgcalCluster_;
   std::fstream fRegionDump_;
 
   // region of interest debugging
@@ -84,7 +82,7 @@ private:
   // these are used to link items back
   std::unordered_map<const l1t::PFCluster *, l1t::PFClusterRef> clusterRefMap_;
   std::unordered_map<const l1t::PFTrack *, l1t::PFTrackRef> trackRefMap_;
-  std::unordered_map<const l1t::Muon *, l1t::PFCandidate::MuonRef> muonRefMap_;
+  std::unordered_map<const l1t::SAMuon *, l1t::PFCandidate::MuonRef> muonRefMap_;
 
   // main methods
   void beginStream(edm::StreamID) override;
@@ -95,14 +93,17 @@ private:
   void initEvent(const edm::Event &e);
   // add object, tracking references
   void addTrack(const l1t::PFTrack &t, l1t::PFTrackRef ref);
-  void addMuon(const l1t::Muon &t, l1t::PFCandidate::MuonRef ref);
+  void addMuon(const l1t::SAMuon &t, l1t::PFCandidate::MuonRef ref);
   void addHadCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
   void addEmCalo(const l1t::PFCluster &t, l1t::PFClusterRef ref);
   // add objects in already-decoded format
   void addDecodedTrack(l1ct::DetectorSector<l1ct::TkObjEmu> &sec, const l1t::PFTrack &t);
-  void addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t);
+  void addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::SAMuon &t);
   void addDecodedHadCalo(l1ct::DetectorSector<l1ct::HadCaloObjEmu> &sec, const l1t::PFCluster &t);
   void addDecodedEmCalo(l1ct::DetectorSector<l1ct::EmCaloObjEmu> &sec, const l1t::PFCluster &t);
+
+  void addRawHgcalCluster(l1ct::DetectorSector<ap_uint<256>> &sec, const l1t::PFCluster &c);
+
   // fetching outputs
   std::unique_ptr<l1t::PFCandidateCollection> fetchHadCalo() const;
   std::unique_ptr<l1t::PFCandidateCollection> fetchEmCalo() const;
@@ -135,14 +136,11 @@ private:
 L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet &iConfig)
     : config_(iConfig),
       debug_(iConfig.getUntrackedParameter<int>("debug", 0)),
-      useStandaloneMuons_(true),  //iConfig.getParameter<bool>("useStandaloneMuons")),
-      useTrackerMuons_(false),    //iConfig.getParameter<bool>("useTrackerMuons")),
       hasTracks_(!iConfig.getParameter<edm::InputTag>("tracks").label().empty()),
       tkCands_(hasTracks_ ? consumes<l1t::PFTrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"))
                           : edm::EDGetTokenT<l1t::PFTrackCollection>()),
       trkPt_(iConfig.getParameter<double>("trkPtCut")),
-      muCands_(consumes<l1t::MuonBxCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
-      //tkMuCands_(consumes<l1t::TkMuonCollection>(iConfig.getParameter<edm::InputTag>("tkMuons"))),
+      muCands_(consumes<l1t::SAMuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
       emPtCut_(iConfig.getParameter<double>("emPtCut")),
       hadPtCut_(iConfig.getParameter<double>("hadPtCut")),
       regionizer_(nullptr),
@@ -150,6 +148,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
       l1pualgo_(nullptr),
       l1tkegalgo_(nullptr),
       regionDumpName_(iConfig.getUntrackedParameter<std::string>("dumpFileName", "")),
+      writeRawHgcalCluster_(iConfig.getUntrackedParameter<bool>("writeRawHgcalCluster", false)),
       debugEta_(iConfig.getUntrackedParameter<double>("debugEta", 0)),
       debugPhi_(iConfig.getUntrackedParameter<double>("debugPhi", 0)),
       debugR_(iConfig.getUntrackedParameter<double>("debugR", -1)) {
@@ -170,6 +169,22 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   for (const auto &tag : iConfig.getParameter<std::vector<edm::InputTag>>("hadClusters")) {
     hadCands_.push_back(consumes<l1t::PFClusterCollection>(tag));
   }
+
+  if (hasTracks_) {
+    const std::string &tkInAlgo = iConfig.getParameter<std::string>("trackInputConversionAlgo");
+    if (tkInAlgo == "Emulator") {
+      trackInput_ = std::make_unique<l1ct::TrackInputEmulator>(
+          iConfig.getParameter<edm::ParameterSet>("trackInputConversionParameters"));
+    } else if (tkInAlgo != "Ideal")
+      throw cms::Exception("Configuration", "Unsupported trackInputConversionAlgo");
+  }
+
+  const std::string &muInAlgo = iConfig.getParameter<std::string>("muonInputConversionAlgo");
+  if (muInAlgo == "Emulator") {
+    muonInput_ = std::make_unique<l1ct::GMTMuonDecoderEmulator>(
+        iConfig.getParameter<edm::ParameterSet>("muonInputConversionParameters"));
+  } else if (muInAlgo != "Ideal")
+    throw cms::Exception("Configuration", "Unsupported muonInputConversionAlgo");
 
   const std::string &regalgo = iConfig.getParameter<std::string>("regionizerAlgo");
   if (regalgo == "Ideal") {
@@ -264,33 +279,20 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
       // adding objects to PF
       if (debugR_ > 0 && deltaR(tk.eta(), tk.phi(), debugEta_, debugPhi_) > debugR_)
         continue;
-      if (tk.pt() > trkPt_ && tk.quality() > 0) {
+      if (tk.pt() > trkPt_) {
         addTrack(tk, l1t::PFTrackRef(htracks, itk));
       }
     }
   }
 
   /// ------ READ MUONS ----
-  /// ------- first check that not more than one version of muons (standaloneMu or trackerMu) is set to be used in l1pflow
-  if (useStandaloneMuons_ && useTrackerMuons_) {
-    throw cms::Exception(
-        "Configuration",
-        "setting useStandaloneMuons=True && useTrackerMuons=True is not to be done, as it would duplicate all muons\n");
-  }
-
-  if (useStandaloneMuons_) {
-    edm::Handle<l1t::MuonBxCollection> muons;
-    iEvent.getByToken(muCands_, muons);
-    for (auto it = muons->begin(0), ed = muons->end(0); it != ed; ++it) {
-      const l1t::Muon &mu = *it;
-      if (debugR_ > 0 && deltaR(mu.eta(), mu.phi(), debugEta_, debugPhi_) > debugR_)
-        continue;
-      addMuon(mu, l1t::PFCandidate::MuonRef(muons, muons->key(it)));
-    }
-  }
-
-  if (useTrackerMuons_) {
-    throw cms::Exception("Configuration", "Unsupported for now");
+  edm::Handle<l1t::SAMuonCollection> muons;
+  iEvent.getByToken(muCands_, muons);
+  for (unsigned int i = 0, n = muons->size(); i < n; ++i) {
+    const l1t::SAMuon &mu = (*muons)[i];
+    if (debugR_ > 0 && deltaR(mu.eta(), mu.phi(), debugEta_, debugPhi_) > debugR_)
+      continue;
+    addMuon(mu, l1t::PFCandidate::MuonRef(muons, i));
   }
 
   // ------ READ CALOS -----
@@ -436,11 +438,14 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     for (unsigned int iphi = 0; iphi < TF_phiSlices; ++iphi) {
       float phiCenter = reco::reduceRange(iphi * TF_phiWidth);
       event_.decoded.track.emplace_back((ieta ? 0. : -2.5), (ieta ? 2.5 : 0.0), phiCenter, TF_phiWidth);
+      event_.raw.track.emplace_back((ieta ? 0. : -2.5), (ieta ? 2.5 : 0.0), phiCenter, TF_phiWidth);
     }
   }
 
   event_.decoded.emcalo.clear();
   event_.decoded.hadcalo.clear();
+  event_.raw.hgcalcluster.clear();
+
   for (const edm::ParameterSet &preg : iConfig.getParameter<std::vector<edm::ParameterSet>>("caloSectors")) {
     std::vector<double> etaBoundaries = preg.getParameter<std::vector<double>>("etaBoundaries");
     if (!std::is_sorted(etaBoundaries.begin(), etaBoundaries.end()))
@@ -454,14 +459,17 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
       if (etaWidth > 2 * l1ct::Scales::maxAbsEta())
         throw cms::Exception("Configuration", "caloSectors eta range too large for eta_t data type");
       for (unsigned int iphi = 0; iphi < phiSlices; ++iphi) {
-        float phiCenter = reco::reduceRange(iphi * phiWidth);  //align with L1 TrackFinder phi sector indexing for now
+        float phiCenter = reco::reduceRange(iphi * phiWidth +
+                                            M_PI / 6.);  //L1 TrackFinder phi sector and HGCal sectors shifted by 30deg
         event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
         event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
       }
     }
   }
 
   event_.decoded.muon.region = l1ct::PFRegionEmu(0., 0.);  // centered at (0,0)
+  event_.raw.muon.region = l1ct::PFRegionEmu(0., 0.);      // centered at (0,0)
 
   event_.pfinputs.clear();
   for (const edm::ParameterSet &preg : iConfig.getParameter<std::vector<edm::ParameterSet>>("regions")) {
@@ -493,21 +501,28 @@ void L1TCorrelatorLayer1Producer::initEvent(const edm::Event &iEvent) {
 }
 
 void L1TCorrelatorLayer1Producer::addTrack(const l1t::PFTrack &t, l1t::PFTrackRef ref) {
+  auto &rawsectors = event_.raw.track;
   auto &sectors = event_.decoded.track;
-  assert(sectors.size() == 18);
+  assert(sectors.size() == 18 && rawsectors.size() == 18);
   int isec = t.track()->phiSector() + (t.eta() >= 0 ? 9 : 0);
+  rawsectors[isec].obj.push_back(t.trackWord().getTrackWord());
   addDecodedTrack(sectors[isec], t);
   trackRefMap_[&t] = ref;
 }
-void L1TCorrelatorLayer1Producer::addMuon(const l1t::Muon &mu, l1t::PFCandidate::MuonRef ref) {
+void L1TCorrelatorLayer1Producer::addMuon(const l1t::SAMuon &mu, l1t::PFCandidate::MuonRef ref) {
+  event_.raw.muon.obj.emplace_back(mu.word());
   addDecodedMuon(event_.decoded.muon, mu);
   muonRefMap_[&mu] = ref;
 }
 void L1TCorrelatorLayer1Producer::addHadCalo(const l1t::PFCluster &c, l1t::PFClusterRef ref) {
+  int sidx = 0;
   for (auto &sec : event_.decoded.hadcalo) {
     if (sec.region.contains(c.eta(), c.phi())) {
       addDecodedHadCalo(sec, c);
+      if (writeRawHgcalCluster_)
+        addRawHgcalCluster(event_.raw.hgcalcluster[sidx], c);
     }
+    sidx++;
   }
   clusterRefMap_[&c] = ref;
 }
@@ -521,33 +536,56 @@ void L1TCorrelatorLayer1Producer::addEmCalo(const l1t::PFCluster &c, l1t::PFClus
 }
 
 void L1TCorrelatorLayer1Producer::addDecodedTrack(l1ct::DetectorSector<l1ct::TkObjEmu> &sec, const l1t::PFTrack &t) {
-  l1ct::TkObjEmu tk;
-  tk.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  tk.hwEta = l1ct::Scales::makeEta(sec.region.localEta(t.caloEta()));
-  tk.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(t.caloPhi()));
-  tk.hwCharge = t.charge() > 0;
-  tk.hwQuality = t.quality();
-  tk.hwDEta = l1ct::Scales::makeEta(t.eta() - t.caloEta());
-  tk.hwDPhi = l1ct::Scales::makePhi(std::abs(reco::deltaPhi(t.phi(), t.caloPhi())));
-  tk.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
-  tk.hwDxy = 0;
-  tk.hwChi2 = round(t.chi2() * 10);
-  tk.hwStubs = t.nStubs();
-  tk.src = &t;
-  sec.obj.push_back(tk);
+  std::pair<l1ct::TkObjEmu, bool> tkAndSel;
+  if (trackInput_) {
+    tkAndSel = trackInput_->decodeTrack(t.trackWord().getTrackWord(), sec.region);
+  } else {
+    tkAndSel.first.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
+    tkAndSel.first.hwEta =
+        l1ct::Scales::makeGlbEta(t.caloEta()) -
+        sec.region.hwEtaCenter;  // important to enforce that the region boundary is on a discrete value
+    tkAndSel.first.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(t.caloPhi()));
+    tkAndSel.first.hwCharge = t.charge() > 0;
+    tkAndSel.first.hwQuality = t.quality();
+    tkAndSel.first.hwDEta = l1ct::Scales::makeEta(t.eta() - t.caloEta());
+    tkAndSel.first.hwDPhi = l1ct::Scales::makePhi(std::abs(reco::deltaPhi(t.phi(), t.caloPhi())));
+    tkAndSel.first.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
+    tkAndSel.first.hwDxy = 0;
+    tkAndSel.second = t.quality() > 0;
+  }
+  // CMSSW-only extra info
+  tkAndSel.first.hwChi2 = round(t.chi2() * 10);
+  tkAndSel.first.hwStubs = t.nStubs();
+  tkAndSel.first.simPt = t.pt();
+  tkAndSel.first.simCaloEta = t.caloEta();
+  tkAndSel.first.simCaloPhi = t.caloPhi();
+  tkAndSel.first.simVtxEta = t.eta();
+  tkAndSel.first.simVtxPhi = t.phi();
+  tkAndSel.first.simZ0 = t.vertex().Z();
+  tkAndSel.first.simD0 = t.vertex().Rho();
+  tkAndSel.first.src = &t;
+  // If the track fails, we set its pT to zero, so that the decoded tracks are still aligned with the raw tracks
+  // Downstream, the regionizer will just ignore zero-momentum tracks
+  if (!tkAndSel.second)
+    tkAndSel.first.hwPt = 0;
+  sec.obj.push_back(tkAndSel.first);
 }
 
-void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::Muon &t) {
+void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuObjEmu> &sec, const l1t::SAMuon &t) {
   l1ct::MuObjEmu mu;
-  mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
-  mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
-  mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
-  mu.hwCharge = t.charge() > 0;
-  mu.hwQuality = t.hwQual();
-  mu.hwDEta = 0;
-  mu.hwDPhi = 0;
-  mu.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
-  mu.hwDxy = 0;
+  if (muonInput_) {
+    mu = muonInput_->decode(t.word());
+  } else {
+    mu.hwPt = l1ct::Scales::makePtFromFloat(t.pt());
+    mu.hwEta = l1ct::Scales::makeGlbEta(t.eta());  // IMPORTANT: input is in global coordinates!
+    mu.hwPhi = l1ct::Scales::makeGlbPhi(t.phi());
+    mu.hwCharge = !t.hwCharge();
+    mu.hwQuality = t.hwQual() / 2;
+    mu.hwDEta = 0;
+    mu.hwDPhi = 0;
+    mu.hwZ0 = l1ct::Scales::makeZ0(t.vertex().Z());
+    mu.hwDxy = 0;  // Dxy not defined yet
+  }
   mu.src = &t;
   sec.obj.push_back(mu);
 }
@@ -556,7 +594,8 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
                                                     const l1t::PFCluster &c) {
   l1ct::HadCaloObjEmu calo;
   calo.hwPt = l1ct::Scales::makePtFromFloat(c.pt());
-  calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
+  calo.hwEta = l1ct::Scales::makeGlbEta(c.eta()) -
+               sec.region.hwEtaCenter;  // important to enforce that the region boundary is on a discrete value
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwEmPt = l1ct::Scales::makePtFromFloat(c.emEt());
   calo.hwEmID = c.hwEmID();
@@ -564,11 +603,30 @@ void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::H
   sec.obj.push_back(calo);
 }
 
+void L1TCorrelatorLayer1Producer::addRawHgcalCluster(l1ct::DetectorSector<ap_uint<256>> &sec, const l1t::PFCluster &c) {
+  ap_uint<256> cwrd = 0;
+  ap_uint<14> w_pt = round(c.pt() / 0.25);
+  ap_uint<14> w_empt = round(c.emEt() / 0.25);
+  constexpr float ETAPHI_LSB = M_PI / 720;
+  ap_int<9> w_eta = round(sec.region.localEta(c.eta()) / ETAPHI_LSB);
+  ap_int<9> w_phi = round(sec.region.localPhi(c.phi()) / ETAPHI_LSB);
+  ap_uint<10> w_qual = c.hwQual();
+
+  cwrd(13, 0) = w_pt;
+  cwrd(27, 14) = w_empt;
+  cwrd(72, 64) = w_eta;
+  cwrd(81, 73) = w_phi;
+  cwrd(115, 106) = w_qual;
+
+  sec.obj.push_back(cwrd);
+}
+
 void L1TCorrelatorLayer1Producer::addDecodedEmCalo(l1ct::DetectorSector<l1ct::EmCaloObjEmu> &sec,
                                                    const l1t::PFCluster &c) {
   l1ct::EmCaloObjEmu calo;
   calo.hwPt = l1ct::Scales::makePtFromFloat(c.pt());
-  calo.hwEta = l1ct::Scales::makeEta(sec.region.localEta(c.eta()));
+  calo.hwEta = l1ct::Scales::makeGlbEta(c.eta()) -
+               sec.region.hwEtaCenter;  // important to enforce that the region boundary is on a discrete value
   calo.hwPhi = l1ct::Scales::makePhi(sec.region.localPhi(c.phi()));
   calo.hwPtErr = l1ct::Scales::makePtFromFloat(c.ptError());
   calo.hwEmID = c.hwEmID();
@@ -780,7 +838,7 @@ void L1TCorrelatorLayer1Producer::putPuppi(edm::Event &iEvent) const {
       setRefs_(coll->back(), p);
       nobj.push_back(coll->size() - 1);
     }
-    reg->addRegion(nobj);
+    reg->addRegion(nobj, event_.pfinputs[ir].region.floatEtaCenter(), event_.pfinputs[ir].region.floatPhiCenter());
   }
   iEvent.put(std::move(coll), "Puppi");
   iEvent.put(std::move(reg), "PuppiRegional");

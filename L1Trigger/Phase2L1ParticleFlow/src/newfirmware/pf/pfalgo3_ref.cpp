@@ -62,7 +62,7 @@ int l1ct::PFAlgo3Emulator::tk_best_match_ref(unsigned int dR2MAX,
                                              const std::vector<l1ct::EmCaloObjEmu>& calo,
                                              const l1ct::TkObjEmu& track) const {
   int drmin = dR2MAX, ibest = -1;
-  for (unsigned int ic = 0, nCAL = calo.size(); ic < nCAL; ++ic) {
+  for (unsigned int ic = 0, nCAL = std::min<unsigned>(nEMCALO_,calo.size()); ic < nCAL; ++ic) {
     if (calo[ic].hwPt <= 0)
       continue;
     int dr = dr2_int(track.hwEta, track.hwPhi, calo[ic].hwEta, calo[ic].hwPhi);
@@ -496,7 +496,11 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
     }
   }
 
-  ptsort_ref(nCALO, nSELCALO, outne_all, out.pfneutral);
+  if (nCALO_ == nSELCALO_) {
+    std::swap(outne_all, out.pfneutral);
+  } else {
+    ptsort_ref(nCALO, nSELCALO, outne_all, out.pfneutral);
+  }
 
   if (debug_) {
     dbgPrintf("FW\n");

@@ -73,7 +73,7 @@ namespace l1ct {
                         float dEtaMaxBrem = 0.02,
                         float dPhiMaxBrem = 0.1,
                         const std::vector<double> &absEtaBoundaries = {0.0, 1.5},
-                        const std::vector<double> &dEtaValues = {0.015, 0.0174533},
+                        const std::vector<double> &dEtaValues = {0.015, 0.01},
                         const std::vector<double> &dPhiValues = {0.07, 0.07},
                         float trkQualityPtMin = 10.,
                         bool writeEgSta = false,
