@@ -29,6 +29,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '111X_mcRun4_realistic_T15_v3',
 
 process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
 process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff')
+process.load('L1Trigger.Phase2L1GMT.gmt_cfi')
 process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
 process.load('L1Trigger.VertexFinder.VertexProducer_cff')
 process.L1VertexFinderEmulator = process.VertexProducer.clone()
@@ -36,6 +37,7 @@ process.L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulat
 process.L1VertexFinderEmulator.l1TracksInputTag = cms.InputTag("L1GTTInputProducer", "Level1TTTracksConverted")
 
 process.runPF = cms.Path( 
+        process.standaloneMuons +
         process.L1GTTInputProducer +
         process.L1VertexFinderEmulator +
         process.pfTracksFromL1Tracks +

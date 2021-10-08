@@ -16,6 +16,8 @@ l1ct::RegionizerEmulator::~RegionizerEmulator() {}
 void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vector<PFInputRegion>& out) {
   for (const auto& sec : in.track) {
     for (const auto& tk : sec) {
+      if (tk.hwPt == 0)
+        continue;
       float glbEta = sec.region.floatGlbEtaOf(tk), glbPhi = sec.region.floatGlbPhiOf(tk);
       float glbEtaV = sec.region.floatGlbEta(tk.hwVtxEta()), glbPhiV = sec.region.floatGlbPhi(tk.hwVtxPhi());
       for (auto& r : out) {
@@ -30,6 +32,8 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
 
   for (const auto& sec : in.hadcalo) {
     for (const auto& c : sec) {
+      if (c.hwPt == 0)
+        continue;
       float glbEta = sec.region.floatGlbEtaOf(c), glbPhi = sec.region.floatGlbPhiOf(c);
       for (auto& r : out) {
         if (r.region.contains(glbEta, glbPhi)) {
@@ -43,6 +47,8 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
 
   for (const auto& sec : in.emcalo) {
     for (const auto& c : sec) {
+      if (c.hwPt == 0)
+        continue;
       float glbEta = sec.region.floatGlbEtaOf(c), glbPhi = sec.region.floatGlbPhiOf(c);
       for (auto& r : out) {
         if (r.region.contains(glbEta, glbPhi)) {
@@ -55,6 +61,8 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
   }
 
   for (const auto& mu : in.muon.obj) {
+    if (mu.hwPt == 0)
+      continue;
     float glbEta = mu.floatEta(), glbPhi = mu.floatPhi();
     for (auto& r : out) {
       if (r.region.contains(glbEta, glbPhi)) {
