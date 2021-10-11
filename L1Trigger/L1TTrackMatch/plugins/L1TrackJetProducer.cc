@@ -211,7 +211,6 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
     MaxZBin mzb;
 
     L2_cluster(L1TrkPtrs_, ttrk_, tdtrk_, ttdtrk_, mzb);
-    edm::Ref<JetBxCollection> jetRef;  //null, no Calo Jet Ref
     vector<Ptr<L1TTTrackType> > L1TrackAssocJet;
     if (mzb.clusters != nullptr) {
       for (int j = 0; j < mzb.nclust; ++j) {
@@ -235,16 +234,9 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
 
         math::XYZTLorentzVector jetP4(jetPx, jetPy, jetPz, jetP);
         L1TrackAssocJet.clear();
-        for (unsigned int t = 0; t < L1TrkPtrs_.size(); ++t) {
-          if (L1TrackAssocJet.size() == (unsigned int)mzb.clusters[j].numtracks)
-            break;
-          float deta = L1TrkPtrs_[t]->momentum().eta() - jetEta;
-          float dphi = L1TrkPtrs_[t]->momentum().phi() - jetPhi;
-          float dZ = fabs(mzb.zbincenter - L1TrkPtrs_[t]->z0());
-          if (dZ <= zStep_ && fabs(deta) < etaStep_ * 2.0 && fabs(dphi) < phiStep_ * 2.0) {
-            L1TrackAssocJet.push_back(L1TrkPtrs_[t]);
-          }
-        }
+        for (unsigned int itrk = 0; itrk < mzb.clusters[j].trackidx.size(); itrk++)
+             L1TrackAssocJet.push_back(L1TrkPtrs_[mzb.clusters[j].trackidx[itrk]]);
+
         TkJet trkJet(jetP4,
                      L1TrackAssocJet,
                      mzb.zbincenter,
@@ -273,11 +265,6 @@ void L1TrackJetProducer::L2_cluster(
   MaxZBin mzbtemp;
   for (int z = 0; z < nz; ++z)
     all_zBins[z] = mzbtemp;
-
-  //if (all_zBins==NULL) {
-  //edm::LogWarning("L1TrackJetProducer")<<" \"all_zBins\" memory not assigned!\n";
-  //return;
-  //}
 
   float zmin = -1.0 * trkZMax_;
   float zmax = zmin + 2 * zStep_;
@@ -314,6 +301,7 @@ void L1TrackJetProducer::L2_cluster(
         epbins[i][j].numttrks = 0;
         epbins[i][j].numtdtrks = 0;
         epbins[i][j].numttdtrks = 0;
+        epbins[i][j].trackidx.clear();
       }  //for each etabin
       L1clusters[i] = epbins[i];
     }  //for each phibin
@@ -339,6 +327,7 @@ void L1TrackJetProducer::L2_cluster(
             epbins[i][j].numttrks += ttrk_[k];
             epbins[i][j].numtdtrks += tdtrk_[k];
             epbins[i][j].numttdtrks += ttdtrk_[k];
+            epbins[i][j].trackidx.push_back(k);
             ++epbins[i][j].numtracks;
           }  // if right bin
         }    // for each phibin: j loop
@@ -391,6 +380,8 @@ void L1TrackJetProducer::L2_cluster(
         tdtrk2 = 0;
         ttdtrk1 = 0;
         ttdtrk2 = 0;
+        std::vector<unsigned int> trkidx1;
+        std::vector<unsigned int> trkidx2;
         L2cluster[nclust] = L1clusters[phibin][imax];
         L1clusters[phibin][imax].used = true;
         // Add pT of upper neighbor
@@ -407,6 +398,8 @@ void L1TrackJetProducer::L2_cluster(
               ttrk1 += L1clusters[phibin + 1][index1].numttrks;
               tdtrk1 += L1clusters[phibin + 1][index1].numtdtrks;
               ttdtrk1 += L1clusters[phibin + 1][index1].numttdtrks;
+              for (unsigned int itrk=0; itrk<L1clusters[phibin + 1][index1].trackidx.size(); itrk++)
+                  trkidx1.push_back(L1clusters[phibin + 1][index1].trackidx[itrk] );
               if (used1 < 0)
                 used1 = index1;
               else
@@ -420,6 +413,9 @@ void L1TrackJetProducer::L2_cluster(
             L2cluster[nclust].numttrks += ttrk1;
             L2cluster[nclust].numtdtrks += tdtrk1;
             L2cluster[nclust].numttdtrks += ttdtrk1;
+            for (unsigned int itrk=0; itrk<trkidx1.size(); itrk++)
+                L2cluster[nclust].trackidx.push_back(trkidx1[itrk]);
+  
             if (used1 >= 0)
               L1clusters[phibin + 1][used1].used = true;
             if (used2 >= 0)
@@ -440,6 +436,9 @@ void L1TrackJetProducer::L2_cluster(
                 ttrk2 += L1clusters[phibin + 2][index1].numttrks;
                 tdtrk2 += L1clusters[phibin + 2][index1].numtdtrks;
                 ttdtrk2 += L1clusters[phibin + 2][index1].numttdtrks;
+                for (unsigned int itrk=0; itrk<L1clusters[phibin + 2][index1].trackidx.size(); itrk++)
+                    trkidx2.push_back(L1clusters[phibin + 2][index1].trackidx[itrk] );
+
                 if (used3 < 0)
                   used3 = index1;
                 else
@@ -455,6 +454,12 @@ void L1TrackJetProducer::L2_cluster(
               L2cluster[nclust].numtdtrks += tdtrk1 + tdtrk2;
               L2cluster[nclust].numttdtrks += ttdtrk1 + ttdtrk2;
               L2cluster[nclust].phi = L1clusters[phibin + 1][used1].phi;
+              for(unsigned int itrk=0; itrk<trkidx1.size(); itrk++)
+                 L2cluster[nclust].trackidx.push_back(trkidx1[itrk]);
+
+              for(unsigned int itrk=0; itrk<trkidx2.size(); itrk++)
+                 L2cluster[nclust].trackidx.push_back(trkidx2[itrk]);
+
               if (used1 >= 0)
                 L1clusters[phibin + 1][used1].used = true;
               if (used2 >= 0)
@@ -474,6 +479,9 @@ void L1TrackJetProducer::L2_cluster(
             L2cluster[nclust].numtdtrks += tdtrk1;
             L2cluster[nclust].numttdtrks += ttdtrk1;
             L2cluster[nclust].phi = L1clusters[phibin + 1][used1].phi;
+            for(unsigned int itrk=0; itrk<trkidx1.size(); itrk++)
+                L2cluster[nclust].trackidx.push_back(trkidx1[itrk]);
+
             if (used1 >= 0)
               L1clusters[phibin + 1][used1].used = true;
             if (used2 >= 0)
@@ -497,15 +505,21 @@ void L1TrackJetProducer::L2_cluster(
       for (int n = m + 1; n < nclust; ++n)
         if (L2cluster[n].eta == L2cluster[m].eta && (fabs(L2cluster[n].phi - L2cluster[m].phi) < 1.5 * phiStep_ ||
                                                      fabs(L2cluster[n].phi - L2cluster[m].phi) > 6.0)) {
+
           if (L2cluster[n].pTtot > L2cluster[m].pTtot)
             L2cluster[m].phi = L2cluster[n].phi;
+
           L2cluster[m].pTtot += L2cluster[n].pTtot;
           L2cluster[m].numtracks += L2cluster[n].numtracks;
           L2cluster[m].numttrks += L2cluster[n].numttrks;
           L2cluster[m].numtdtrks += L2cluster[n].numtdtrks;
           L2cluster[m].numttdtrks += L2cluster[n].numttdtrks;
+          for(unsigned int itrk=0; itrk<L2cluster[n].trackidx.size(); itrk++)
+             L2cluster[m].trackidx.push_back(L2cluster[n].trackidx[itrk]);
+
           for (int m1 = n; m1 < nclust - 1; ++m1)
             L2cluster[m1] = L2cluster[m1 + 1];
+
           nclust--;
           m = -1;
           break;  //?????
@@ -536,6 +550,9 @@ void L1TrackJetProducer::L2_cluster(
       all_zBins[zbin].clusters[k].numttrks = L2cluster[k].numttrks;
       all_zBins[zbin].clusters[k].numtdtrks = L2cluster[k].numtdtrks;
       all_zBins[zbin].clusters[k].numttdtrks = L2cluster[k].numttdtrks;
+      for (unsigned int itrk=0; itrk<L2cluster[k].trackidx.size(); itrk++)
+         all_zBins[zbin].clusters[k].trackidx.push_back(L2cluster[k].trackidx[itrk]);
+
     }
     all_zBins[zbin].ht = ht;
     if (ht >= mzb.ht) {
@@ -602,6 +619,8 @@ EtaPhiBin *L1TrackJetProducer::L1_cluster(EtaPhiBin *phislice) {
       clusters[nclust].numttrks += phislice[etabin - 1].numttrks;
       clusters[nclust].numtdtrks += phislice[etabin - 1].numtdtrks;
       clusters[nclust].numttdtrks += phislice[etabin - 1].numttdtrks;
+      for (unsigned int itrk=0; itrk<phislice[etabin - 1].trackidx.size(); itrk++)
+         clusters[nclust].trackidx.push_back(phislice[etabin - 1].trackidx[itrk]);
     }
     if (my_pt >= right2pt && right_pt > 0) {
       clusters[nclust].pTtot += right_pt;
@@ -609,6 +628,9 @@ EtaPhiBin *L1TrackJetProducer::L1_cluster(EtaPhiBin *phislice) {
       clusters[nclust].numttrks += phislice[etabin + 1].numttrks;
       clusters[nclust].numtdtrks += phislice[etabin + 1].numtdtrks;
       clusters[nclust].numttdtrks += phislice[etabin + 1].numttdtrks;
+      for (unsigned int itrk=0; itrk<phislice[etabin + 1].trackidx.size(); itrk++)
+         clusters[nclust].trackidx.push_back(phislice[etabin+ 1].trackidx[itrk]);
+
       phislice[etabin + 1].used = true;
     }
     nclust++;
@@ -625,8 +647,12 @@ EtaPhiBin *L1TrackJetProducer::L1_cluster(EtaPhiBin *phislice) {
       clusters[m].numttrks += clusters[m + 1].numttrks;
       clusters[m].numtdtrks += clusters[m + 1].numtdtrks;
       clusters[m].numttdtrks += clusters[m + 1].numttdtrks;
+      for (unsigned int itrk=0; itrk<clusters[m + 1].trackidx.size(); itrk++)
+         clusters[m].trackidx.push_back(clusters[m + 1].trackidx[itrk]);
+
       for (int m1 = m + 1; m1 < nclust - 1; ++m1)
         clusters[m1] = clusters[m1 + 1];
+
       nclust--;
       m = -1;
     }  // end if clusters neighbor in eta
