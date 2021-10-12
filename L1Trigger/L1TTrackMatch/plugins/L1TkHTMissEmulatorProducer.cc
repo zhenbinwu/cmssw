@@ -7,6 +7,7 @@
 // system include files
 #include <memory>
 #include <numeric>
+// #include <hls_math.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -21,6 +22,8 @@
 #include "DataFormats/L1TCorrelator/interface/TkHTMiss.h"
 #include "DataFormats/L1TCorrelator/interface/TkHTMissFwd.h"
 #include "DataFormats/L1Trigger/interface/EtSum.h"
+#include "DataFormats/L1Trigger/interface/TkJetWord.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TkHTMissEmulatorProducer.h"
 
 using namespace l1t;
 
@@ -36,27 +39,69 @@ private:
 
   // ----------member data ---------------------------
 
-  float jetMinPt_;            // [GeV]
-  float jetMaxEta_;           // [rad]
-  unsigned int minNtracksHighPt_;
-  unsigned int minNtracksLowPt_;
+  bool debug_ = false;
+
+  float jetMinPt__;            // [GeV]
+  float jetMaxEta__;           // [rad]
+  int minNtracksHighPt__;
+  int minNtracksLowPt__;
+
+  l1tmhtemu::pt_t jetMinPt_;
+  l1tmhtemu::eta_t jetMaxEta_;
+  l1tmhtemu::ntracks_t minNtracksHighPt_;
+  l1tmhtemu::ntracks_t minNtracksLowPt_;
+
+  std::vector<l1tmhtemu::phi_t> cosLUT_;
+  // std::vector<l1tmhtemu::trig_t> cosLUT_;
+  std::vector<l1tmhtemu::MHTphi_t> atanLUT_;
+  std::vector<l1tmhtemu::Et_t> magNormalisationLUT_;
+
   std::string L1MHTCollectionName_;
 
-  const edm::EDGetTokenT<TkPrimaryVertexCollection> pvToken_;
-  const edm::EDGetTokenT<TkJetCollection> jetToken_;
+  const edm::EDGetTokenT<TkJetWordCollection> jetToken_;
 };
 
 L1TkHTMissEmulatorProducer::L1TkHTMissEmulatorProducer(const edm::ParameterSet& iConfig)
-  : pvToken_(consumes<TkPrimaryVertexCollection>(iConfig.getParameter<edm::InputTag>("L1VertexInputTag"))),
-    jetToken_(consumes<TkJetCollection>(iConfig.getParameter<edm::InputTag>("L1TkJetInputTag"))) {
-  jetMinPt_ = (float)iConfig.getParameter<double>("jet_minPt");
-  jetMaxEta_ = (float)iConfig.getParameter<double>("jet_maxEta");
-  minNtracksHighPt_ = iConfig.getParameter<int>("jet_minNtracksHighPt");
-  minNtracksLowPt_ = iConfig.getParameter<int>("jet_minNtracksLowPt");
+  : jetToken_(consumes<TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("L1TkJetEmulationInputTag"))) {
+  debug_ = (bool)iConfig.getParameter<bool>("debug");
+
+  jetMinPt__ = (float)iConfig.getParameter<double>("jet_minPt");
+  jetMaxEta__ = (float)iConfig.getParameter<double>("jet_maxEta");
+  minNtracksHighPt__ = iConfig.getParameter<int>("jet_minNtracksHighPt");
+  minNtracksLowPt__ = iConfig.getParameter<int>("jet_minNtracksLowPt");
+
+  jetMinPt_ = l1tmhtemu::digitizeSignedValue<l1tmhtemu::pt_t>((float)iConfig.getParameter<double>("jet_minPt"), l1tmhtemu::kInternalPtWidth, l1tmhtemu::kStepPt);
+  jetMaxEta_ = l1tmhtemu::digitizeSignedValue<l1tmhtemu::eta_t>((float)iConfig.getParameter<double>("jet_maxEta"), l1tmhtemu::kInternalEtaWidth, l1tmhtemu::kStepEta);
+  minNtracksHighPt_ = (l1tmhtemu::ntracks_t)iConfig.getParameter<int>("jet_minNtracksHighPt");
+  minNtracksLowPt_ = (l1tmhtemu::ntracks_t)iConfig.getParameter<int>("jet_minNtracksLowPt");
+
+  int cosLUTbins = floor(l1tmhtemu::kMaxCosLUTPhi / l1tmhtemu::kStepPhi);
+  cosLUT_ = l1tmhtemu::generateCosLUT(cosLUTbins);
+  l1tmhtemu::writeLUTtoFile<l1tmhtemu::phi_t>(cosLUT_, "cos", ",");
+  // l1tmhtemu::writeLUTtoFile<l1tmhtemu::trig_t>(cosLUT_, "cos", ",");
+
+  int aSteps = 8;
+
+  atanLUT_ = l1tmhtemu::generateaTanLUT(aSteps);
+  l1tmhtemu::writeLUTtoFile<l1tmhtemu::MHTphi_t>(atanLUT_, "cordicatan", ",");
+
+  magNormalisationLUT_ = l1tmhtemu::generatemagNormalisationLUT(aSteps);
+  l1tmhtemu::writeLUTtoFile<l1tmhtemu::Et_t>(magNormalisationLUT_, "cordicrenorm", ",");
+
+
   // Name of output ED Product
   L1MHTCollectionName_ = (std::string)iConfig.getParameter<std::string>("L1MHTCollectionName");
   
   produces<std::vector<EtSum>>(L1MHTCollectionName_);
+
+  if(debug_){
+    std::cout<< "====BITWIDTHS====\n" << "pt: " << l1t::TkJetWord::TkJetBitWidths::kPtSize << " eta: " << l1t::TkJetWord::TkJetBitWidths::kGlbEtaSize << " phi:" << l1t::TkJetWord::TkJetBitWidths::kGlbPhiSize <<std::endl;
+
+    std::cout<< "====CUT FLOATS\n" << "minpt: "<< jetMinPt__ << " maxeta: " << jetMaxEta__ << " minNtracksHighPt: " << minNtracksHighPt__ << " minNtracksLowPt: " << minNtracksLowPt__ <<std::endl;
+
+    std::cout<< "====CUT AP_INTS\n" << "minpt: "<< jetMinPt_ << " maxeta: " << jetMaxEta_ << " minNtracksHighPt: " << minNtracksHighPt_ << " minNtracksLowPt: " << minNtracksLowPt_ <<std::endl;
+
+  }
 
 }
 
@@ -64,55 +109,156 @@ L1TkHTMissEmulatorProducer::~L1TkHTMissEmulatorProducer() {}
 
 void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
-  // std::unique_ptr<TkHTMissCollection> MHTCollection(new TkHTMissCollection);
   std::unique_ptr<std::vector<l1t::EtSum>> MHTCollection(new std::vector<l1t::EtSum>(0));
 
-  // L1 primary vertex
-  edm::Handle<TkPrimaryVertexCollection> L1VertexHandle;
-  iEvent.getByToken(pvToken_, L1VertexHandle);
-  std::vector<TkPrimaryVertex>::const_iterator vtxIter;
-
   // L1 track-trigger jets
-  edm::Handle<TkJetCollection> L1TkJetsHandle;
+  edm::Handle<TkJetWordCollection> L1TkJetsHandle;
   iEvent.getByToken(jetToken_, L1TkJetsHandle);
-  std::vector<TkJet>::const_iterator jetIter;
+  std::vector<TkJetWord>::const_iterator jetIter;
 
   if (!L1TkJetsHandle.isValid()) {
     LogError("TkHTMissProducer") << "\nWarning: TkJetCollection not found in the event. Exit\n";
     return;
   }
 
-  edm::Ref<TkPrimaryVertexCollection> L1VtxRef;  // null reference
-  float sumPx = 0;
-  float sumPy = 0;
-  float HT = 0;
+  if(debug_){
+    std::cout<< " ********RUN:"<< iEvent.id().run() << " LUMI:" << iEvent.id().luminosityBlock() << " EVT:" << iEvent.id().event()<<"*********"<<std::endl;
+  }
+
+  int cosLUTbins = floor(l1tmhtemu::kMaxCosLUTPhi / l1tmhtemu::kStepPhi);
+  
+  float sumPx_ = 0;
+  float sumPy_ = 0;
+  float HT_ = 0;
+
+  l1tmhtemu::Et_t sumPx = 0;
+  l1tmhtemu::Et_t sumPy = 0;
+  l1tmhtemu::Et_t HT = 0;
 
   // loop over jets
+  int jetn = 0;
   for (jetIter = L1TkJetsHandle->begin(); jetIter != L1TkJetsHandle->end(); ++jetIter) {
-    float tmp_jet_px = jetIter->px();
-    float tmp_jet_py = jetIter->py();
-    float tmp_jet_et = jetIter->et();
-    float tmp_jet_pt = jetIter->pt();
+    // float tmp_jet_px = jetIter->px();
+    // float tmp_jet_py = jetIter->py();
+    // float tmp_jet_et = jetIter->et();
+    // float tmp_jet_pt = jetIter->pt();
+
+    float tmp_jet_px_ = jetIter->pt()*cos(jetIter->glbphi());
+    float tmp_jet_py_ = jetIter->pt()*sin(jetIter->glbphi());
+    // float tmp_jet_et_ = jetIter->et();
+    float tmp_jet_et_ = 0;
+    float tmp_jet_pt_ = jetIter->pt();
+
+
+    l1tmhtemu::pt_t tmp_jet_pt = l1tmhtemu::digitizeSignedValue<l1tmhtemu::pt_t>(jetIter->pt(), l1tmhtemu::kInternalPtWidth, l1tmhtemu::kStepPt);
+    l1tmhtemu::eta_t tmp_jet_eta = l1tmhtemu::digitizeSignedValue<l1tmhtemu::eta_t>(jetIter->glbeta(), l1tmhtemu::kInternalEtaWidth, l1tmhtemu::kStepEta);
+    l1tmhtemu::phi_t tmp_jet_phi = l1tmhtemu::digitizeSignedValue<l1tmhtemu::phi_t>(jetIter->glbphi(), l1tmhtemu::kInternalPhiWidth, l1tmhtemu::kStepPhi);
+    l1tmhtemu::ntracks_t tmp_jet_nt = l1tmhtemu::ntracks_t(jetIter->nt());
+
+    l1tmhtemu::phi_t tmp_jet_cos_phi = l1tmhtemu::phi_t(-999);
+    l1tmhtemu::phi_t tmp_jet_sin_phi = l1tmhtemu::phi_t(-999);
+
+    // std::cout<< " initial values: "<< tmp_jet_cos_phi << "  " << tmp_jet_sin_phi<<std::endl;
+
+    if(tmp_jet_phi >= 0){
+      tmp_jet_cos_phi = cosLUT_[tmp_jet_phi];
+
+      if(cosLUTbins/2 + 1 - tmp_jet_phi >= 0){
+	tmp_jet_sin_phi = cosLUT_[cosLUTbins/2 + 1 - tmp_jet_phi];
+      }
+      else{
+	tmp_jet_sin_phi = cosLUT_[-1 * (cosLUTbins/2 + 1 - tmp_jet_phi)];
+	}
+
+    }
+    else{
+      tmp_jet_cos_phi = cosLUT_[-1*tmp_jet_phi];
+
+      if(cosLUTbins/2 + 1 - (-1*tmp_jet_phi) >= 0){
+	tmp_jet_sin_phi = -1*cosLUT_[cosLUTbins/2 + 1 - (-1*tmp_jet_phi)];
+      }
+      else{
+	tmp_jet_sin_phi = -1*cosLUT_[-1 * (cosLUTbins/2 + 1 - (-1*tmp_jet_phi))];
+	}
+    }
+
+    l1tmhtemu::Et_t tmp_jet_px = tmp_jet_pt*tmp_jet_cos_phi;
+    l1tmhtemu::Et_t tmp_jet_py = tmp_jet_pt*tmp_jet_sin_phi;
+
+    jetn++;
+    
+    if(debug_){
+
+      std::cout<< "----JET "<< jetn << "----" <<std::endl;
+
+      std::cout<< "FLOATS\n" << "PT: " << jetIter->pt() << "| ETA: " << jetIter->glbeta() << "| PHI: " << jetIter->glbphi() << "| NTRACKS: " << jetIter->nt()<< "| COS(PHI): " << cos(jetIter->glbphi()) << "| SIN(PHI): "<< sin(jetIter->glbphi())<< "| Px: " << jetIter->pt()*cos(jetIter->glbphi()) << "| Py: " << jetIter->pt()*sin(jetIter->glbphi())<<std::endl;
+
+      std::cout<<"AP_INTS RAW\n" << "PT: " << jetIter->ptWord() << "| ETA: " << jetIter->glbEtaWord() << "| PHI: " << jetIter->glbPhiWord() << "| NTRACKS: " << jetIter->ntWord()<<std::endl;
+    
+      std::cout<<"AP_INTS NEW\n"<< "PT: " << tmp_jet_pt << "| ETA: " << tmp_jet_eta << "| PHI: " << tmp_jet_phi << "| NTRACKS: " << tmp_jet_nt << "| COS(PHI): "<< tmp_jet_cos_phi << "| SIN(PHI): " << tmp_jet_sin_phi<< "| Px: " << tmp_jet_px << "| Py: " << tmp_jet_py <<std::endl;
+
+      // std::cout<<"HLS COS SIN\n"<< "COS(PHI): " << hls::cosf(tmp_jet_phi) << "| SIN(PHI): " << hls::sinf(tmp_jet_phi)<<endl;
+
+    }
+
+    // if (tmp_jet_pt_ < jetMinPt__)
+    //   continue;
+    // if (fabs(jetIter->glbeta()) > jetMaxEta__)
+    //   continue;
+    if (jetIter->nt() < minNtracksLowPt__ && tmp_jet_et_ > 50)
+      continue;
+    if (jetIter->nt() < minNtracksHighPt__ && tmp_jet_et_ > 100)
+      continue;
+
     if (tmp_jet_pt < jetMinPt_)
       continue;
-    if (fabs(jetIter->eta()) > jetMaxEta_)
+    if (tmp_jet_eta > jetMaxEta_ or tmp_jet_eta < -1*jetMaxEta_)
       continue;
-    if (jetIter->ntracks() < minNtracksLowPt_ && tmp_jet_et > 50)
-      continue;
-    if (jetIter->ntracks() < minNtracksHighPt_ && tmp_jet_et > 100)
-      continue;
-    sumPx += tmp_jet_px;
-    sumPy += tmp_jet_py;
+    // if (tmp_jet_nt < minNtracksLowPt_)
+    //   continue;
+    // if (tmp_jet_nt < minNtracksHighPt_)
+    //   continue;
+
+    sumPx_ += tmp_jet_px_;
+    sumPy_ += tmp_jet_py_;
+    HT_ += tmp_jet_pt_;
+
+    sumPx += tmp_jet_pt * tmp_jet_cos_phi;
+    sumPy += tmp_jet_pt * tmp_jet_sin_phi;
     HT += tmp_jet_pt;
+
   }  // end jet loop
 
   // define missing HT
-  float et = sqrt(sumPx * sumPx + sumPy * sumPy);
-  math::XYZTLorentzVector missingEt(-sumPx, -sumPy, 0, et);
+  float et_ = sqrt(sumPx_ * sumPx_ + sumPy_ * sumPy_);
+  // math::XYZTLorentzVector missingEt(-sumPx_, -sumPy_, 0, et);
+
   // edm::RefProd<TkJetCollection> jetCollRef(L1TkJetsHandle);
   // TkHTMiss tkHTM(missingEt, HT, jetCollRef, L1VtxRef);
 
-  EtSum L1HTSum(missingEt, EtSum::EtSumType::kMissingHt, (int)et, 0, 0, 0);
+
+  // Perform cordic sqrt, take x,y and converts to polar coordinate r,phi where
+  // r=sqrt(x**2+y**2) and phi = atan(y/x)
+  l1tmhtemu::EtMiss EtMiss = l1tmhtemu::cordicSqrt(sumPx, sumPy, 8);
+  math::XYZTLorentzVector missingEt(-sumPx, -sumPy, 0, EtMiss.Et);
+
+  l1tmhtemu::MHTphi_t phi = 0;
+
+  if ((sumPx < 0) && (sumPy < 0))
+    phi = EtMiss.Phi - l1tmhtemu::kMHTPhiBins / 2;
+  else if ((sumPx >= 0) && (sumPy >= 0))
+    phi = (EtMiss.Phi) + l1tmhtemu::kMHTPhiBins / 2;
+  else if ((sumPx >= 0) && (sumPy < 0))
+    phi = EtMiss.Phi - l1tmhtemu::kMHTPhiBins / 2;
+  else if ((sumPx < 0) && (sumPy >= 0))
+    phi = EtMiss.Phi - 3 * l1tmhtemu::kMHTPhiBins / 2;
+
+  if(debug_){
+    std::cout<< "====MHT FLOATS===\n" << "sumPx: " << sumPx_ << "| sumPy: " << sumPy_ <<  "| ET: " << et_ << "| HT: " << HT_ << "| PHI: " << atan2(sumPy_,sumPx_) <<std::endl;
+    std::cout<< "====MHT AP_INTS===\n" << "sumPx: " << sumPx << "| sumPy: " << sumPy << "| ET: " << EtMiss.Et << "| HT: " << HT << "| PHI: " << phi <<std::endl;
+  }
+
+  EtSum L1HTSum(missingEt, EtSum::EtSumType::kMissingHt, (int)EtMiss.Et, 0, (int)phi, (int)jetn);
 
   MHTCollection->push_back(L1HTSum);
   // iEvent.put(std::move(MHTCollection), "L1TrackerHTMiss");
