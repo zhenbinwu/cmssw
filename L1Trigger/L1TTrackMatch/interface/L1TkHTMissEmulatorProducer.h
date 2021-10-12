@@ -1,6 +1,9 @@
 #ifndef L1Trigger_L1TTrackMatch_L1TkHTMissEmulatorProducer_HH
 #define L1Trigger_L1TTrackMatch_L1TkHTMissEmulatorProducer_HH 
 
+// Original Author:  Hardik Routray                                                                                               
+//         Created:  Mon, 11 Oct 2021 
+
 #include <ap_int.h>
 
 #include <cmath>
@@ -63,11 +66,6 @@ namespace l1tmhtemu {
 
   const string kLUTdir{"LUTs/"};
 
-  const unsigned int kInternaltrigWidth{11};
-  typedef ap_int<kInternaltrigWidth> trig_t;
-  const double kSteptrig{0.0001};
-
-  /* std::vector<phi_t> generateCosLUT(unsigned int size); */
 
   template <typename T>
     T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
@@ -105,7 +103,6 @@ namespace l1tmhtemu {
   }
 
 
-
   std::vector<phi_t> generateCosLUT(unsigned int size) {  // Fill cosine LUT with integer values
     float phi = 0;
     std::vector<phi_t> cosLUT;
@@ -119,20 +116,6 @@ namespace l1tmhtemu {
 
     return cosLUT;
   }
-
-
-  /* std::vector<trig_t> generateCosLUT(unsigned int size) {  // Fill cosine LUT with integer values */
-  /*   float phi = 0; */
-  /*   std::vector<trig_t> cosLUT; */
-  /*   for (unsigned int LUT_idx = 0; LUT_idx < size; LUT_idx++) { */
-  /*     /\* cosLUT.push_back((phi_t)(floor(cos(phi) * (kPhiBins - 1)))); *\/ */
-  /*     cosLUT.push_back(digitizeSignedValue<trig_t>(cos(phi), l1tmhtemu::kInternaltrigWidth, l1tmhtemu::kSteptrig)); */
-
-  /*     phi += l1tmhtemu::kStepPhi; */
-  /*   } */
-  /*   cosLUT.push_back((trig_t)(0));  //Prevent overflow in last bin */
-  /*   return cosLUT; */
-  /* } */
 
 
   std::vector<MHTphi_t> generateaTanLUT(int cordicSteps) {  // Fill atan LUT with integer values
@@ -201,7 +184,7 @@ namespace l1tmhtemu {
       y = -y;
     }
 
-    std::cout<< " Cordic x: " << x << " Cordic y: " << y << " Cordic phi: " << phi <<endl;
+    /* std::cout<< " Cordic x: " << x << " Cordic y: " << y << " Cordic phi: " << phi <<endl; */
 
     for (int step = 0; step < cordicSteps; step++) {
       if (y < 0) {
@@ -222,18 +205,18 @@ namespace l1tmhtemu {
     y = new_y;
     phi = new_phi;
 
-    std::cout<< " Cordic x: " << x << " Cordic y: " << y << " Cordic phi: " << phi <<std::endl;
+    /* std::cout<< " Cordic x: " << x << " Cordic y: " << y << " Cordic phi: " << phi <<std::endl; */
 
     }
 
-    std::cout<< " sqrt (Cordic x * MagNorm / kMHTbins ): " << float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) << " to actual float: " << ( float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) ) * float(kStepPt*kStepPhi) <<std::endl;
+    /* std::cout<< " sqrt (Cordic x * MagNorm / kMHTbins ): " << float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) << " to actual float: " << ( float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) ) * float(kStepPt*kStepPhi) <<std::endl; */
 
     float sqrtval = ( float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) ) * float(kStepPt*kStepPhi);
 
     ret_etmiss.Et = std::floor(sqrtval / l1tmhtemu::kStepMHT);
     ret_etmiss.Phi = phi;
 
-    std::cout<< " Et: " << ret_etmiss.Et << " phi: " << ret_etmiss.Phi <<std::endl;
+    /* std::cout<< " Et: " << ret_etmiss.Et << " phi: " << ret_etmiss.Phi <<std::endl; */
 
     return ret_etmiss;
   }
