@@ -1,4 +1,5 @@
 // Original Author:  Rishi Patel
+// Modifications:    George Karathanasis, georgios.karathanasis@cern.ch
 //         Created:  Wed, 01 Aug 2018 14:01:41 GMT
 //
 // Track jets are clustered in a two-layer process, first by clustering in phi,
@@ -26,6 +27,9 @@
 #include "Geometry/CommonTopologies/interface/PixelGeomDetUnit.h"
 #include "Geometry/CommonTopologies/interface/PixelGeomDetType.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+
+#include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+#include "DataFormats/L1Trigger/interface/Vertex.h"
 
 #include "L1TrackJetProducer.h"
 #include "TH1D.h"
@@ -62,6 +66,7 @@ private:
   // ----------member data ---------------------------
 
   const EDGetTokenT<vector<TTTrack<Ref_Phase2TrackerDigi_> > > trackToken_;
+  const edm::EDGetTokenT<std::vector<l1t::Vertex> > PVtxToken_;
   vector<Ptr<L1TTTrackType> > L1TrkPtrs_;
   vector<int> zBinCount_;
   vector<int> ttrk_;
@@ -94,11 +99,13 @@ private:
   float nStubs5DisplacedChi2Tight_;
   float nStubs4DisplacedBendTight_;
   float nStubs5DisplacedBendTight_;
+  float dzPVTrk_;
 };
 
 L1TrackJetProducer::L1TrackJetProducer(const ParameterSet &iConfig)
-    : trackToken_(
-          consumes<vector<TTTrack<Ref_Phase2TrackerDigi_> > >(iConfig.getParameter<InputTag>("L1TrackInputTag"))) {
+    : trackToken_( consumes<vector<TTTrack<Ref_Phase2TrackerDigi_> > >(iConfig.getParameter<InputTag>("L1TrackInputTag")) ),
+      PVtxToken_( consumes< vector<l1t::Vertex> >(iConfig.getParameter<InputTag>("L1PVertexCollection")) )
+  {
   trkZMax_ = (float)iConfig.getParameter<double>("trk_zMax");
   trkPtMax_ = (float)iConfig.getParameter<double>("trk_ptMax");
   trkPtMin_ = (float)iConfig.getParameter<double>("trk_ptMin");
@@ -123,6 +130,8 @@ L1TrackJetProducer::L1TrackJetProducer(const ParameterSet &iConfig)
   nStubs5DisplacedChi2Tight_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2_Tight");
   nStubs4DisplacedBendTight_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend_Tight");
   nStubs5DisplacedBendTight_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend_Tight");
+  dzPVTrk_ = (float)iConfig.getParameter<double>("MaxDzTrackPV");
+
 
   zStep_ = 2.0 * trkZMax_ / zBins_;
   etaStep_ = 2.0 * trkEtaMax_ / etaBins_;  //etaStep is the width of an etabin
@@ -149,6 +158,10 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
   edm::Handle<vector<TTTrack<Ref_Phase2TrackerDigi_> > > TTTrackHandle;
   iEvent.getByToken(trackToken_, TTTrackHandle);
   vector<TTTrack<Ref_Phase2TrackerDigi_> >::const_iterator iterL1Track;
+
+  edm::Handle< std::vector<l1t::Vertex> > PVtx;
+  iEvent.getByToken(PVtxToken_, PVtx);
+  float PVz = (PVtx->at(0)).z0();
 
   L1TrkPtrs_.clear();
   zBinCount_.clear();
@@ -179,6 +192,8 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
     if (trk_nPS < trkNPSStubMin_)
       continue;
     if (!trackQualityCuts(trk_pt, trk_nstubs, trk_chi2dof, trk_bendchi2, fabs(trk_d0)))
+      continue;
+    if ( fabs(PVz-trkPtr->z0()) > dzPVTrk_ )
       continue;
     if (fabs(iterL1Track->z0()) > trkZMax_)
       continue;

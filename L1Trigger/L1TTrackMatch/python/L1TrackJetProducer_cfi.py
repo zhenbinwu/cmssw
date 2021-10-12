@@ -1,7 +1,11 @@
 import FWCore.ParameterSet.Config as cms
+from L1Trigger.VertexFinder.VertexProducer_cff import VertexProducer
+
 
 L1TrackJets = cms.EDProducer('L1TrackJetProducer',
 	L1TrackInputTag= cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),
+        L1PVertexCollection = cms.InputTag("VertexProducer", VertexProducer.l1VertexCollectionName.value()),
+        MaxDzTrackPV = cms.double( 4.0 ),
 	trk_zMax = cms.double (15.) ,    # maximum track z
 	trk_ptMax = cms.double(200.),    # maximumum track pT before saturation [GeV]
 	trk_ptMin = cms.double(2.0),     # minimum track pt [GeV]
@@ -30,6 +34,8 @@ L1TrackJets = cms.EDProducer('L1TrackJetProducer',
 
 L1TrackJetsExtended = cms.EDProducer('L1TrackJetProducer',
 	L1TrackInputTag= cms.InputTag("TTTracksFromExtendedTrackletEmulation", "Level1TTTracks"),
+        L1PVertexCollection = cms.InputTag("VertexProducer", VertexProducer.l1VertexCollectionName.value()),
+        MaxDzTrackPV = cms.double( 4.0 ),
 	trk_zMax = cms.double (15.) ,    # maximum track z
 	trk_ptMax = cms.double(200.),    # maximumum track pT before saturation [GeV]
 	trk_ptMin = cms.double(3.0),     # minimum track pt [GeV]
