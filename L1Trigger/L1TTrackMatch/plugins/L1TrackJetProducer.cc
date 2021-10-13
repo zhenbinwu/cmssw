@@ -1,5 +1,5 @@
 // Original Author:  Rishi Patel
-// Modifications:    George Karathanasis, georgios.karathanasis@cern.ch
+// Modifications:    George Karathanasis, georgios.karathanasis@cern.ch, CU Boulder
 //         Created:  Wed, 01 Aug 2018 14:01:41 GMT
 //
 // Track jets are clustered in a two-layer process, first by clustering in phi,
@@ -53,9 +53,10 @@ public:
   typedef vector<L1TTTrackType> L1TTTrackCollectionType;
 
   static void fillDescriptions(ConfigurationDescriptions &descriptions);
-  bool trackQualityCuts(float trk_pt, int trk_nstub, float trk_chi2, float trk_bendchi2, float trk_d0);
+  bool trackQualityCuts(int trk_nstub, float trk_chi2, float trk_bendchi2);
+
   void L2_cluster(
-      vector<Ptr<L1TTTrackType> > L1TrkPtrs_, vector<int> ttrk_, vector<int> tdtrk_, vector<int> ttdtrk_, MaxZBin &mzb);
+      vector<Ptr<L1TTTrackType> > L1TrkPtrs_, vector<int> tdtrk_, MaxZBin &mzb);
   virtual EtaPhiBin *L1_cluster(EtaPhiBin *phislice);
 
 private:
@@ -69,9 +70,7 @@ private:
   const edm::EDGetTokenT<std::vector<l1t::Vertex> > PVtxToken_;
   vector<Ptr<L1TTTrackType> > L1TrkPtrs_;
   vector<int> zBinCount_;
-  vector<int> ttrk_;
   vector<int> tdtrk_;
-  vector<int> ttdtrk_;
   float trkZMax_;
   float trkPtMax_;
   float trkPtMin_;
@@ -91,14 +90,11 @@ private:
   bool displaced_;
   float d0CutNStubs4_;
   float d0CutNStubs5_;
-  float nStubs4DisplacedChi2Loose_;
-  float nStubs5DisplacedChi2Loose_;
-  float nStubs4DisplacedBendLoose_;
-  float nStubs5DisplacedBendLoose_;
-  float nStubs4DisplacedChi2Tight_;
-  float nStubs5DisplacedChi2Tight_;
-  float nStubs4DisplacedBendTight_;
-  float nStubs5DisplacedBendTight_;
+  float nStubs4DisplacedChi2_;
+  float nStubs5DisplacedChi2_;
+  float nStubs4DisplacedBend_;
+  float nStubs5DisplacedBend_;
+  int nDisplacedTracks_;
   float dzPVTrk_;
 };
 
@@ -122,14 +118,11 @@ L1TrackJetProducer::L1TrackJetProducer(const ParameterSet &iConfig)
   lowpTJetMinTrackMultiplicity_ = (int)iConfig.getParameter<int>("lowpTJetMinTrackMultiplicity");
   highpTJetMinTrackMultiplicity_ = (int)iConfig.getParameter<int>("highpTJetMinTrackMultiplicity");
   displaced_ = iConfig.getParameter<bool>("displaced");
-  nStubs4DisplacedChi2Loose_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2_Loose");
-  nStubs5DisplacedChi2Loose_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2_Loose");
-  nStubs4DisplacedBendLoose_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend_Loose");
-  nStubs5DisplacedBendLoose_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend_Loose");
-  nStubs4DisplacedChi2Tight_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2_Tight");
-  nStubs5DisplacedChi2Tight_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2_Tight");
-  nStubs4DisplacedBendTight_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend_Tight");
-  nStubs5DisplacedBendTight_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend_Tight");
+  nStubs4DisplacedChi2_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2");
+  nStubs5DisplacedChi2_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2");
+  nStubs4DisplacedBend_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend");
+  nStubs5DisplacedBend_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend");
+  nDisplacedTracks_ = (int)iConfig.getParameter<int>("nDisplacedTracks");
   dzPVTrk_ = (float)iConfig.getParameter<double>("MaxDzTrackPV");
 
 
@@ -165,9 +158,7 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
 
   L1TrkPtrs_.clear();
   zBinCount_.clear();
-  ttrk_.clear();
   tdtrk_.clear();
-  ttdtrk_.clear();
 
   unsigned int this_l1track = 0;
   for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
@@ -191,7 +182,7 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
 
     if (trk_nPS < trkNPSStubMin_)
       continue;
-    if (!trackQualityCuts(trk_pt, trk_nstubs, trk_chi2dof, trk_bendchi2, fabs(trk_d0)))
+    if (!trackQualityCuts(trk_nstubs, trk_chi2dof, trk_bendchi2))
       continue;
     if ( fabs(PVz-trkPtr->z0()) > dzPVTrk_ )
       continue;
@@ -204,28 +195,16 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
     L1TrkPtrs_.push_back(trkPtr);
     zBinCount_.push_back(0);
 
-    if ((fabs(trk_d0) > d0CutNStubs5_ && trk_nstubs >= 5) || (trk_nstubs == 4 && fabs(trk_d0) > d0CutNStubs4_))
-      tdtrk_.push_back(1);
+    if ((fabs(trk_d0) > d0CutNStubs5_ && trk_nstubs >= 5 && d0CutNStubs5_>=0) || (trk_nstubs == 4 && fabs(trk_d0) > d0CutNStubs4_ && d0CutNStubs4_>=0))
+      tdtrk_.push_back(1); //displaced track
     else
-      tdtrk_.push_back(0);  //displaced track
-    if ((trk_nstubs >= 5 && trk_chi2dof < nStubs5DisplacedChi2Tight_ && trk_bendchi2 < nStubs5DisplacedBendTight_) ||
-        (trk_nstubs == 4 && trk_chi2dof < nStubs4DisplacedChi2Tight_ && trk_bendchi2 < nStubs4DisplacedBendTight_))
-      ttrk_.push_back(1);
-    else
-      ttrk_.push_back(0);
-    if ((trk_nstubs >= 5 && trk_chi2dof < nStubs5DisplacedChi2Tight_ && trk_bendchi2 < nStubs5DisplacedBendTight_ &&
-         fabs(trk_d0) > d0CutNStubs5_) ||
-        (trk_nstubs == 4 && trk_chi2dof < nStubs4DisplacedChi2Tight_ && trk_bendchi2 < nStubs4DisplacedBendTight_ &&
-         fabs(trk_d0) > d0CutNStubs4_))
-      ttdtrk_.push_back(1);
-    else
-      ttdtrk_.push_back(0);
+      tdtrk_.push_back(0);  // not displaced track
   }
 
   if (!L1TrkPtrs_.empty()) {
     MaxZBin mzb;
 
-    L2_cluster(L1TrkPtrs_, ttrk_, tdtrk_, ttdtrk_, mzb);
+    L2_cluster(L1TrkPtrs_, tdtrk_, mzb);
     vector<Ptr<L1TTTrackType> > L1TrackAssocJet;
     if (mzb.clusters != nullptr) {
       for (int j = 0; j < mzb.nclust; ++j) {
@@ -243,9 +222,10 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
         float jetPy = jetPt * sin(jetPhi);
         float jetPz = jetPt * sinh(jetEta);
         float jetP = jetPt * cosh(jetEta);
-        int totalTighttrk_ = mzb.clusters[j].numttrks;
         int totalDisptrk = mzb.clusters[j].numtdtrks;
-        int totalTightDisptrk = mzb.clusters[j].numttdtrks;
+        bool isDispJet=false;
+        if (totalDisptrk>nDisplacedTracks_ || totalDisptrk==nDisplacedTracks_)
+           isDispJet=true;
 
         math::XYZTLorentzVector jetP4(jetPx, jetPy, jetPz, jetP);
         L1TrackAssocJet.clear();
@@ -256,15 +236,16 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
                      L1TrackAssocJet,
                      mzb.zbincenter,
                      mzb.clusters[j].numtracks,
-                     totalTighttrk_,
+                     0,
                      totalDisptrk,
-                     totalTightDisptrk);
-        //trkJet.setDispCounters(DispCounters);
+                     0,
+                     isDispJet);
+
         if (!L1TrackAssocJet.empty())
           L1L1TrackJetProducer->push_back(trkJet);
       }
     }
-    //free(mzb.clusters);
+
     if (displaced_)
       iEvent.put(std::move(L1L1TrackJetProducer), "L1TrackJetsExtended");
     else
@@ -274,7 +255,7 @@ void L1TrackJetProducer::produce(Event &iEvent, const EventSetup &iSetup) {
 }
 
 void L1TrackJetProducer::L2_cluster(
-    vector<Ptr<L1TTTrackType> > L1TrkPtrs_, vector<int> ttrk_, vector<int> tdtrk_, vector<int> ttdtrk_, MaxZBin &mzb) {
+    vector<Ptr<L1TTTrackType> > L1TrkPtrs_, vector<int> tdtrk_,  MaxZBin &mzb) {
   const int nz = zBins_;
   MaxZBin all_zBins[nz];
   MaxZBin mzbtemp;
@@ -339,9 +320,7 @@ void L1TrackJetProducer::L2_cluster(
               epbins[i][j].pTtot += trkpt;
             else
               epbins[i][j].pTtot += trkPtMax_;
-            epbins[i][j].numttrks += ttrk_[k];
             epbins[i][j].numtdtrks += tdtrk_[k];
-            epbins[i][j].numttdtrks += ttdtrk_[k];
             epbins[i][j].trackidx.push_back(k);
             ++epbins[i][j].numtracks;
           }  // if right bin
@@ -367,9 +346,7 @@ void L1TrackJetProducer::L2_cluster(
     float E0 = 0;
     float E2 = 0;
     int trx1, trx2;
-    int ttrk1, ttrk2;
     int tdtrk1, tdtrk2;
-    int ttdtrk1, ttdtrk2;
     int used1, used2, used3, used4;
 
     for (phibin = 0; phibin < phiBins_; ++phibin) {  //Find eta-phibin with highest pT
@@ -389,12 +366,8 @@ void L1TrackJetProducer::L2_cluster(
         E2 = 0;
         trx1 = 0;
         trx2 = 0;
-        ttrk1 = 0;
-        ttrk2 = 0;
         tdtrk1 = 0;
         tdtrk2 = 0;
-        ttdtrk1 = 0;
-        ttdtrk2 = 0;
         std::vector<unsigned int> trkidx1;
         std::vector<unsigned int> trkidx2;
         L2cluster[nclust] = L1clusters[phibin][imax];
@@ -410,9 +383,7 @@ void L1TrackJetProducer::L2_cluster(
             if (fabs(L1clusters[phibin + 1][index1].eta - L1clusters[phibin][imax].eta) <= 1.5 * etaStep_) {
               E1 += L1clusters[phibin + 1][index1].pTtot;
               trx1 += L1clusters[phibin + 1][index1].numtracks;
-              ttrk1 += L1clusters[phibin + 1][index1].numttrks;
               tdtrk1 += L1clusters[phibin + 1][index1].numtdtrks;
-              ttdtrk1 += L1clusters[phibin + 1][index1].numttdtrks;
               for (unsigned int itrk=0; itrk<L1clusters[phibin + 1][index1].trackidx.size(); itrk++)
                   trkidx1.push_back(L1clusters[phibin + 1][index1].trackidx[itrk] );
               if (used1 < 0)
@@ -425,9 +396,7 @@ void L1TrackJetProducer::L2_cluster(
           if (E1 < E0) {  // if E1 isn't higher, E0 and E1 are their own cluster
             L2cluster[nclust].pTtot += E1;
             L2cluster[nclust].numtracks += trx1;
-            L2cluster[nclust].numttrks += ttrk1;
             L2cluster[nclust].numtdtrks += tdtrk1;
-            L2cluster[nclust].numttdtrks += ttdtrk1;
             for (unsigned int itrk=0; itrk<trkidx1.size(); itrk++)
                 L2cluster[nclust].trackidx.push_back(trkidx1[itrk]);
   
@@ -448,9 +417,7 @@ void L1TrackJetProducer::L2_cluster(
               if (fabs(L1clusters[phibin + 2][index1].eta - L1clusters[phibin][imax].eta) <= 1.5 * etaStep_) {
                 E2 += L1clusters[phibin + 2][index1].pTtot;
                 trx2 += L1clusters[phibin + 2][index1].numtracks;
-                ttrk2 += L1clusters[phibin + 2][index1].numttrks;
                 tdtrk2 += L1clusters[phibin + 2][index1].numtdtrks;
-                ttdtrk2 += L1clusters[phibin + 2][index1].numttdtrks;
                 for (unsigned int itrk=0; itrk<L1clusters[phibin + 2][index1].trackidx.size(); itrk++)
                     trkidx2.push_back(L1clusters[phibin + 2][index1].trackidx[itrk] );
 
@@ -465,9 +432,7 @@ void L1TrackJetProducer::L2_cluster(
             if (E2 < E1) {
               L2cluster[nclust].pTtot += E1 + E2;
               L2cluster[nclust].numtracks += trx1 + trx2;
-              L2cluster[nclust].numttrks += ttrk1 + ttrk2;
               L2cluster[nclust].numtdtrks += tdtrk1 + tdtrk2;
-              L2cluster[nclust].numttdtrks += ttdtrk1 + ttdtrk2;
               L2cluster[nclust].phi = L1clusters[phibin + 1][used1].phi;
               for(unsigned int itrk=0; itrk<trkidx1.size(); itrk++)
                  L2cluster[nclust].trackidx.push_back(trkidx1[itrk]);
@@ -490,9 +455,7 @@ void L1TrackJetProducer::L2_cluster(
           else {
             L2cluster[nclust].pTtot += E1;
             L2cluster[nclust].numtracks += trx1;
-            L2cluster[nclust].numttrks += ttrk1;
             L2cluster[nclust].numtdtrks += tdtrk1;
-            L2cluster[nclust].numttdtrks += ttdtrk1;
             L2cluster[nclust].phi = L1clusters[phibin + 1][used1].phi;
             for(unsigned int itrk=0; itrk<trkidx1.size(); itrk++)
                 L2cluster[nclust].trackidx.push_back(trkidx1[itrk]);
@@ -526,9 +489,7 @@ void L1TrackJetProducer::L2_cluster(
 
           L2cluster[m].pTtot += L2cluster[n].pTtot;
           L2cluster[m].numtracks += L2cluster[n].numtracks;
-          L2cluster[m].numttrks += L2cluster[n].numttrks;
           L2cluster[m].numtdtrks += L2cluster[n].numtdtrks;
-          L2cluster[m].numttdtrks += L2cluster[n].numttdtrks;
           for(unsigned int itrk=0; itrk<L2cluster[n].trackidx.size(); itrk++)
              L2cluster[m].trackidx.push_back(L2cluster[n].trackidx[itrk]);
 
@@ -562,9 +523,7 @@ void L1TrackJetProducer::L2_cluster(
       all_zBins[zbin].clusters[k].eta = L2cluster[k].eta;
       all_zBins[zbin].clusters[k].pTtot = L2cluster[k].pTtot;
       all_zBins[zbin].clusters[k].numtracks = L2cluster[k].numtracks;
-      all_zBins[zbin].clusters[k].numttrks = L2cluster[k].numttrks;
       all_zBins[zbin].clusters[k].numtdtrks = L2cluster[k].numtdtrks;
-      all_zBins[zbin].clusters[k].numttdtrks = L2cluster[k].numttdtrks;
       for (unsigned int itrk=0; itrk<L2cluster[k].trackidx.size(); itrk++)
          all_zBins[zbin].clusters[k].trackidx.push_back(L2cluster[k].trackidx[itrk]);
 
@@ -631,18 +590,14 @@ EtaPhiBin *L1TrackJetProducer::L1_cluster(EtaPhiBin *phislice) {
     if (left_pt > 0) {
       clusters[nclust].pTtot += left_pt;
       clusters[nclust].numtracks += phislice[etabin - 1].numtracks;
-      clusters[nclust].numttrks += phislice[etabin - 1].numttrks;
       clusters[nclust].numtdtrks += phislice[etabin - 1].numtdtrks;
-      clusters[nclust].numttdtrks += phislice[etabin - 1].numttdtrks;
       for (unsigned int itrk=0; itrk<phislice[etabin - 1].trackidx.size(); itrk++)
          clusters[nclust].trackidx.push_back(phislice[etabin - 1].trackidx[itrk]);
     }
     if (my_pt >= right2pt && right_pt > 0) {
       clusters[nclust].pTtot += right_pt;
       clusters[nclust].numtracks += phislice[etabin + 1].numtracks;
-      clusters[nclust].numttrks += phislice[etabin + 1].numttrks;
       clusters[nclust].numtdtrks += phislice[etabin + 1].numtdtrks;
-      clusters[nclust].numttdtrks += phislice[etabin + 1].numttdtrks;
       for (unsigned int itrk=0; itrk<phislice[etabin + 1].trackidx.size(); itrk++)
          clusters[nclust].trackidx.push_back(phislice[etabin+ 1].trackidx[itrk]);
 
@@ -659,9 +614,7 @@ EtaPhiBin *L1TrackJetProducer::L1_cluster(EtaPhiBin *phislice) {
       }
       clusters[m].pTtot += clusters[m + 1].pTtot;
       clusters[m].numtracks += clusters[m + 1].numtracks;  // Previous version didn't add tracks when merging
-      clusters[m].numttrks += clusters[m + 1].numttrks;
       clusters[m].numtdtrks += clusters[m + 1].numtdtrks;
-      clusters[m].numttdtrks += clusters[m + 1].numttdtrks;
       for (unsigned int itrk=0; itrk<clusters[m + 1].trackidx.size(); itrk++)
          clusters[m].trackidx.push_back(clusters[m + 1].trackidx[itrk]);
 
@@ -683,18 +636,16 @@ void L1TrackJetProducer::beginStream(StreamID) {}
 void L1TrackJetProducer::endStream() {}
 
 bool L1TrackJetProducer::trackQualityCuts(
-    float trk_pt, int trk_nstub, float trk_chi2, float trk_bendchi2, float trk_d0) {
+    int trk_nstub, float trk_chi2, float trk_bendchi2) {
   bool PassQuality = false;
   if (trk_bendchi2 < trkBendChi2Max_ && trk_chi2 < trkChi2dofMax_ && trk_nstub >= 4 && !displaced_)
-    PassQuality = true;
-  if (displaced_ && trk_bendchi2 < nStubs4DisplacedBendTight_ && trk_chi2 < nStubs4DisplacedChi2Tight_ &&
-      trk_nstub == 4 && trk_d0 <= d0CutNStubs4_)
-    PassQuality = true;
-  if (displaced_ && trk_bendchi2 < nStubs4DisplacedBendLoose_ && trk_chi2 < nStubs4DisplacedChi2Loose_ &&
-      trk_nstub == 4 && trk_d0 > d0CutNStubs4_)
-    PassQuality = true;
-  if (displaced_ && trk_bendchi2 < nStubs5DisplacedBendLoose_ && trk_chi2 < nStubs5DisplacedChi2Loose_ && trk_nstub > 4)
-    PassQuality = true;
+        PassQuality = true;
+  if (displaced_ && trk_bendchi2 < nStubs4DisplacedBend_ && 
+      trk_chi2 < nStubs4DisplacedChi2_ && trk_nstub == 4 )
+        PassQuality = true;
+  if (displaced_ && trk_bendchi2 < nStubs5DisplacedBend_ && 
+      trk_chi2 < nStubs5DisplacedChi2_ && trk_nstub > 4 )
+        PassQuality = true;
   return PassQuality;
 }
 
