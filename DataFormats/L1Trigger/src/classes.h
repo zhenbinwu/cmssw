@@ -34,6 +34,10 @@
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "DataFormats/L1Trigger/interface/VertexWord.h"
 #include "DataFormats/L1Trigger/interface/TkJetWord.h"
+#include "DataFormats/Common/interface/RefToBase.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 
 namespace {
   struct dictionary {
