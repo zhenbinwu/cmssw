@@ -11,13 +11,14 @@ namespace l1t::demo::codecs {
 
     for (const auto& vertex : vertices)
       vertexWords.push_back(encodeVertex(vertex));
-    // Pad vertex vectors -> full packet length (10 frames = 10 vertices)
-    vertexWords.resize(10, 0);
 
     std::array<std::vector<ap_uint<64>>, 1> linkData;
 
-    for (size_t i = 0; i < linkData.size(); i++)
+    for (size_t i = 0; i < linkData.size(); i++) {
+      // Pad vertex vectors -> full packet length (48 frames = 48 vertices)
+      vertexWords.resize(48, 0);
       linkData.at(i) = vertexWords;
+    }
 
     return linkData;
   }

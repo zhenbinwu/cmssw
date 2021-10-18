@@ -3,6 +3,7 @@
 #define L1Trigger_DemonstratorTools_codecs_tracks_h
 
 #include <array>
+#include <sstream>
 #include <vector>
 
 #include "ap_int.h"

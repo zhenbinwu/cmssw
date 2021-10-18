@@ -57,7 +57,8 @@ private:
   // ----------constants, enums and typedefs ---------
   // NOTE: At least some of the info from these constants will eventually come from config files
   static constexpr size_t kFramesPerTMUXPeriod = 9;
-  static constexpr size_t kGapLength = 6;
+  static constexpr size_t kGapLengthInput = 6;
+  static constexpr size_t kGapLengthOutput = 44;
   static constexpr size_t kTrackTMUX = 18;
   static constexpr size_t kGTTBoardTMUX = 6;
   static constexpr size_t kMaxLinesPerFile = 1024;
@@ -85,12 +86,12 @@ private:
 
   const std::map<std::string, l1t::demo::ChannelSpec> kChannelSpecsInput = {
       /* interface name -> {link TMUX, inter-packet gap} */
-      {"tracks", {kTrackTMUX, kGapLength}}};
+      {"tracks", {kTrackTMUX, kGapLengthInput}}};
 
   const std::map<l1t::demo::LinkId, std::pair<l1t::demo::ChannelSpec, std::vector<size_t>>>
       kChannelSpecsOutputToCorrelator = {
           /* logical channel within time slice -> {{link TMUX, inter-packet gap}, vector of channel indices} */
-          {{"vertices", 0}, {{kGTTBoardTMUX, kGapLength}, {0}}}};
+          {{"vertices", 0}, {{kGTTBoardTMUX, kGapLengthOutput}, {0}}}};
 
   typedef TTTrack<Ref_Phase2TrackerDigi_> Track_t;
 
