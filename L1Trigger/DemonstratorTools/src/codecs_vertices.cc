@@ -15,8 +15,8 @@ namespace l1t::demo::codecs {
     std::array<std::vector<ap_uint<64>>, 1> linkData;
 
     for (size_t i = 0; i < linkData.size(); i++) {
-      // Pad vertex vectors -> full packet length (48 frames = 48 vertices)
-      vertexWords.resize(48, 0);
+      // Pad vertex vectors -> full packet length (48 frames, but only 10 vertices max)
+      vertexWords.resize(10, 0);
       linkData.at(i) = vertexWords;
     }
 
