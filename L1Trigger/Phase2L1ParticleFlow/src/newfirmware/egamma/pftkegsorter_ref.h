@@ -83,8 +83,20 @@ namespace l1ct {
       unsigned int nObjToSort_, nObjSorted_, nPFRegions_, nBoards_;
       bool debug_;
       
-      void extractEGObjEmu(const l1ct::OutputRegion outregion, std::vector<l1ct::EGIsoObjEmu> & eg) { eg = outregion.egphoton; }
-      void extractEGObjEmu(const l1ct::OutputRegion outregion, std::vector<l1ct::EGIsoEleObjEmu> & eg) { eg = outregion.egelectron; }
+      void extractEGObjEmu(const PFRegionEmu& region, const l1ct::OutputRegion outregion, std::vector<l1ct::EGIsoObjEmu> & eg) { 
+        extractEGObjEmu(region, outregion.egphoton, eg); }
+      void extractEGObjEmu(const PFRegionEmu& region, const l1ct::OutputRegion outregion, std::vector<l1ct::EGIsoEleObjEmu> & eg) { 
+        extractEGObjEmu(region, outregion.egelectron, eg); }
+
+      template <typename T>
+      void extractEGObjEmu(const PFRegionEmu& region, const std::vector<T>& regional_objects, std::vector<T>& global_objects) {
+        for(const auto& reg_obj: regional_objects) {
+          T glb_obj = reg_obj;
+          glb_obj.hwEta = region.hwGlbEta(reg_obj.hwEta);
+          glb_obj.hwPhi = region.hwGlbPhi(reg_obj.hwPhi);
+          global_objects.push_back(glb_obj);
+        }
+      } 
 
       template <typename T>
       static bool comparePt(T obj1, T obj2) { return (obj1.hwPt > obj2.hwPt); }
@@ -95,22 +107,24 @@ namespace l1ct {
                                  std::vector<std::vector<T> > & eg_unsorted_inBoard){
         
         for (int i=0, ni=outregions.size(); i<ni; i++) {
+          const auto& region = pfregions[i].region;
+
           unsigned int x;
           if(splitEGObjectsToBoards_) {
-            l1ct::glbeta_t eta = pfregions[i].region.hwEtaCenter;
+            l1ct::glbeta_t eta = region.hwEtaCenter;
 
             if ( abs(eta) < l1ct::Scales::makeGlbEta(0.5) ) x = 0;
             else if ( abs(eta) < l1ct::Scales::makeGlbEta(1.5) ) x = (eta < 0 ? 1 : 2);
             else if ( abs(eta) < l1ct::Scales::makeGlbEta(2.5) ) x = (eta < 0 ? 3 : 4);
+            else x = 5;
             //else /*if ( fabs(eta) < 3.0 )*/x = 5;
             /*else x = 6;*/ // HF
           }
           else x=0;
-
           if(debug_) std::cout << "\nOutput Region "<<i<<": eta = "<<pfregions[i].region.floatEtaCenter()<<" and phi = "<<pfregions[i].region.floatPhiCenter()<<" \n";
           
           std::vector<T> eg_tmp;
-          extractEGObjEmu(outregions[i], eg_tmp);
+          extractEGObjEmu(region, outregions[i], eg_tmp);
           for (int j=0, nj=( eg_tmp.size()>nObjToSort_ ? nObjToSort_ : eg_tmp.size() ); j<nj; j++) {
             if(debug_) std::cout << "EG["<<j<<"] pt = " << eg_tmp[j].hwPt << ",\t eta = " << eg_tmp[j].hwEta << ",\t phi = " << eg_tmp[j].hwPhi << "\n";
             eg_unsorted_inBoard[x].push_back(eg_tmp[j]);
