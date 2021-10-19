@@ -174,6 +174,7 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
     }
   }
 
+  // FIXME: can be removed since now running with the "interceptor"
   // filter and select first N elements of input clusters
   std::vector<EmCaloObjEmu> emcalo_sel;
   sel_emCalo(cfg.nEMCALO_EGIN, in.emcalo, emcalo_sel);
@@ -188,7 +189,7 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
   out.egsta.clear();
   std::vector<EGIsoObjEmu> egobjs;
   std::vector<EGIsoEleObjEmu> egeleobjs;
-  eg_algo(emcalo_sel, in.track, emCalo2emCalo, emCalo2tk, out.egsta, egobjs, egeleobjs);
+  eg_algo(in.region, emcalo_sel, in.track, emCalo2emCalo, emCalo2tk, out.egsta, egobjs, egeleobjs);
 
   unsigned int nEGOut = std::min<unsigned>(cfg.nEM_EGOUT, egobjs.size());
   unsigned int nEGEleOut = std::min<unsigned>(cfg.nEM_EGOUT, egeleobjs.size());
@@ -200,7 +201,8 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
   ptsort_ref(egeleobjs.size(), nEGEleOut, egeleobjs, out.egelectron);
 }
 
-void PFTkEGAlgoEmulator::eg_algo(const std::vector<EmCaloObjEmu> &emcalo,
+void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu& region,
+                                 const std::vector<EmCaloObjEmu> &emcalo,
                                  const std::vector<TkObjEmu> &track,
                                  const std::vector<int> &emCalo2emCalo,
                                  const std::vector<int> &emCalo2tk,
@@ -210,6 +212,9 @@ void PFTkEGAlgoEmulator::eg_algo(const std::vector<EmCaloObjEmu> &emcalo,
   for (int ic = 0, nc = emcalo.size(); ic < nc; ++ic) {
     auto &calo = emcalo[ic];
 
+    // discard immediately EG objects that would not fall in the fiducial eta-phi region
+    if(!region.isFiducial(calo)) continue;
+    
     if (debug_ > 3)
       dbgCout() << "[REF] SEL emcalo with pt: " << calo.hwPt << " qual: " << calo.hwEmID << " eta: " << calo.hwEta
                 << " phi " << calo.hwPhi << std::endl;
