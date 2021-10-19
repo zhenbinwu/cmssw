@@ -43,6 +43,7 @@
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/pftkegalgo_ref.cpp"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo_common_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo_common_ref.cpp"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/pftkegsorter_ref.h"
 
 #include "DataFormats/L1TCorrelator/interface/TkElectron.h"
 #include "DataFormats/L1TCorrelator/interface/TkElectronFwd.h"
@@ -84,6 +85,7 @@ private:
   std::unique_ptr<l1ct::PFAlgoEmulatorBase> l1pfalgo_;
   std::unique_ptr<l1ct::LinPuppiEmulator> l1pualgo_;
   std::unique_ptr<l1ct::PFTkEGAlgoEmulator> l1tkegalgo_;
+  std::unique_ptr<l1ct::PFTkEGSorterEmulator> l1tkegsorter_;
 
   bool writeEgSta_;
   // Region dump
@@ -163,6 +165,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
       l1pfalgo_(nullptr),
       l1pualgo_(nullptr),
       l1tkegalgo_(nullptr),
+      l1tkegsorter_(nullptr),
       regionDumpName_(iConfig.getUntrackedParameter<std::string>("dumpFileName", "")),
       writeRawHgcalCluster_(iConfig.getUntrackedParameter<bool>("writeRawHgcalCluster", false)),
       debugEta_(iConfig.getUntrackedParameter<double>("debugEta", 0)),
@@ -234,6 +237,9 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
 
   l1tkegalgo_ = std::make_unique<l1ct::PFTkEGAlgoEmulator>(
       l1ct::PFTkEGAlgoEmuConfig(iConfig.getParameter<edm::ParameterSet>("tkEgAlgoParameters")));
+
+  l1tkegsorter_ = std::make_unique<l1ct::PFTkEGSorterEmulator>(
+    iConfig.getParameter<edm::ParameterSet>("tkEgSorterParameters"));
 
   if (l1tkegalgo_->writeEgSta())
     produces<BXVector<l1t::EGamma>>("L1Eg");
@@ -409,6 +415,16 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
     //l1pualgo_->runNeutralsPU(l1region, z0, -1., puGlobals);
   }
 
+
+  //l1tkegsorter_->run
+  // FIXME: we want different # of objects for ele and photons?
+  // FIXME: we want arbitrary mapping of regions to boards (especially for barrel)
+  // FIXME: we might have to change interface to vector<DetectorSector<T>> or similar...
+  // FIXME: what about STA objects? we might need them if we use the per board output to write in CMSSW (to get the ref)
+  l1tkegsorter_->setDebug(true);
+  l1tkegsorter_->run(event_.pfinputs, event_.out, event_.board_out_egphoton);
+  l1tkegsorter_->run(event_.pfinputs, event_.out, event_.board_out_egele);
+
   // save PF into the event
   iEvent.put(fetchPF(), "PF");
 
@@ -517,6 +533,11 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
       }
     }
   }
+
+  // FIXME: this needs to be configured via cfg (both the # of boards and the mapping regions to board)
+  event_.board_out_egphoton.resize(5);
+  event_.board_out_egele.resize(5);
+
 }
 
 void L1TCorrelatorLayer1Producer::initEvent(const edm::Event &iEvent) {

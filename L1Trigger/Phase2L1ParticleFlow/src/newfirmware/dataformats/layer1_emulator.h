@@ -317,7 +317,7 @@ namespace l1ct {
   };
 
   struct Event {
-    enum { VERSION = 10 };
+    enum { VERSION = 11 };
     uint32_t run, lumi;
     uint64_t event;
     RawInputs raw;
@@ -326,6 +326,10 @@ namespace l1ct {
     std::vector<PVObjEmu> pvs;
     std::vector<ap_uint<64>> pvs_emu;
     std::vector<OutputRegion> out;
+    // FIXME: we duplicate the region for each EG object type
+    // we might want std::vector<DetectorSector<EGIsoObjEmu>>
+    std::vector<std::vector<EGIsoObjEmu>> board_out_egphoton;
+    std::vector<std::vector<EGIsoEleObjEmu>> board_out_egele;
 
     Event() : run(0), lumi(0), event(0) {}
 
