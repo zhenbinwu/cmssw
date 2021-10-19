@@ -57,5 +57,5 @@ tkEgSorterParameters = cms.PSet(
     nObjToSort=cms.uint32(6),
     nObjSorted=cms.uint32(54),
     nPFRegions=cms.uint32(54),
-    nBoards=cms.uint32(5),
+    nBoards=cms.uint32(6),
 )

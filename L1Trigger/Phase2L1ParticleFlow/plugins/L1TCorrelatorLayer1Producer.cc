@@ -535,8 +535,8 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
   }
 
   // FIXME: this needs to be configured via cfg (both the # of boards and the mapping regions to board)
-  event_.board_out_egphoton.resize(5);
-  event_.board_out_egele.resize(5);
+  event_.board_out_egphoton.resize(6);
+  event_.board_out_egele.resize(6);
 
 }
 
