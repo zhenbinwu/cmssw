@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
+import math
+
 from L1Trigger.Phase2L1ParticleFlow.pfTracksFromL1Tracks_cfi import pfTracksFromL1Tracks
 from L1Trigger.Phase2L1ParticleFlow.pfClustersFromL1EGClusters_cfi import pfClustersFromL1EGClusters
 from L1Trigger.Phase2L1ParticleFlow.pfClustersFromCombinedCalo_cff import pfClustersFromCombinedCaloHCal, pfClustersFromCombinedCaloHF
@@ -85,8 +87,9 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     caloSectors = cms.VPSet(
         cms.PSet( 
-            etaBoundaries = cms.vdouble(-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5),
-            phiSlices     = cms.uint32(6)
+            etaBoundaries = cms.vdouble(-1.5, 1.5),
+            phiSlices     = cms.uint32(6),
+            phiZero       = cms.double(0),
         )
     ),
     regions = cms.VPSet(
@@ -103,11 +106,13 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
 _hgcalSectors = cms.VPSet(
     cms.PSet( 
         etaBoundaries = cms.vdouble(-3.0, -1.5),
-        phiSlices     = cms.uint32(3)
+        phiSlices     = cms.uint32(3),
+        phiZero       = cms.double(math.pi/6) # L1 TrackFinder phi sector and HGCal sectors shifted by 30deg,
     ),
     cms.PSet( 
         etaBoundaries = cms.vdouble(+1.5, +3.0),
-        phiSlices     = cms.uint32(3)
+        phiSlices     = cms.uint32(3),
+        phiZero       = cms.double(math.pi/6) # L1 TrackFinder phi sector and HGCal sectors shifted by 30deg,
     )
 
 )
@@ -370,11 +375,13 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
     caloSectors = cms.VPSet(
         cms.PSet( 
             etaBoundaries = cms.vdouble(-5.5, -3.0),
-            phiSlices     = cms.uint32(9)
+            phiSlices     = cms.uint32(9),
+            phiZero       = cms.double(0),
         ),
         cms.PSet( 
             etaBoundaries = cms.vdouble(+3.0, +5.5),
-            phiSlices     = cms.uint32(9)
+            phiSlices     = cms.uint32(9),
+            phiZero       = cms.double(0),
         )
     ),
     regions = cms.VPSet(
@@ -463,4 +470,3 @@ l1ctLayer1Task = cms.Task(
      l1ctLayer1,
      l1ctLayer1EG
 )
-

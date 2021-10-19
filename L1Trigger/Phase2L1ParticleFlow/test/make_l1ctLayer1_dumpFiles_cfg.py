@@ -36,6 +36,9 @@ process.L1VertexFinderEmulator = process.VertexProducer.clone()
 process.L1VertexFinderEmulator.VertexReconstruction.Algorithm = "FastHistoEmulation"
 process.L1VertexFinderEmulator.l1TracksInputTag = cms.InputTag("L1GTTInputProducer", "Level1TTTracksConverted")
 
+process.l1ctLayer1Barrel9 = process.l1ctLayer1Barrel.clone()
+process.l1ctLayer1Barrel9.regions[0].etaBoundaries = [ -1.5, -0.5, 0.5, 1.5 ] 
+
 process.runPF = cms.Path( 
         process.standaloneMuons +
         process.L1GTTInputProducer +
@@ -43,6 +46,7 @@ process.runPF = cms.Path(
         process.pfTracksFromL1Tracks +
         process.l1ParticleFlow_calo +
         process.l1ctLayer1Barrel +
+        process.l1ctLayer1Barrel9 +
         process.l1ctLayer1HGCal +
         process.l1ctLayer1HGCalNoTK +
         process.l1ctLayer1HF +
@@ -51,6 +55,6 @@ process.runPF = cms.Path(
 
 process.source.fileNames  = [ '/store/cmst3/group/l1tr/gpetrucc/11_1_0/NewInputs110X/110121.done/TTbar_PU200/inputs110X_%d.root' % i for i in (1,3,7,8,9) ]
 
-for det in "Barrel", "HGCal", "HGCalNoTK", "HF":
+for det in "Barrel", "Barrel9", "HGCal", "HGCalNoTK", "HF":
     l1pf = getattr(process, 'l1ctLayer1'+det)
     l1pf.dumpFileName = cms.untracked.string("TTbar_PU200_"+det+".dump")

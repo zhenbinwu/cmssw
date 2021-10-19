@@ -483,13 +483,13 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     float phiWidth = 2 * M_PI / phiSlices;
     if (phiWidth > 2 * l1ct::Scales::maxAbsPhi())
       throw cms::Exception("Configuration", "caloSectors phi range too large for phi_t data type");
+    double phiZero = preg.getParameter<double>("phiZero");
     for (unsigned int ieta = 0, neta = etaBoundaries.size() - 1; ieta < neta; ++ieta) {
       float etaWidth = etaBoundaries[ieta + 1] - etaBoundaries[ieta];
       if (etaWidth > 2 * l1ct::Scales::maxAbsEta())
         throw cms::Exception("Configuration", "caloSectors eta range too large for eta_t data type");
       for (unsigned int iphi = 0; iphi < phiSlices; ++iphi) {
-        float phiCenter = reco::reduceRange(iphi * phiWidth +
-                                            M_PI / 6.);  //L1 TrackFinder phi sector and HGCal sectors shifted by 30deg
+        float phiCenter = reco::reduceRange(iphi * phiWidth + phiZero);
         event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
         event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
         event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
