@@ -11,6 +11,16 @@ options.register ('format',
                   VarParsing.VarParsing.multiplicity.singleton,
                   VarParsing.VarParsing.varType.string,
                   "File format (APx, EMP or X20)")
+options.register('threads',
+                 1, # default value
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Number of threads to run")
+options.register('streams',
+                 0, # default value
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Number of streams to run")
 options.parseArguments()
 
 inputFiles = []
@@ -18,6 +28,8 @@ for filePath in options.inputFiles:
     if filePath.endswith(".root"):
         inputFiles.append(filePath)
     elif filePath.endswith("_cff.py"):
+        filePath = filePath.replace("/python/","/")
+        filePath = filePath.replace("/", ".")
         inputFilesImport = getattr(__import__(filePath.strip(".py"),fromlist=["readFiles"]),"readFiles")
         inputFiles.extend( inputFilesImport )
     else:
@@ -37,6 +49,10 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(inputFiles) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
+process.options = cms.untracked.PSet(
+    numberOfThreads = cms.untracked.uint32(options.threads),
+    numberOfStreams = cms.untracked.uint32(options.streams if options.streams>0 else 0)
+)
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
