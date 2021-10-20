@@ -151,7 +151,7 @@ namespace l1ct {
                     const std::vector<EmCaloObjEmu> &emcalo,
                     std::vector<EmCaloObjEmu> &emcalo_sel) const;
 
-    void eg_algo(const PFRegionEmu& region,
+    void eg_algo(const PFRegionEmu &region,
                  const std::vector<EmCaloObjEmu> &emcalo,
                  const std::vector<TkObjEmu> &track,
                  const std::vector<int> &emCalo2emCalo,

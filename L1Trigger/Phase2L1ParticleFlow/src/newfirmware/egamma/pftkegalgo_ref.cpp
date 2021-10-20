@@ -201,7 +201,7 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
   ptsort_ref(egeleobjs.size(), nEGEleOut, egeleobjs, out.egelectron);
 }
 
-void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu& region,
+void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu &region,
                                  const std::vector<EmCaloObjEmu> &emcalo,
                                  const std::vector<TkObjEmu> &track,
                                  const std::vector<int> &emCalo2emCalo,
@@ -213,8 +213,9 @@ void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu& region,
     auto &calo = emcalo[ic];
 
     // discard immediately EG objects that would not fall in the fiducial eta-phi region
-    if(!region.isFiducial(calo)) continue;
-    
+    if (!region.isFiducial(calo))
+      continue;
+
     if (debug_ > 3)
       dbgCout() << "[REF] SEL emcalo with pt: " << calo.hwPt << " qual: " << calo.hwEmID << " eta: " << calo.hwEta
                 << " phi " << calo.hwPhi << std::endl;
