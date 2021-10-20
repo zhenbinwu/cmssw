@@ -17,6 +17,7 @@ struct EtaPhiBin {
   bool used;
   float phi;  //average phi value (halfway b/t min and max)
   float eta;  //average eta value
+  std::vector<unsigned int> trackidx;
 };
 
 //store important information for plots
