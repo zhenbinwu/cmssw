@@ -56,7 +56,8 @@
   <class name="edm::Ref<std::vector<l1t::TkElectron>,l1t::TkElectron,edm::refhelper::FindUsingAdvance<std::vector<l1t::TkElectron>,l1t::TkElectron> >"/>
   <class name="std::vector<edm::Ref<std::vector<l1t::TkElectron>,l1t::TkElectron,edm::refhelper::FindUsingAdvance<std::vector<l1t::TkElectron>,l1t::TkElectron> > >"/>
 
-  <class name="l1t::TkJet" ClassVersion="3">
+  <class name="l1t::TkJet" ClassVersion="4">
+   <version ClassVersion="4" checksum="1528601883"/>
    <version ClassVersion="3" checksum="3336007399"/>
   </class>
   <class name="std::vector<l1t::TkJet>"/>
