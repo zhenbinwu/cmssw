@@ -123,10 +123,20 @@ l1ct::PFRegionEmu::PFRegionEmu(
 }
 
 bool l1ct::PFRegionEmu::contains(float eta, float phi) const {
-  float dphi = reco::deltaPhi(floatPhiCenter(), phi);
-  return (floatEtaMinExtra() < eta && eta <= floatEtaMaxExtra() && -floatPhiHalfWidthExtra() < dphi &&
+  float dphi = reco::deltaPhi(phi, floatPhiCenter());
+  return (floatEtaMinExtra() <= eta && eta <= floatEtaMaxExtra() && -floatPhiHalfWidthExtra() <= dphi &&
           dphi <= floatPhiHalfWidthExtra());
 }
+bool l1ct::PFRegionEmu::containsHw(glbeta_t glbeta, glbphi_t glbphi) const {
+  glbeta_t loceta = glbeta - hwEtaCenter;
+  ap_int<glbphi_t::width + 1> locphi = glbphi - hwPhiCenter;
+  if (locphi > Scales::INTPHI_PI)
+    locphi -= Scales::INTPHI_TWOPI;
+  else if (locphi <= -Scales::INTPHI_PI)
+    locphi += Scales::INTPHI_TWOPI;
+  return isInside(loceta, locphi);
+}
+
 float l1ct::PFRegionEmu::localEta(float globalEta) const { return globalEta - floatEtaCenter(); }
 float l1ct::PFRegionEmu::localPhi(float globalPhi) const { return reco::deltaPhi(globalPhi, floatPhiCenter()); }
 

@@ -103,6 +103,7 @@ namespace l1ct {
 
     // global coordinates
     bool contains(float eta, float phi) const;
+    bool containsHw(glbeta_t glbeta, glbphi_t phi) const;
     float localEta(float globalEta) const;
     float localPhi(float globalPhi) const;
 

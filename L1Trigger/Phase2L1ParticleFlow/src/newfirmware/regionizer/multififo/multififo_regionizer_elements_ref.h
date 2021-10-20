@@ -67,13 +67,13 @@ namespace l1ct {
       bool useAlsoVtxCoords_;
       l1ct::PFRegionEmu region_;
       std::vector<std::list<T>> fifos_;
-      std::vector<T> staging_area_, queue_, staging_area2_, queue2_;
+      std::vector<std::pair<std::vector<T>, std::vector<T>>> queues_;
 
       T pop_next_trivial_();
-      T pop_next_6to1_();
-      T pop_next_8to1_();
-      void stage_to_queue_();
-      void pop_queue_(std::vector<T>& queue, T& ret);
+      void fifos_to_stage_(std::vector<T>& staging_area);
+      void queue_to_stage_(std::vector<T>& queue, std::vector<T>& staging_area);
+      void stage_to_queue_(std::vector<T>& staging_area, std::vector<T>& queue);
+      T pop_queue_(std::vector<T>& queue);
     };
 
     // forward decl for later
@@ -142,7 +142,7 @@ namespace l1ct {
       void initSectors(const std::vector<DetectorSector<T>>& sectors);
       void initSectors(const DetectorSector<T>& sector);
       void initRegions(const std::vector<PFInputRegion>& regions);
-      void initRouting(const std::vector<Route> routes);
+      void initRouting(const std::vector<Route> routes, bool validateRoutes = true);
 
       void reset() {
         flush();

@@ -25,17 +25,26 @@ namespace l1ct {
                                 unsigned int nem,
                                 unsigned int nmu,
                                 bool streaming,
-                                unsigned int outii = 0,
-                                bool useAlsoVtxCoords = false);
+                                unsigned int outii,
+                                bool useAlsoVtxCoords);
+
+    enum class BarrelSetup { Full54, Full27, Central18, Central9, Phi18, Phi9 };
+    MultififoRegionizerEmulator(BarrelSetup barrelSetup,
+                                unsigned int nHCalLinks,
+                                unsigned int nECalLinks,
+                                unsigned int nclocks,
+                                unsigned int ntk,
+                                unsigned int ncalo,
+                                unsigned int nem,
+                                unsigned int nmu,
+                                bool streaming,
+                                unsigned int outii,
+                                bool useAlsoVtxCoords);
 
     // note: this one will work only in CMSSW
     MultififoRegionizerEmulator(const edm::ParameterSet& iConfig);
 
     ~MultififoRegionizerEmulator() override;
-
-    static const int NTK_SECTORS = 9, NTK_LINKS = 2;      // max objects per sector per clock cycle
-    static const int NCALO_SECTORS = 3, NCALO_LINKS = 2;  //
-    static const int NMU_LINKS = 1;
 
     void setEgInterceptMode(bool afterFifo, const l1ct::EGInputSelectorEmuConfig& interceptorConfig);
     void initSectorsAndRegions(const RegionizerDecodedInputs& in, const std::vector<PFInputRegion>& out) override;
@@ -83,12 +92,14 @@ namespace l1ct {
     void fillLinks(unsigned int iclock, const RegionizerDecodedInputs& in, std::vector<l1ct::MuObjEmu>& links);
 
     // convert links to firmware
-    void toFirmware(const std::vector<l1ct::TkObjEmu>& emu, TkObj fw[NTK_SECTORS][NTK_LINKS]);
-    void toFirmware(const std::vector<l1ct::HadCaloObjEmu>& emu, HadCaloObj fw[NCALO_SECTORS][NCALO_LINKS]);
-    void toFirmware(const std::vector<l1ct::EmCaloObjEmu>& emu, EmCaloObj fw[NCALO_SECTORS][NCALO_LINKS]);
-    void toFirmware(const std::vector<l1ct::MuObjEmu>& emu, MuObj fw[NMU_LINKS]);
+    void toFirmware(const std::vector<l1ct::TkObjEmu>& emu, TkObj fw[/*NTK_SECTORS*NTK_LINKS*/]);
+    void toFirmware(const std::vector<l1ct::HadCaloObjEmu>& emu, HadCaloObj fw[/*NCALO_SECTORS*NCALO_LINKS*/]);
+    void toFirmware(const std::vector<l1ct::EmCaloObjEmu>& emu, EmCaloObj fw[/*NCALO_SECTORS*NCALO_LINKS*/]);
+    void toFirmware(const std::vector<l1ct::MuObjEmu>& emu, MuObj fw[/*NMU_LINKS*/]);
 
   private:
+    const unsigned int NTK_SECTORS, NCALO_SECTORS;  // max objects per sector per clock cycle
+    const unsigned int NTK_LINKS, NCALO_LINKS, HCAL_LINKS, ECAL_LINKS, NMU_LINKS;
     unsigned int nendcaps_, nclocks_, ntk_, ncalo_, nem_, nmu_, outii_, nregions_;
     bool streaming_;
     enum EmInterceptMode { noIntercept = 0, interceptPreFifo, interceptPostFifo } emInterceptMode_;
@@ -99,7 +110,7 @@ namespace l1ct {
     multififo_regionizer::Regionizer<l1ct::HadCaloObjEmu> hadCaloRegionizer_;
     multififo_regionizer::Regionizer<l1ct::EmCaloObjEmu> emCaloRegionizer_;
     multififo_regionizer::Regionizer<l1ct::MuObjEmu> muRegionizer_;
-    std::vector<l1ct::multififo_regionizer::Route> tkRoutes_, caloRoutes_, muRoutes_;
+    std::vector<l1ct::multififo_regionizer::Route> tkRoutes_, caloRoutes_, emCaloRoutes_, muRoutes_;
 
     template <typename T>
     void fillCaloLinks_(unsigned int iclock, const std::vector<DetectorSector<T>>& in, std::vector<T>& links);
