@@ -53,9 +53,6 @@ tkEgAlgoParameters = cms.PSet(
 )
 
 tkEgSorterParameters = cms.PSet(
-    doSplitToBoards=cms.bool(True),
     nObjToSort=cms.uint32(6),
     nObjSorted=cms.uint32(54),
-    nPFRegions=cms.uint32(54),
-    nBoards=cms.uint32(6),
 )

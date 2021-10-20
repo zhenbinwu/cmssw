@@ -18,25 +18,16 @@ namespace edm {
 namespace l1ct {
   class PFTkEGSorterEmulator {
     public:
-      PFTkEGSorterEmulator(bool splitEGObjectsToBoards=false,
-                           const unsigned int nObjToSort=6,
-                           const unsigned int nObjSorted=54,
-                           const unsigned int nPFRegions=54,
-                           const unsigned int nBoards=5) //FIXME: Numbers to be revised
-        : splitEGObjectsToBoards_(splitEGObjectsToBoards),
-          nObjToSort_(nObjToSort),
-          nObjSorted_(nObjSorted),
-          nPFRegions_(nPFRegions),
-          nBoards_(nBoards),
+      PFTkEGSorterEmulator(const unsigned int nObjToSort=6,
+                           const unsigned int nObjSorted=54) //FIXME: Numbers to be revised
+        : nObjToSort_(nObjToSort),
+          nObjSorted_(nObjSorted), // FIXME: is it needed?
           debug_(false) {}
 
 #ifdef CMSSW_GIT_HASH
       PFTkEGSorterEmulator(const edm::ParameterSet &iConfig) :
-        PFTkEGSorterEmulator(iConfig.getParameter<bool>("doSplitToBoards"),
-                             iConfig.getParameter<uint32_t>("nObjToSort"),
-                             iConfig.getParameter<uint32_t>("nObjSorted"),
-                             iConfig.getParameter<uint32_t>("nPFRegions"),
-                             iConfig.getParameter<uint32_t>("nBoards")) {} 
+        PFTkEGSorterEmulator(iConfig.getParameter<uint32_t>("nObjToSort"),
+                             iConfig.getParameter<uint32_t>("nObjSorted")) {} 
         
 #endif      
           
@@ -47,54 +38,49 @@ namespace l1ct {
       template <typename T>
       void run(const std::vector<l1ct::PFInputRegion> & pfregions, 
                const std::vector<l1ct::OutputRegion> & outregions, 
-               std::vector<std::vector<T> > & eg_sorted_inBoard){
+               const std::vector<unsigned int> & region_index, 
+               std::vector<T>& eg_sorted_inBoard){
 
-        std::vector<std::vector<T> >  eg_unsorted_inBoard = eg_sorted_inBoard;
-        mergeEGObjFromRegions<T>(pfregions, outregions, eg_unsorted_inBoard);
+        std::vector<T> eg_unsorted_inBoard = eg_sorted_inBoard;
+        mergeEGObjFromRegions<T>(pfregions, outregions, region_index, eg_unsorted_inBoard);
 
         if(debug_) {
           std::cout << "\nUNSORTED\n";
-          for (int i=0, ni=eg_unsorted_inBoard.size(); i<ni; i++) {
-            std::cout << "\nBoard "<<i<<"\n";
-            for (int j=0, nj=eg_unsorted_inBoard[i].size(); j<nj; j++) std::cout << "EG["<<j<<"]: pt = " << eg_unsorted_inBoard[i][j].hwPt << ",\t eta = " << eg_unsorted_inBoard[i][j].hwEta << ",\t phi = " << eg_unsorted_inBoard[i][j].hwPhi << "\n";
-          }
+          for (int j=0, nj=eg_unsorted_inBoard.size(); j<nj; j++) 
+            std::cout << "EG["<<j<<"]: pt = " << eg_unsorted_inBoard[j].hwPt << ",\t eta = " << eg_unsorted_inBoard[j].hwEta << ",\t phi = " << eg_unsorted_inBoard[j].hwPhi << "\n";
         }
 
         if(debug_) std::cout << "\nSORTED\n";
 
-        for (int i=0, ni=eg_unsorted_inBoard.size(); i<ni; i++) {
-          eg_sorted_inBoard[i] = eg_unsorted_inBoard[i];
-          std::reverse(eg_sorted_inBoard[i].begin(), eg_sorted_inBoard[i].end());
-          std::stable_sort(eg_sorted_inBoard[i].begin(), eg_sorted_inBoard[i].end(), comparePt<T>);
-          eg_sorted_inBoard[i].resize(nObjSorted_);
-          while (!eg_sorted_inBoard[i].empty() && eg_sorted_inBoard[i].back().hwPt == 0) eg_sorted_inBoard[i].pop_back(); // Zero suppression
+        eg_sorted_inBoard = eg_unsorted_inBoard;
+        std::reverse(eg_sorted_inBoard.begin(), eg_sorted_inBoard.end());
+        std::stable_sort(eg_sorted_inBoard.begin(), eg_sorted_inBoard.end(), comparePt<T>);
+        eg_sorted_inBoard.resize(nObjSorted_);
+        while (!eg_sorted_inBoard.empty() && eg_sorted_inBoard.back().hwPt == 0) eg_sorted_inBoard.pop_back(); // Zero suppression
 
-        
-          if(debug_) {
-            std::cout << "\nBoard "<<i<<"\n";
-            for (int j=0, nj=eg_sorted_inBoard[i].size(); j<nj; j++) std::cout << "EG["<<j<<"]: pt = " << eg_sorted_inBoard[i][j].hwPt << ",\t eta = " << eg_sorted_inBoard[i][j].hwEta << ",\t phi = " << eg_sorted_inBoard[i][j].hwPhi << "\n";
-          }
+      
+        if(debug_) {
+          for (int j=0, nj=eg_sorted_inBoard.size(); j<nj; j++) 
+            std::cout << "EG["<<j<<"]: pt = " << eg_sorted_inBoard[j].hwPt << ",\t eta = " << eg_sorted_inBoard[j].hwEta << ",\t phi = " << eg_sorted_inBoard[j].hwPhi << "\n";
         }
       }
 
 
     private:
-      bool splitEGObjectsToBoards_;
-      unsigned int nObjToSort_, nObjSorted_, nPFRegions_, nBoards_;
+      unsigned int nObjToSort_, nObjSorted_;
       bool debug_;
       
-      void extractEGObjEmu(const PFRegionEmu& region, const l1ct::OutputRegion outregion, std::vector<l1ct::EGIsoObjEmu> & eg) { 
+      void extractEGObjEmu(const PFRegionEmu& region, const l1ct::OutputRegion& outregion, std::vector<l1ct::EGIsoObjEmu> & eg) { 
         extractEGObjEmu(region, outregion.egphoton, eg); }
-      void extractEGObjEmu(const PFRegionEmu& region, const l1ct::OutputRegion outregion, std::vector<l1ct::EGIsoEleObjEmu> & eg) { 
+      void extractEGObjEmu(const PFRegionEmu& region, const l1ct::OutputRegion& outregion, std::vector<l1ct::EGIsoEleObjEmu> & eg) { 
         extractEGObjEmu(region, outregion.egelectron, eg); }
 
       template <typename T>
       void extractEGObjEmu(const PFRegionEmu& region, const std::vector<T>& regional_objects, std::vector<T>& global_objects) {
         for(const auto& reg_obj: regional_objects) {
-          T glb_obj = reg_obj;
-          glb_obj.hwEta = region.hwGlbEta(reg_obj.hwEta);
-          glb_obj.hwPhi = region.hwGlbPhi(reg_obj.hwPhi);
-          global_objects.push_back(glb_obj);
+          global_objects.emplace_back(reg_obj);
+          global_objects.back().hwEta = region.hwGlbEta(reg_obj.hwEta);
+          global_objects.back().hwPhi = region.hwGlbPhi(reg_obj.hwPhi);
         }
       } 
 
@@ -104,30 +90,19 @@ namespace l1ct {
       template <typename T>
       void mergeEGObjFromRegions(const std::vector<l1ct::PFInputRegion> & pfregions,
                                  const std::vector<l1ct::OutputRegion> & outregions,
-                                 std::vector<std::vector<T> > & eg_unsorted_inBoard){
+                                 const std::vector<unsigned int> & region_index, 
+                                 std::vector<T> & eg_unsorted_inBoard){
         
-        for (int i=0, ni=outregions.size(); i<ni; i++) {
+        for (unsigned int i: region_index) {
           const auto& region = pfregions[i].region;
 
-          unsigned int x;
-          if(splitEGObjectsToBoards_) {
-            l1ct::glbeta_t eta = region.hwEtaCenter;
-
-            if ( abs(eta) < l1ct::Scales::makeGlbEta(0.5) ) x = 0;
-            else if ( abs(eta) < l1ct::Scales::makeGlbEta(1.5) ) x = (eta < 0 ? 1 : 2);
-            else if ( abs(eta) < l1ct::Scales::makeGlbEta(2.5) ) x = (eta < 0 ? 3 : 4);
-            else x = 5;
-            //else /*if ( fabs(eta) < 3.0 )*/x = 5;
-            /*else x = 6;*/ // HF
-          }
-          else x=0;
-          if(debug_) std::cout << "\nOutput Region "<<i<<": eta = "<<pfregions[i].region.floatEtaCenter()<<" and phi = "<<pfregions[i].region.floatPhiCenter()<<" \n";
+          if(debug_) std::cout << "\nOutput Region "<<i<<": eta = "<< region.floatEtaCenter()<<" and phi = "<< region.floatPhiCenter()<<" \n";
           
           std::vector<T> eg_tmp;
           extractEGObjEmu(region, outregions[i], eg_tmp);
           for (int j=0, nj=( eg_tmp.size()>nObjToSort_ ? nObjToSort_ : eg_tmp.size() ); j<nj; j++) {
             if(debug_) std::cout << "EG["<<j<<"] pt = " << eg_tmp[j].hwPt << ",\t eta = " << eg_tmp[j].hwEta << ",\t phi = " << eg_tmp[j].hwPhi << "\n";
-            eg_unsorted_inBoard[x].push_back(eg_tmp[j]);
+            eg_unsorted_inBoard.push_back(eg_tmp[j]);
           }
           if(debug_) std::cout << "\n";
         }

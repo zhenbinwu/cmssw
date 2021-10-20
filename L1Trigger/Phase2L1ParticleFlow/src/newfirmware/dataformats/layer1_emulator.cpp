@@ -390,6 +390,20 @@ unsigned int l1ct::OutputRegion::nObj(ObjType type, bool usePuppi) const {
   }
 }
 
+
+bool l1ct::OutputBoard::read(std::fstream& from) {
+  return readMany(from, egphoton) && readMany(from, egelectron);
+}
+bool l1ct::OutputBoard::write(std::fstream& to) const {
+  return writeMany(egphoton, to) && writeMany(egelectron, to);
+}
+
+void l1ct::OutputBoard::clear() {
+  egphoton.clear();
+  egelectron.clear();
+}
+
+
 bool l1ct::Event::read(std::fstream& from) {
   uint32_t version;
   if (!readVar(from, version))
@@ -401,54 +415,15 @@ bool l1ct::Event::read(std::fstream& from) {
               << std::endl;
     abort();
   }
-  if(!(readVar(from, run) && readVar(from, lumi) && readVar(from, event) && raw.read(from) && decoded.read(from) &&
-         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, pvs_emu) && readMany(from, out)))
-         return false;
-  // FIXME: could simplify adding a read method to the OutputBoard (see how it was before)
-  uint32_t number;
-  if (!readVar(from, number))
-    return false;
-  board_out_egphoton.resize(number);
-  for (auto& v : board_out_egphoton) {
-    if (!readMany(from, v))
-      return false;
-  }
-  
-  if (!readVar(from, number))
-    return false;
-  board_out_egele.resize(number);
-  for (auto& v : board_out_egele) {
-    if (!readMany(from, v))
-      return false;
-  }
-
-  return true;
+  return readVar(from, run) && readVar(from, lumi) && readVar(from, event) && raw.read(from) && decoded.read(from) &&
+         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, pvs_emu) && readMany(from, out) && readMany(from, board_out);
 }
 bool l1ct::Event::write(std::fstream& to) const {
   uint32_t version = VERSION;
-  if(!(writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && raw.write(to) &&
+  return writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && raw.write(to) &&
          decoded.write(to) && writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(pvs_emu, to) &&
-         writeMany(out, to)))
-         return false;
-  // FIXME: could simplify adding a write method to the OutputBoard (see how it was before)
-  uint32_t number = board_out_egphoton.size();
-  if (!writeVar(number, to))
-    return false;
-  for (const auto& v : board_out_egphoton) {
-    if (!writeMany(v, to))
-      return false;
-  }
-  
-  number = board_out_egele.size();
-  if (!writeVar(number, to))
-    return false;
-  for (const auto& v : board_out_egele) {
-    if (!writeMany(v, to))
-      return false;
-  }
-  return true;
+         writeMany(out, to) && writeMany(board_out, to);
 }
-
 void l1ct::Event::init(uint32_t arun, uint32_t alumi, uint64_t anevent) {
   clear();
   run = arun;
@@ -467,8 +442,6 @@ void l1ct::Event::clear() {
   pvs_emu.clear();
   for (auto& i : out)
     i.clear();
-  for(auto& i : board_out_egphoton)
-    i.clear();
-  for(auto& i : board_out_egele)
+  for(auto& i : board_out)
     i.clear();
   }

@@ -316,6 +316,19 @@ namespace l1ct {
     unsigned int nObj(ObjType type, bool puppi) const;
   };
 
+
+  struct OutputBoard {
+    std::vector<unsigned int> region_index;
+    std::vector<EGIsoObjEmu> egphoton;
+    std::vector<EGIsoEleObjEmu> egelectron;
+
+    bool read(std::fstream &from);
+    bool write(std::fstream &to) const;
+    void clear();
+
+  };
+
+
   struct Event {
     enum { VERSION = 11 };
     uint32_t run, lumi;
@@ -326,10 +339,7 @@ namespace l1ct {
     std::vector<PVObjEmu> pvs;
     std::vector<ap_uint<64>> pvs_emu;
     std::vector<OutputRegion> out;
-    // FIXME: we duplicate the region for each EG object type
-    // we might want std::vector<DetectorSector<EGIsoObjEmu>>
-    std::vector<std::vector<EGIsoObjEmu>> board_out_egphoton;
-    std::vector<std::vector<EGIsoEleObjEmu>> board_out_egele;
+    std::vector<OutputBoard> board_out;
 
     Event() : run(0), lumi(0), event(0) {}
 

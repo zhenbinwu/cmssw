@@ -416,14 +416,12 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   }
 
 
-  //l1tkegsorter_->run
-  // FIXME: we want different # of objects for ele and photons?
-  // FIXME: we want arbitrary mapping of regions to boards (especially for barrel)
-  // FIXME: we might have to change interface to vector<DetectorSector<T>> or similar...
   // FIXME: what about STA objects? we might need them if we use the per board output to write in CMSSW (to get the ref)
-  l1tkegsorter_->setDebug(true);
-  l1tkegsorter_->run(event_.pfinputs, event_.out, event_.board_out_egphoton);
-  l1tkegsorter_->run(event_.pfinputs, event_.out, event_.board_out_egele);
+  // l1tkegsorter_->setDebug(true);
+  for(auto board: event_.board_out) {
+    l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egphoton);
+    l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egelectron);
+  }
 
   // save PF into the event
   iEvent.put(fetchPF(), "PF");
@@ -534,10 +532,12 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     }
   }
 
-  // FIXME: this needs to be configured via cfg (both the # of boards and the mapping regions to board)
-  event_.board_out_egphoton.resize(6);
-  event_.board_out_egele.resize(6);
-
+  event_.board_out.clear();
+  const std::vector<edm::ParameterSet>& board_params = iConfig.getParameter<std::vector<edm::ParameterSet>>("boards");
+  event_.board_out.resize(board_params.size());
+  for(unsigned int bidx = 0;  bidx < board_params.size(); bidx++) {
+    event_.board_out[bidx].region_index = board_params[bidx].getParameter<std::vector<unsigned int>>("regions");
+  }
 }
 
 void L1TCorrelatorLayer1Producer::initEvent(const edm::Event &iEvent) {

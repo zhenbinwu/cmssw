@@ -101,9 +101,22 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
             phiSlices     = cms.uint32(9),
             etaExtra = cms.double(0.25),
             phiExtra = cms.double(0.25),
-        )
+        ),
     ),
-
+    boards=cms.VPSet(
+        cms.PSet(
+             regions=cms.vuint32(range(0, 18))),
+        cms.PSet(
+             regions=cms.vuint32(range(18, 36))),
+        cms.PSet(
+             regions=cms.vuint32(range(36, 54))),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+    )
 )
 
 _hgcalSectors = cms.VPSet(
@@ -244,6 +257,20 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         )
 
     ),
+    boards=cms.VPSet(
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32(range(0, 9))),
+        cms.PSet(
+             regions=cms.vuint32(range(9, 18))),
+        cms.PSet(
+             regions=cms.vuint32()),
+    ),
     writeRawHgcalCluster = cms.untracked.bool(True)
 )
 
@@ -322,6 +349,20 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         )
 
     ),
+    boards=cms.VPSet(
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32()),
+        cms.PSet(
+             regions=cms.vuint32(range(0,18))),
+    ),
     writeRawHgcalCluster = cms.untracked.bool(True)
 )
 
@@ -382,9 +423,7 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
         nEM_EGOUT = 5,        # to be defined
         doBremRecovery=True,
         writeEGSta=True),
-    tkEgSorterParameters=tkEgSorterParameters.clone(
-        nObjToSort = 5
-    ),
+    tkEgSorterParameters=tkEgSorterParameters.clone(),
     caloSectors = cms.VPSet(
         cms.PSet( 
             etaBoundaries = cms.vdouble(-5.5, -3.0),
@@ -411,6 +450,7 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
             phiExtra = cms.double(0.25),
         )
     ),
+    boards=cms.VPSet(),
 )
 
 
