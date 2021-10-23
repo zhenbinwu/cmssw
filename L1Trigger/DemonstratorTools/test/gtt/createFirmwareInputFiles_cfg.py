@@ -6,6 +6,11 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 # PART 1 : PARSE ARGUMENTS
 
 options = VarParsing.VarParsing ('analysis')
+options.register('debug',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Print out additional debugging information")
 options.register ('format',
                   'EMP', # default value
                   VarParsing.VarParsing.multiplicity.singleton,
@@ -59,8 +64,13 @@ process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
 process.load('L1Trigger.VertexFinder.VertexProducer_cff')
 process.load('L1Trigger.DemonstratorTools.GTTFileWriter_cff')
 
+process.L1GTTInputProducer.debug = cms.int32(options.debug)
 process.VertexProducer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Level1TTTracksConverted")
 process.VertexProducer.VertexReconstruction.Algorithm = cms.string("FastHistoEmulation")
+process.VertexProducer.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
+process.VertexProducer.debug = options.debug
+if options.debug:
+    process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(1000000000)
 
 process.GTTFileWriter.format = cms.untracked.string(options.format)
 # process.GTTFileWriter.outputFilename = cms.untracked.string("myOutputFile.txt")
