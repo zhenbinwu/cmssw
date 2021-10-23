@@ -194,13 +194,19 @@ void L1GTTInputProducer::generate_pt_lut() {
 }
 
 double L1GTTInputProducer::unpackSignedValue(unsigned int bits, unsigned int nBits, double lsb) const {
-  int isign = 1;
-  unsigned int digitized_maximum = (1 << nBits) - 1;
-  if (bits & (1 << (nBits - 1))) {  // check the sign
-    isign = -1;
-    bits = (1 << (nBits + 1)) - bits;  // if negative, flip everything for two's complement encoding
+  // Check that none of the bits above the nBits-1 bit, in a range of [0, nBits-1], are set.
+  // This makes sure that it isn't possible for the value represented by 'bits' to be
+  //  any bigger than ((1 << nBits) - 1).
+  assert((bits >> nBits) == 0);
+
+  // Convert from twos compliment to C++ signed integer (normal digitized value)
+  int digitizedValue = bits;
+  if (bits & (1 << (nBits - 1))) {  // check if the 'bits' is negative
+     digitizedValue -= (1 << nBits);
   }
-  return (double(bits & digitized_maximum) + 0.5) * lsb * isign;
+
+  // Convert to floating point value
+  return (double(digitizedValue) + 0.5) * lsb;
 }
 
 /**
