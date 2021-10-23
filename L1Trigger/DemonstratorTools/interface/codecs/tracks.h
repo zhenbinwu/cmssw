@@ -19,7 +19,7 @@ namespace l1t::demo::codecs {
   ap_uint<96> encodeTrack(const TTTrack_TrackWord& t);
 
   // Encodes track collection onto 18 'logical' output links (2x9 eta-phi sectors; first 9 negative eta)
-  std::array<std::vector<ap_uint<64>>, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>&);
+  std::array<std::vector<ap_uint<64>>, 18> encodeTracks(const edm::View<TTTrack<Ref_Phase2TrackerDigi_>>&, int debug = 0);
 
 }  // namespace l1t::demo::codecs
 
