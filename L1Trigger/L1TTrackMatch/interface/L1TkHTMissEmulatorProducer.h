@@ -37,7 +37,7 @@ namespace l1tmhtemu {
   const float kMaxMHT{4096};  // 4 TeV
   const float kMaxMHTPhi{2 * M_PI};
 
-  typedef ap_uint<3> ntracks_t;
+  typedef ap_uint<5> ntracks_t;
   typedef ap_uint<kInternalPtWidth> pt_t;
   typedef ap_int<kInternalEtaWidth> eta_t;
   typedef ap_int<kInternalPhiWidth> phi_t;

@@ -56,7 +56,6 @@ private:
   l1tmhtemu::ntracks_t minNtracksLowPt_;
 
   std::vector<l1tmhtemu::phi_t> cosLUT_;
-  // std::vector<l1tmhtemu::trig_t> cosLUT_;
   std::vector<l1tmhtemu::MHTphi_t> atanLUT_;
   std::vector<l1tmhtemu::Et_t> magNormalisationLUT_;
 
@@ -101,16 +100,11 @@ L1TkHTMissEmulatorProducer::L1TkHTMissEmulatorProducer(const edm::ParameterSet& 
   produces<std::vector<EtSum>>(L1MHTCollectionName_);
 
   if(debug_){
-    std::cout<< "-------------------------------------------------------------------------"<<std::endl;
-    
+    std::cout<< "-------------------------------------------------------------------------"<<std::endl;    
     std::cout<< "====BITWIDTHS====\n" << "pt: " << l1t::TkJetWord::TkJetBitWidths::kPtSize << " eta: " << l1t::TkJetWord::TkJetBitWidths::kGlbEtaSize << " phi:" << l1t::TkJetWord::TkJetBitWidths::kGlbPhiSize <<std::endl;
-
     std::cout<< "====CUT FLOATS ORIGINAL====\n" << "minpt: "<< jetMinPt__ << " maxeta: " << jetMaxEta__ << " minNtracksHighPt: " << minNtracksHighPt__ << " minNtracksLowPt: " << minNtracksLowPt__ <<std::endl;
-
     std::cout<< "====CUT AP_INTS====\n" << "minpt: "<< jetMinPt_ << " maxeta: " << jetMaxEta_ << " minNtracksHighPt: " << minNtracksHighPt_ << " minNtracksLowPt: " << minNtracksLowPt_ <<std::endl;
-
-    std::cout<< "====CUT AP_INTS TO FLOATS====\n" << "minpt: "<< (float) jetMinPt_ * l1tmhtemu::kStepPt << " maxeta: " << (float) jetMaxEta_ * l1tmhtemu::kStepEta << " minNtracksHighPt: " << (float) minNtracksHighPt_ << " minNtracksLowPt: " << (float) minNtracksLowPt_ <<std::endl;
-
+    std::cout<< "====CUT AP_INTS TO FLOATS====\n" << "minpt: "<< (float) jetMinPt_ * l1tmhtemu::kStepPt << " maxeta: " << (float) jetMaxEta_ * l1tmhtemu::kStepEta << " minNtracksHighPt: " << (int) minNtracksHighPt_ << " minNtracksLowPt: " << (int) minNtracksLowPt_ <<std::endl;
     std::cout<< "-------------------------------------------------------------------------"<<std::endl;
   }
 
@@ -143,19 +137,23 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
   float sumPy_ = 0;
   float HT_ = 0;
 
+  float sumPxtemp_ = 0;
+  float sumPytemp_ = 0;
+  float HTtemp_ = 0;
+
   l1tmhtemu::Et_t sumPx = 0;
   l1tmhtemu::Et_t sumPy = 0;
   l1tmhtemu::Et_t HT = 0;
 
   // loop over jets
   int jetn = 0;
+  int jetnpasscuts = 0;
   for (jetIter = L1TkJetsHandle->begin(); jetIter != L1TkJetsHandle->end(); ++jetIter) {
 
     // floats used for debugging
     float tmp_jet_px_ = jetIter->pt()*cos(jetIter->glbphi());
     float tmp_jet_py_ = jetIter->pt()*sin(jetIter->glbphi());
-    // float tmp_jet_et_ = jetIter->et();
-    float tmp_jet_et_ = 0; // FIXME Get Et from the emulated jets
+    float tmp_jet_et_ = jetIter->pt(); // FIXME Get Et from the emulated jets
     float tmp_jet_pt_ = jetIter->pt();
     
 
@@ -198,18 +196,19 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
     
     if(debug_){
 
-      std::cout<< "****JET "<< jetn << "****" <<std::endl;
-
+      std::cout<< "****JET EMULATION"<< jetn << "****" <<std::endl;
       std::cout<< "FLOATS ORIGINAL\n" << "PT: " << jetIter->pt() << "| ETA: " << jetIter->glbeta() << "| PHI: " << jetIter->glbphi() << "| NTRACKS: " << jetIter->nt()<< "| COS(PHI): " << cos(jetIter->glbphi()) << "| SIN(PHI): "<< sin(jetIter->glbphi())<< "| Px: " << jetIter->pt()*cos(jetIter->glbphi()) << "| Py: " << jetIter->pt()*sin(jetIter->glbphi())<<std::endl;
-
       std::cout<<"AP_INTS RAW\n" << "PT: " << jetIter->ptWord() << "| ETA: " << jetIter->glbEtaWord() << "| PHI: " << jetIter->glbPhiWord() << "| NTRACKS: " << jetIter->ntWord()<<std::endl;
-    
       std::cout<<"AP_INTS NEW\n"<< "PT: " << tmp_jet_pt << "| ETA: " << tmp_jet_eta << "| PHI: " << tmp_jet_phi << "| NTRACKS: " << tmp_jet_nt << "| COS(PHI): "<< tmp_jet_cos_phi << "| SIN(PHI): " << tmp_jet_sin_phi<< "| Px: " << tmp_jet_px << "| Py: " << tmp_jet_py <<std::endl;
-
-      std::cout<<"AP_INTS NEW TO FLOATS\n"<< "PT: " << (float) tmp_jet_pt * l1tmhtemu::kStepPt << "| ETA: " << (float) tmp_jet_eta * l1tmhtemu::kStepEta << "| PHI: " << (float) tmp_jet_phi * l1tmhtemu::kStepPhi << "| NTRACKS: " << (float) tmp_jet_nt << "| COS(PHI): "<< (float) tmp_jet_cos_phi * l1tmhtemu::kStepPhi << "| SIN(PHI): " << (float) tmp_jet_sin_phi * l1tmhtemu::kStepPhi << "| Px: " << (float) tmp_jet_px * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi << "| Py: " << (float) tmp_jet_py * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi <<std::endl;
-
+      std::cout<<"AP_INTS NEW TO FLOATS\n"<< "PT: " << (float) tmp_jet_pt * l1tmhtemu::kStepPt << "| ETA: " << (float) tmp_jet_eta * l1tmhtemu::kStepEta << "| PHI: " << (float) tmp_jet_phi * l1tmhtemu::kStepPhi << "| NTRACKS: " << (int) tmp_jet_nt << "| COS(PHI): "<< (float) tmp_jet_cos_phi * l1tmhtemu::kStepPhi << "| SIN(PHI): " << (float) tmp_jet_sin_phi * l1tmhtemu::kStepPhi << "| Px: " << (float) tmp_jet_px * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi << "| Py: " << (float) tmp_jet_py * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi <<std::endl;
     std::cout<< "-------------------------------------------------------------------------"<<std::endl;
+    }
 
+
+    if(debug_){
+      sumPxtemp_ += tmp_jet_px_;
+      sumPytemp_ += tmp_jet_py_;
+      HTtemp_ += tmp_jet_pt_;
     }
 
     // if (tmp_jet_pt_ < jetMinPt__)
@@ -225,10 +224,12 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
       continue;
     if (tmp_jet_eta > jetMaxEta_ or tmp_jet_eta < -1*jetMaxEta_)
       continue;
-    if (tmp_jet_nt < minNtracksLowPt_ && tmp_jet_et_ > 50)
+    if (tmp_jet_nt < minNtracksLowPt_ && tmp_jet_pt > 200)
       continue;
-    if (tmp_jet_nt < minNtracksHighPt_ && tmp_jet_et_ > 100)
+    if (tmp_jet_nt < minNtracksHighPt_ && tmp_jet_pt > 400)
       continue;
+
+    jetnpasscuts++;
 
     if(debug_){
       sumPx_ += tmp_jet_px_;
@@ -242,10 +243,6 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
 
   }  // end jet loop
 
-  // define missing HT
-  
-  // float et_ = sqrt(sumPx_ * sumPx_ + sumPy_ * sumPy_);
-  // math::XYZTLorentzVector missingEt(-sumPx_, -sumPy_, 0, et);
   
   // Perform cordic sqrt, take x,y and converts to polar coordinate r,phi where
   // r=sqrt(x**2+y**2) and phi = atan(y/x)
@@ -264,11 +261,12 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
   else if ((sumPx < 0) && (sumPy >= 0))
     phi = EtMiss.Phi - 3 * l1tmhtemu::kMHTPhiBins / 2;
 
+
   if(debug_){
     std::cout<< "-------------------------------------------------------------------------"<<std::endl;
     std::cout<< "====MHT FLOATS====\n" << "sumPx: " << sumPx_ << "| sumPy: " << sumPy_ <<  "| ET: " << sqrt(sumPx_ * sumPx_ + sumPy_ * sumPy_) << "| HT: " << HT_ << "| PHI: " << atan2(sumPy_,sumPx_) <<std::endl;
     std::cout<< "====MHT AP_INTS====\n" << "sumPx: " << sumPx << "| sumPy: " << sumPy << "| ET: " << EtMiss.Et << "| HT: " << HT << "| PHI: " << phi <<std::endl;
-    std::cout<< "====MHT AP_INTS TO FLOATS====\n" << "sumPx: " << sumPx * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi << "| sumPy: " << sumPy * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi << "| ET: " << EtMiss.Et * l1tmhtemu::kStepMHT << "| HT: " << HT * l1tmhtemu::kStepPt << "| PHI: " << phi * l1tmhtemu::kStepMHTPhi - M_PI <<std::endl;
+    std::cout<< "====MHT AP_INTS TO FLOATS====\n" << "sumPx: " << (float) sumPx * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi << "| sumPy: " << (float) sumPy * l1tmhtemu::kStepPt * l1tmhtemu::kStepPhi << "| ET: " << (float) EtMiss.Et * l1tmhtemu::kStepMHT << "| HT: " << (float) HT * l1tmhtemu::kStepPt << "| PHI: " << (float) phi * l1tmhtemu::kStepMHTPhi - M_PI <<std::endl;
     std::cout<< "-------------------------------------------------------------------------"<<std::endl;
   }
 
