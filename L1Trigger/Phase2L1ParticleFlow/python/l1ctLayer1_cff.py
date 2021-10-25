@@ -110,12 +110,6 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
              regions=cms.vuint32(range(18, 36))),
         cms.PSet(
              regions=cms.vuint32(range(36, 54))),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
     )
 )
 
@@ -259,17 +253,9 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     boards=cms.VPSet(
         cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
              regions=cms.vuint32(range(0, 9))),
         cms.PSet(
              regions=cms.vuint32(range(9, 18))),
-        cms.PSet(
-             regions=cms.vuint32()),
     ),
     writeRawHgcalCluster = cms.untracked.bool(True)
 )
@@ -350,16 +336,6 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
 
     ),
     boards=cms.VPSet(
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
-        cms.PSet(
-             regions=cms.vuint32()),
         cms.PSet(
              regions=cms.vuint32(range(0,18))),
     ),
