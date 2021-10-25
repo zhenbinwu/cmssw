@@ -418,7 +418,7 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
 
   // FIXME: what about STA objects? we might need them if we use the per board output to write in CMSSW (to get the ref)
   // l1tkegsorter_->setDebug(true);
-  for(auto board: event_.board_out) {
+  for(auto &board: event_.board_out) {
     l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egphoton);
     l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egelectron);
   }
