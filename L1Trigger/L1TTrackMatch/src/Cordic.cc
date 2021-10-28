@@ -66,7 +66,7 @@ EtMiss Cordic::toPolar(Et_t x, Et_t y) const {
     phi = mPhiScale >> 1;
     sign = false;
     x = -x;
-    y = -y;
+    y = y;
   } else if (x < 0 && y < 0) {
     phi = mPhiScale >> 1;
     sign = true;
