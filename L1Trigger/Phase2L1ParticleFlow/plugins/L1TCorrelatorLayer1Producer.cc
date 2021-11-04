@@ -128,11 +128,16 @@ private:
   std::unique_ptr<l1t::PFCandidateCollection> fetchPF() const;
   void putPuppi(edm::Event &iEvent) const;
 
+  void putEgStaObjects(edm::Event &iEvent,
+                       const std::string &egLablel,
+                       std::vector<edm::Ref<BXVector<l1t::EGamma>>> &egsta_refs);
   void putEgObjects(edm::Event &iEvent,
                     const bool writeEgSta,
-                    const std::string &egLablel,
+                    const std::vector<edm::Ref<BXVector<l1t::EGamma>>> &egsta_refs,
                     const std::string &tkEmLabel,
-                    const std::string &tkEleLabel) const;
+                    const std::string &tkEmPerBoardLabel,
+                    const std::string &tkEleLabel,
+                    const std::string &tkElePerBoardLabel) const;
 
   template <typename T>
   void setRefs_(l1t::PFCandidate &pf, const T &p) const;
@@ -238,13 +243,15 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
   l1tkegalgo_ = std::make_unique<l1ct::PFTkEGAlgoEmulator>(
       l1ct::PFTkEGAlgoEmuConfig(iConfig.getParameter<edm::ParameterSet>("tkEgAlgoParameters")));
 
-  l1tkegsorter_ = std::make_unique<l1ct::PFTkEGSorterEmulator>(
-    iConfig.getParameter<edm::ParameterSet>("tkEgSorterParameters"));
+  l1tkegsorter_ =
+      std::make_unique<l1ct::PFTkEGSorterEmulator>(iConfig.getParameter<edm::ParameterSet>("tkEgSorterParameters"));
 
   if (l1tkegalgo_->writeEgSta())
     produces<BXVector<l1t::EGamma>>("L1Eg");
   produces<l1t::TkElectronCollection>("L1TkEle");
+  produces<l1t::TkElectronRegionalOutput>("L1TkElePerBoard");
   produces<l1t::TkEmCollection>("L1TkEm");
+  produces<l1t::TkEmRegionalOutput>("L1TkEmPerBoard");
 
   emuTkVtx_ = iConfig.getParameter<bool>("vtxCollectionEmulation");
   if (emuTkVtx_) {
@@ -415,10 +422,9 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
     //l1pualgo_->runNeutralsPU(l1region, z0, -1., puGlobals);
   }
 
-
   // FIXME: what about STA objects? we might need them if we use the per board output to write in CMSSW (to get the ref)
   // l1tkegsorter_->setDebug(true);
-  for(auto &board: event_.board_out) {
+  for (auto &board : event_.board_out) {
     l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egphoton);
     l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egelectron);
   }
@@ -430,7 +436,11 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   putPuppi(iEvent);
 
   // save the EG objects
-  putEgObjects(iEvent, l1tkegalgo_->writeEgSta(), "L1Eg", "L1TkEm", "L1TkEle");
+  std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
+  if (l1tkegalgo_->writeEgSta()) {
+    putEgStaObjects(iEvent, "L1Eg", egsta_refs);
+  }
+  putEgObjects(iEvent, l1tkegalgo_->writeEgSta(), egsta_refs, "L1TkEm", "L1TkEmBoardMap", "L1TkEle", "L1TkEleBoardMap");
 
   // Then go do the multiplicities
   for (int i = 0; i <= l1muType; ++i) {
@@ -533,9 +543,9 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
   }
 
   event_.board_out.clear();
-  const std::vector<edm::ParameterSet>& board_params = iConfig.getParameter<std::vector<edm::ParameterSet>>("boards");
+  const std::vector<edm::ParameterSet> &board_params = iConfig.getParameter<std::vector<edm::ParameterSet>>("boards");
   event_.board_out.resize(board_params.size());
-  for(unsigned int bidx = 0;  bidx < board_params.size(); bidx++) {
+  for (unsigned int bidx = 0; bidx < board_params.size(); bidx++) {
     event_.board_out[bidx].region_index = board_params[bidx].getParameter<std::vector<unsigned int>>("regions");
   }
 }
@@ -894,18 +904,13 @@ void L1TCorrelatorLayer1Producer::putPuppi(edm::Event &iEvent) const {
   iEvent.put(std::move(reg), "PuppiRegional");
 }
 
-void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
-                                               const bool writeEgSta,
-                                               const std::string &egLablel,
-                                               const std::string &tkEmLabel,
-                                               const std::string &tkEleLabel) const {
+// NOTE: as a side effect we change the "sta_idx" of TkEle and TkEm objects to an index of the
+// vector of refs, for this reason this is not const. We could make this more explicit via arguments
+void L1TCorrelatorLayer1Producer::putEgStaObjects(edm::Event &iEvent,
+                                                  const std::string &egLablel,
+                                                  std::vector<edm::Ref<BXVector<l1t::EGamma>>> &egsta_refs) {
   auto egs = std::make_unique<BXVector<l1t::EGamma>>();
-  auto tkems = std::make_unique<l1t::TkEmCollection>();
-  auto tkeles = std::make_unique<l1t::TkElectronCollection>();
-
-  edm::RefProd<BXVector<l1t::EGamma>> ref_egs;
-  if (writeEgSta)
-    ref_egs = iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(egLablel);
+  edm::RefProd<BXVector<l1t::EGamma>> ref_egs = iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(egLablel);
 
   edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
   // FIXME: in case more BXes are introduced shuld probably use egs->key(egs->end(bx));
@@ -913,26 +918,60 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
   for (unsigned int ir = 0, nr = event_.pfinputs.size(); ir < nr; ++ir) {
     const auto &reg = event_.pfinputs[ir].region;
 
-    std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
+    std::vector<unsigned int> ref_pos(event_.out[ir].egsta.size());
 
-    if (writeEgSta) {
-      egsta_refs.resize(event_.out[ir].egsta.size());
-      // EG standalone objects
-      for (unsigned int ieg = 0, neg = event_.out[ir].egsta.size(); ieg < neg; ++ieg) {
-        const auto &p = event_.out[ir].egsta[ieg];
-        if (p.hwPt == 0 || !reg.isFiducial(p))
-          continue;
-        l1t::EGamma eg(
-            reco::Candidate::PolarLorentzVector(p.floatPt(), reg.floatGlbEta(p.hwEta), reg.floatGlbPhi(p.hwPhi), 0.));
-        eg.setHwQual(p.hwQual);
-        egs->push_back(0, eg);
-
-        egsta_refs[ieg] = edm::Ref<BXVector<l1t::EGamma>>(ref_egs, idx++);
-      }
+    // EG standalone objects
+    for (unsigned int ieg = 0, neg = event_.out[ir].egsta.size(); ieg < neg; ++ieg) {
+      const auto &p = event_.out[ir].egsta[ieg];
+      if (p.hwPt == 0 || !reg.isFiducial(p))
+        continue;
+      l1t::EGamma eg(
+          reco::Candidate::PolarLorentzVector(p.floatPt(), reg.floatGlbEta(p.hwEta), reg.floatGlbPhi(p.hwPhi), 0.));
+      eg.setHwQual(p.hwQual);
+      egs->push_back(0, eg);
+      egsta_refs.push_back(edm::Ref<BXVector<l1t::EGamma>>(ref_egs, idx++));
+      ref_pos[ieg] = egsta_refs.size() - 1;
     }
 
-    for (const auto &egiso : event_.out[ir].egphoton) {
-      if (egiso.hwPt == 0 || !reg.isFiducial(egiso))
+    for (auto &egiso : event_.out[ir].egphoton) {
+      if (egiso.hwPt == 0)
+        continue;
+      egiso.sta_idx = ref_pos[egiso.sta_idx];
+    }
+
+    for (auto &egele : event_.out[ir].egelectron) {
+      if (egele.hwPt == 0)
+        continue;
+      egele.sta_idx = ref_pos[egele.sta_idx];
+    }
+  }
+
+  iEvent.put(std::move(egs), egLablel);
+}
+
+void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
+                                               const bool writeEgSta,
+                                               const std::vector<edm::Ref<BXVector<l1t::EGamma>>> &egsta_refs,
+                                               const std::string &tkEmLabel,
+                                               const std::string &tkEmPerBoardLabel,
+                                               const std::string &tkEleLabel,
+                                               const std::string &tkElePerBoardLabel) const {
+  auto tkems = std::make_unique<l1t::TkEmCollection>();
+  auto tkemRefProd = iEvent.getRefBeforePut<l1t::TkEmCollection>(tkEmLabel);
+  auto tkemPerBoard = std::make_unique<l1t::TkEmRegionalOutput>(tkemRefProd);
+  auto tkeles = std::make_unique<l1t::TkElectronCollection>();
+  auto tkeleRefProd = iEvent.getRefBeforePut<l1t::TkElectronCollection>(tkEleLabel);
+  auto tkelePerBoard = std::make_unique<l1t::TkElectronRegionalOutput>(tkeleRefProd);
+
+  // TkEG objects are written out after the per-board sorting.
+  // The mapping to each board is saved into the regionalmap for further (stage-2 consumption)
+  std::vector<int> nele_obj;
+  std::vector<int> npho_obj;
+
+  for (const auto &board : event_.board_out) {
+    npho_obj.clear();
+    for (const auto &egiso : board.egphoton) {
+      if (egiso.hwPt == 0)
         continue;
 
       edm::Ref<BXVector<l1t::EGamma>> ref_egsta;
@@ -944,8 +983,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
             edm::Ref<BXVector<l1t::EGamma>>(egptr.id(), dynamic_cast<const l1t::EGamma *>(egptr.get()), egptr.key());
       }
 
-      reco::Candidate::PolarLorentzVector mom(
-          egiso.floatPt(), reg.floatGlbEta(egiso.hwEta), reg.floatGlbPhi(egiso.hwPhi), 0.);
+      reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.hwEta, egiso.hwPhi, 0.);
 
       l1t::TkEm tkem(reco::Candidate::LorentzVector(mom),
                      ref_egsta,
@@ -955,10 +993,14 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
       tkem.setPFIsol(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIso));
       tkem.setPFIsolPV(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIsoPV));
       tkems->push_back(tkem);
+      npho_obj.push_back(tkems->size() - 1);
     }
+    // FIXME: need realistic coordinates?
+    tkemPerBoard->addRegion(npho_obj, 0, 0);
 
-    for (const auto &egele : event_.out[ir].egelectron) {
-      if (egele.hwPt == 0 || !reg.isFiducial(egele))
+    nele_obj.clear();
+    for (const auto &egele : board.egelectron) {
+      if (egele.hwPt == 0)
         continue;
 
       edm::Ref<BXVector<l1t::EGamma>> ref_egsta;
@@ -970,8 +1012,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
             edm::Ref<BXVector<l1t::EGamma>>(egptr.id(), dynamic_cast<const l1t::EGamma *>(egptr.get()), egptr.key());
       }
 
-      reco::Candidate::PolarLorentzVector mom(
-          egele.floatPt(), reg.floatGlbEta(egele.hwEta), reg.floatGlbPhi(egele.hwPhi), 0.);
+      reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta, egele.hwPhi, 0.);
 
       l1t::TkElectron tkele(reco::Candidate::LorentzVector(mom),
                             ref_egsta,
@@ -980,13 +1021,15 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
       tkele.setHwQual(egele.hwQual);
       tkele.setPFIsol(egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::PfIso));
       tkeles->push_back(tkele);
+      nele_obj.push_back(tkeles->size() - 1);
     }
+    tkelePerBoard->addRegion(nele_obj, 0, 0);
   }
 
-  if (writeEgSta)
-    iEvent.put(std::move(egs), egLablel);
   iEvent.put(std::move(tkems), tkEmLabel);
+  iEvent.put(std::move(tkemPerBoard), tkEmPerBoardLabel);
   iEvent.put(std::move(tkeles), tkEleLabel);
+  iEvent.put(std::move(tkelePerBoard), tkElePerBoardLabel);
 }
 
 std::unique_ptr<std::vector<unsigned>> L1TCorrelatorLayer1Producer::vecSecInput(InputType t) const {
