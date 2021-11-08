@@ -422,7 +422,13 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
     //l1pualgo_->runNeutralsPU(l1region, z0, -1., puGlobals);
   }
 
-  // FIXME: what about STA objects? we might need them if we use the per board output to write in CMSSW (to get the ref)
+  // NOTE: This needs to happen before the EG sorting per board so that the EG objects 
+  // get a global reference to the EGSta before being mixed among differente regions
+  std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
+  if (l1tkegalgo_->writeEgSta()) {
+    putEgStaObjects(iEvent, "L1Eg", egsta_refs);
+  }
+
   // l1tkegsorter_->setDebug(true);
   for (auto &board : event_.board_out) {
     l1tkegsorter_->run(event_.pfinputs, event_.out, board.region_index, board.egphoton);
@@ -436,10 +442,6 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   putPuppi(iEvent);
 
   // save the EG objects
-  std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
-  if (l1tkegalgo_->writeEgSta()) {
-    putEgStaObjects(iEvent, "L1Eg", egsta_refs);
-  }
   putEgObjects(iEvent, l1tkegalgo_->writeEgSta(), egsta_refs, "L1TkEm", "L1TkEmBoardMap", "L1TkEle", "L1TkEleBoardMap");
 
   // Then go do the multiplicities
@@ -992,6 +994,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
       tkem.setHwQual(egiso.hwQual);
       tkem.setPFIsol(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIso));
       tkem.setPFIsolPV(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIsoPV));
+      tkem.setEgBinaryWord(egiso.pack());
       tkems->push_back(tkem);
       npho_obj.push_back(tkems->size() - 1);
     }
@@ -1020,6 +1023,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
                             egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::TkIso));
       tkele.setHwQual(egele.hwQual);
       tkele.setPFIsol(egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::PfIso));
+      tkele.setEgBinaryWord(egele.pack());
       tkeles->push_back(tkele);
       nele_obj.push_back(tkeles->size() - 1);
     }
