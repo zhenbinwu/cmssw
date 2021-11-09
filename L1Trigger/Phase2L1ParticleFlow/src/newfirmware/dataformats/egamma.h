@@ -53,14 +53,18 @@ namespace l1ct {
     }
     inline static EGIsoObj unpack(const ap_uint<BITWIDTH> &src) {
       EGIsoObj ret;
-      unsigned int start = 0;
-      _unpack_from_bits(src, start, ret.hwPt);
-      _unpack_from_bits(src, start, ret.hwEta);
-      _unpack_from_bits(src, start, ret.hwPhi);
-      _unpack_from_bits(src, start, ret.hwQual);
-      _unpack_from_bits(src, start, ret.hwIso);
+      ret.initFromBits(src);
       return ret;
     }
+    
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, hwPt);
+      _unpack_from_bits(src, start, hwEta);
+      _unpack_from_bits(src, start, hwPhi);
+      _unpack_from_bits(src, start, hwQual);
+      _unpack_from_bits(src, start, hwIso);
+    }    
   };
 
   inline void clear(EGIsoObj &c) { c.clear(); }
@@ -121,18 +125,26 @@ namespace l1ct {
     }
     inline static EGIsoEleObj unpack(const ap_uint<BITWIDTH> &src) {
       EGIsoEleObj ret;
-      unsigned int start = 0;
-      _unpack_from_bits(src, start, ret.hwPt);
-      _unpack_from_bits(src, start, ret.hwEta);
-      _unpack_from_bits(src, start, ret.hwPhi);
-      _unpack_from_bits(src, start, ret.hwQual);
-      _unpack_from_bits(src, start, ret.hwIso);
-      _unpack_from_bits(src, start, ret.hwDEta);
-      _unpack_from_bits(src, start, ret.hwDPhi);
-      _unpack_from_bits(src, start, ret.hwZ0);
-      _unpack_bool_from_bits(src, start, ret.hwCharge);
+      ret.initFromBits(src);
       return ret;
     }
+        
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, hwPt);
+      _unpack_from_bits(src, start, hwEta);
+      _unpack_from_bits(src, start, hwPhi);
+      _unpack_from_bits(src, start, hwQual);
+      _unpack_from_bits(src, start, hwIso);
+      _unpack_from_bits(src, start, hwDEta);
+      _unpack_from_bits(src, start, hwDPhi);
+      _unpack_from_bits(src, start, hwZ0);
+      _unpack_bool_from_bits(src, start, hwCharge);
+    }    
+
+    
+    
+    
   };
 
   inline void clear(EGIsoEleObj &c) { c.clear(); }

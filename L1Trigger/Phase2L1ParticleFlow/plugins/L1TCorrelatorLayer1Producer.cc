@@ -442,7 +442,7 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
   putPuppi(iEvent);
 
   // save the EG objects
-  putEgObjects(iEvent, l1tkegalgo_->writeEgSta(), egsta_refs, "L1TkEm", "L1TkEmBoardMap", "L1TkEle", "L1TkEleBoardMap");
+  putEgObjects(iEvent, l1tkegalgo_->writeEgSta(), egsta_refs, "L1TkEm", "L1TkEmPerBoard", "L1TkEle", "L1TkElePerBoard");
 
   // Then go do the multiplicities
   for (int i = 0; i <= l1muType; ++i) {
@@ -549,6 +549,9 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
   event_.board_out.resize(board_params.size());
   for (unsigned int bidx = 0; bidx < board_params.size(); bidx++) {
     event_.board_out[bidx].region_index = board_params[bidx].getParameter<std::vector<unsigned int>>("regions");
+    double eta = board_params[bidx].getParameter<double>("eta");
+    double phi = board_params[bidx].getParameter<double>("phi");
+    // FIXME: write this to the OutputBoard object and propagate it to the regionalOutput
   }
 }
 

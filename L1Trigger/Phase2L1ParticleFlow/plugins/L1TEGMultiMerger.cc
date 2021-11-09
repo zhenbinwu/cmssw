@@ -34,6 +34,7 @@ private:
         tokens_.push_back(
             prod->consumes<T>(edm::InputTag(producer_tag.label(), producer_tag.instance(), producer_tag.process())));
       }
+      // FIXME: move this outside
       prod->produces<T>(instanceLabel_);
     }
 

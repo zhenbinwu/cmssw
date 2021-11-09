@@ -105,11 +105,17 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     boards=cms.VPSet(
         cms.PSet(
-             regions=cms.vuint32(range(0, 18))),
+            eta=cms.double(-1.25),
+            phi=cms.double(0.),      
+            regions=cms.vuint32(range(0, 18))),
         cms.PSet(
-             regions=cms.vuint32(range(18, 36))),
+            eta=cms.double(0.),
+            phi=cms.double(0.),      
+            regions=cms.vuint32(range(18, 36))),
         cms.PSet(
-             regions=cms.vuint32(range(36, 54))),
+            eta=cms.double(1.25),
+            phi=cms.double(0.),      
+            regions=cms.vuint32(range(36, 54))),
     )
 )
 
@@ -253,9 +259,13 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     boards=cms.VPSet(
         cms.PSet(
-             regions=cms.vuint32(range(0, 9))),
+            eta=cms.double(-2.0),
+            phi=cms.double(0.),      
+            regions=cms.vuint32(range(0, 9))),
         cms.PSet(
-             regions=cms.vuint32(range(9, 18))),
+            eta=cms.double(2.),
+            phi=cms.double(0.),      
+            regions=cms.vuint32(range(9, 18))),
     ),
     writeRawHgcalCluster = cms.untracked.bool(True)
 )
@@ -337,7 +347,9 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     boards=cms.VPSet(
         cms.PSet(
-             regions=cms.vuint32(range(0,18))),
+            eta=cms.double(-2.7),
+            phi=cms.double(0.),      
+            regions=cms.vuint32(range(0,18))),
     ),
     writeRawHgcalCluster = cms.untracked.bool(True)
 )
@@ -483,6 +495,59 @@ l1ctLayer1EG = cms.EDProducer(
     )
 )
 
+l1ctLayer2EG = cms.EDProducer(
+    "L1TCtL2EgProducer",
+    tkElectrons=cms.PSet(
+        pfProducers=cms.VInputTag(
+            cms.InputTag("l1ctLayer1HGCal", 'L1TkElePerBoard'),
+            cms.InputTag("l1ctLayer1Barrel", 'L1TkElePerBoard')
+        )
+    ),
+    tkEms=cms.PSet(
+        pfProducers=cms.VInputTag(
+            cms.InputTag("l1ctLayer1HGCal", 'L1TkEmPerBoard'),
+            cms.InputTag("l1ctLayer1HGCalNoTK", 'L1TkEmPerBoard'),
+            cms.InputTag("l1ctLayer1Barrel", 'L1TkEmPerBoard')
+        )
+    ),
+    tkEgs=cms.PSet(
+        pfProducers=cms.VInputTag(
+            cms.InputTag("l1ctLayer1HGCal", 'L1Eg'),
+            cms.InputTag("l1ctLayer1HGCalNoTK", 'L1Eg')
+        )
+    ),
+    tkEGInstanceLabel=cms.string("L1CtEgEE"),
+    boards=cms.VPSet(
+        cms.PSet(
+            eta=cms.double(0.),
+            phi=cms.double(0.),
+            index=cms.uint32(0)
+        ),
+        cms.PSet(
+            eta=cms.double(1.),
+            phi=cms.double(0.),
+            index=cms.uint32(1)
+        ),
+        cms.PSet(
+            eta=cms.double(2.),
+            phi=cms.double(0.),
+            index=cms.uint32(2)
+        ),
+        cms.PSet(
+            eta=cms.double(3.),
+            phi=cms.double(0.),
+            index=cms.uint32(3)
+        ),
+        cms.PSet(
+            eta=cms.double(4.),
+            phi=cms.double(0.),
+            index=cms.uint32(4)
+        ),
+    )
+)
+
+
+
 l1ctLayer1TaskInputsTask = cms.Task(
     pfClustersFromL1EGClusters,
     pfClustersFromCombinedCaloHCal,
@@ -497,5 +562,6 @@ l1ctLayer1Task = cms.Task(
      l1ctLayer1HGCalNoTK,
      l1ctLayer1HF,
      l1ctLayer1,
-     l1ctLayer1EG
+     l1ctLayer1EG,
+     l1ctLayer2EG
 )
