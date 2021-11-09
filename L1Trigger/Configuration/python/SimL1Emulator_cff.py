@@ -172,6 +172,8 @@ from L1Trigger.L1TTrackMatch.L1TrackFastJetProducer_cfi import *
 from L1Trigger.L1TTrackMatch.L1TrackerEtMissProducer_cfi import *
 from L1Trigger.L1TTrackMatch.L1TkHTMissProducer_cfi import *
 # make the input tags consistent with the choice L1VertexFinder above
+L1TrackJets.L1PVertexCollection  = cms.InputTag("L1VertexFinder", L1VertexFinder.l1VertexCollectionName.value())
+L1TrackJetsExtended.L1PVertexCollection  = cms.InputTag("L1VertexFinder", L1VertexFinder.l1VertexCollectionName.value())
 L1TrackerEtMiss.L1VertexInputTag = cms.InputTag("L1VertexFinder", L1VertexFinder.l1VertexCollectionName.value())
 L1TrackerEtMissExtended.L1VertexInputTag = cms.InputTag("L1VertexFinder", L1VertexFinder.l1VertexCollectionName.value())
 _phase2_siml1emulator.add(L1TrackJets)
@@ -198,6 +200,10 @@ _phase2_siml1emulator.add(L1TrackerEmuEtMiss)
 from L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff import *
 _phase2_siml1emulator.add(l1ParticleFlowTask)
 from L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff import *
+l1ctLayer1Barrel.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
+l1ctLayer1HGCal.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
+l1ctLayer1HGCalNoTK.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
+l1ctLayer1HF.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
 _phase2_siml1emulator.add(l1ctLayer1TaskInputsTask, l1ctLayer1Task)
 
 # PF Jet
