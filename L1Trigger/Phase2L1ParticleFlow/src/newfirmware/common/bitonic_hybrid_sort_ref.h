@@ -66,6 +66,12 @@ namespace hybridBitonicSortUtils {
     return std::max(sort1Latency, sort2Latency) + mergeLatency;
   }
 
+  // may be specialized for different types if needed
+  template <typename T>
+  void clear(T& t) {
+    t.clear();
+  }
+
 }  // namespace hybridBitonicSortUtils
 
 template <typename T>
@@ -294,8 +300,7 @@ void hybrid_bitonic_sort_and_crop_ref(
 template <typename T>
 void folded_hybrid_bitonic_sort_and_crop_ref(
     unsigned int nIn, unsigned int nOut, const T in[], T out[], bool hybrid = true) {  // just an interface
-  assert(nIn % 2 == 0);
-  unsigned int nHalf = nIn / 2;
+  unsigned int nHalf = (nIn + 1) / 2;
   T work[nHalf], halfsorted[nHalf];
   //printf("hybrid sort input %u items: ", nIn);
   //for (int i = 0; i < nIn; ++i) printf("%d.%03d  ", work[i].intPt(), work[i].intEta());
@@ -303,8 +308,11 @@ void folded_hybrid_bitonic_sort_and_crop_ref(
   //printf("\n");
   //fflush(stdout);
   for (int o = 1; o >= 0; --o) {
-    for (unsigned int i = 0; i < nHalf; ++i) {
+    for (unsigned int i = 0; i < nHalf && 2 * i + o < nOut; ++i) {
       work[i] = in[2 * i + o];
+    }
+    if ((nIn % 2 == 1) && (o == 1)) {
+      hybridBitonicSortUtils::clear(work[nHalf - 1]);
     }
     hybridBitonicSortRef(work, nHalf, 0, false, hybrid);
     //printf("hybrid sort offset %d with %u items: ", o, nHalf);
