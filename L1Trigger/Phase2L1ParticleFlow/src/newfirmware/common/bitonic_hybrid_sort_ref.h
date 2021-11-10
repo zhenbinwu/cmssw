@@ -308,7 +308,7 @@ void folded_hybrid_bitonic_sort_and_crop_ref(
   //printf("\n");
   //fflush(stdout);
   for (int o = 1; o >= 0; --o) {
-    for (unsigned int i = 0; i < nHalf && 2 * i + o < nOut; ++i) {
+    for (unsigned int i = 0; i < nHalf && 2 * i + o < nIn; ++i) {
       work[i] = in[2 * i + o];
     }
     if ((nIn % 2 == 1) && (o == 1)) {
@@ -320,7 +320,7 @@ void folded_hybrid_bitonic_sort_and_crop_ref(
     //for (int i = 0; i < nHalf; ++i) printf("%s  ", work[i].pack().to_string(16).c_str());
     //printf("\n");
     //fflush(stdout);
-    for (int i = 1; i < nHalf; ++i)
+    for (unsigned int i = 1; i < nHalf; ++i)
       assert(!(work[i - 1] < work[i]));
     if (o == 1) {
       for (unsigned int i = 0; i < nHalf; ++i) {
