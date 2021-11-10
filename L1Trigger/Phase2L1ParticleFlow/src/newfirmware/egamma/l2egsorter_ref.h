@@ -1,0 +1,123 @@
+#ifndef L2EgSorter_REF_H
+#define L2EgSorter_REF_H
+
+#ifdef CMSSW_GIT_HASH
+#include "../dataformats/layer1_emulator.h"
+#include "../dataformats/egamma.h"
+#include "../dataformats/pf.h"
+#include "../common/bitonic_hybrid_sort_ref.h"
+
+#else
+#include "../../dataformats/layer1_emulator.h"
+#include "../../dataformats/egamma.h"
+#include "../../dataformats/pf.h"
+#include "../../common/bitonic_hybrid_sort_ref.h"
+
+#endif
+#include <algorithm>
+
+namespace edm {
+  class ParameterSet;
+}
+
+namespace l1ct {
+
+  class L2EgSorterEmulator {
+  public:
+    L2EgSorterEmulator(unsigned int nBoards, unsigned int nEGPerBoard, unsigned int nEGOut, bool debug)
+      : nBOARDS(nBoards), nEGPerBoard(nEGPerBoard), nEGOut(nEGOut), debug_(debug) {}
+
+    L2EgSorterEmulator(const edm::ParameterSet &iConfig);
+
+
+    virtual ~L2EgSorterEmulator() {}
+
+    // FIXME: parametrize the second dimension
+    void toFirmware(const std::vector<l1ct::OutputBoard> &in,
+                    EGIsoObj photons_in[/*nBOARDS*/][16],
+                    EGIsoEleObj eles_in[/*nBOARDS*/][16]) const;
+
+    void toFirmware(const std::vector<EGIsoObjEmu> &out_photons,
+                    const std::vector<EGIsoEleObjEmu> &out_eles,
+                    EGIsoObj out_egphs[/*nObjOut*/],
+                    EGIsoEleObj out_egeles[/*nObjOut*/]) const;
+
+    void run(const std::vector<l1ct::OutputBoard> &in,
+             std::vector<EGIsoObjEmu> &out_photons,
+             std::vector<EGIsoEleObjEmu> &out_eles) const;
+
+    void setDebug(int verbose) { debug_ = verbose; }
+
+  private:
+    template <typename T>
+    void resize_input(std::vector<T> &in) const {
+      if (in.size() > nEGPerBoard) {
+        in.resize(nEGPerBoard);
+      } else if (in.size() < nEGPerBoard) {
+        for (unsigned int i = 0, diff = (nEGPerBoard - in.size()); i < diff; ++i) {
+          in.push_back(T());
+          in.back().clear();
+        }
+      }
+    }
+
+    template <typename T>
+    static bool comparePt(const T &obj1, const T &obj2) {
+      return (obj1.hwPt > obj2.hwPt);
+    }
+
+    template <typename T>
+    void print_objects(const std::vector<T> &objs, const std::string &label) const {
+      for (unsigned int i; i < objs.size(); ++i) {
+        std::cout << label << " [" << i << "] pt: " << objs[i].hwPt << " eta: " << objs[i].hwEta
+                  << " phi: " << objs[i].hwPhi << " qual: " << objs[i].hwQual << std::endl;
+      }
+    }
+
+    template <typename T>
+    void merge_boards(const std::vector<T> &in_board1,
+                      const std::vector<T> &in_board2,
+                      std::vector<T> &out,
+                      unsigned int nOut) const {
+      // we crate a bitonic list
+      out = in_board1;
+      std::reverse(out.begin(), out.end());
+      std::copy(in_board2.begin(), in_board2.end(), std::back_inserter(out));
+      hybridBitonicMergeRef(&out[0], out.size(), 0, false);
+
+      // std::merge(in_board1.begin(), in_board1.end(), in_board2_copy.begin(), in_board2_copy.end(), std::back_inserter(out), comparePt<T>);
+      if (out.size() > nOut)
+        out.resize(nOut);
+    }
+
+    template <typename T>
+    void merge(const std::vector<std::vector<T>> &in_objs, std::vector<T> &out) const {
+      if (in_objs.size() == 1) {
+        std::copy(in_objs[0].begin(), in_objs[0].end(), std::back_inserter(out));
+        if (out.size() > nEGOut)
+          out.resize(nEGOut);
+      } else if (in_objs.size() == 2) {
+        merge_boards(in_objs[0], in_objs[1], out, nEGOut);
+      } else {
+        std::vector<std::vector<T>> to_merge;
+        for (unsigned int id = 0, idn = 1; id < in_objs.size(); id += 2, idn = id + 1) {
+          if (idn >= in_objs.size()) {
+            to_merge.push_back(in_objs[id]);
+          } else {
+            std::vector<T> pair_merge;
+            merge_boards(in_objs[id], in_objs[idn], pair_merge, nEGPerBoard);
+            to_merge.push_back(pair_merge);
+          }
+        }
+        merge(to_merge, out);
+      }
+    }
+
+    unsigned int nBOARDS;
+    unsigned int nEGPerBoard;
+    unsigned int nEGOut;
+    int debug_;
+  };
+}  // namespace l1ct
+
+#endif

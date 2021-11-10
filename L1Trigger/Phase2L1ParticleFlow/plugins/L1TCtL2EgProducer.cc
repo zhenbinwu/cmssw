@@ -11,6 +11,8 @@
 #include "FWCore/Utilities/interface/transform.h"
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egsorter_ref.h"
+
 #include <iostream>
 #include <vector>
 
@@ -25,7 +27,7 @@ private:
   void produce(edm::StreamID, edm::Event &,
                const edm::EventSetup &) const override;
 
-  unsigned int mapBoardId(float eta, float phii) const;
+  int mapBoardId(float eta, float phii) const;
 
   struct RefRemapper {
     typedef TTTrack<Ref_Phase2TrackerDigi_> L1TTTrackType;
@@ -62,7 +64,7 @@ private:
 
   template <class TT, class T>
   void merge(const InstanceMerger<T> &instance, edm::Event &iEvent,
-               RefRemapper &refRemapper, std::unique_ptr<TT> &out) const {
+             RefRemapper &refRemapper, std::unique_ptr<TT> &out) const {
     edm::Handle<T> handle;
     for (const auto &token : instance.tokens()) {
       iEvent.getByToken(token, handle);
@@ -104,9 +106,11 @@ private:
       auto region = in->region(iBoard);
       float eta = in->eta(iBoard);
       float phi = in->phi(iBoard);
-      // FIXME: given eta and phi compute the board index (configurable mapping)
-      unsigned int mappedBoardId = mapBoardId(eta, phi);
-
+      int mappedBoardId = mapBoardId(eta, phi);
+      if (mappedBoardId < 0)
+        continue;
+      // std::cout << "Board eta: " << eta << " phi: " << phi << " index: " <<
+      // mappedBoardId << std::endl;
       for (const auto &obj : region) {
         convertToEmu(obj, refRemapper, out->at(mappedBoardId));
       }
@@ -129,24 +133,45 @@ private:
     }
   }
 
+  template <class Tout, class Tin>
+  void putEgObjects(edm::Event &iEvent, const RefRemapper &refRemapper,
+                    const std::string &label,
+                    const std::vector<Tin> emulated) const {
+    auto egobjs = std::make_unique<Tout>();
+    for (const auto &emu : emulated) {
+      auto obj = convertFromEmu(emu, refRemapper);
+      egobjs->push_back(obj);
+    }
+    iEvent.put(std::move(egobjs), label);
+  }
+
+  l1t::TkEm convertFromEmu(const l1ct::EGIsoObjEmu &emu,
+                           const RefRemapper &refRemapper) const;
+  l1t::TkElectron convertFromEmu(const l1ct::EGIsoEleObjEmu &emu,
+                                 const RefRemapper &refRemapper) const;
+
   InstanceMerger<BXVector<l1t::EGamma>> tkEGMerger;
   InstanceMerger<l1t::TkEmRegionalOutput> tkEmMerger;
   InstanceMerger<l1t::TkElectronRegionalOutput> tkEleMerger;
   std::string tkEGInstanceLabel_;
   std::map<std::pair<double, double>, unsigned int> board_map_;
-
+  l1ct::L2EgSorterEmulator l2egsorter;
 };
 
 L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
     : tkEGMerger(this, conf.getParameter<edm::ParameterSet>("tkEgs")),
       tkEmMerger(this, conf.getParameter<edm::ParameterSet>("tkEms")),
       tkEleMerger(this, conf.getParameter<edm::ParameterSet>("tkElectrons")),
-      tkEGInstanceLabel_(conf.getParameter<std::string>("tkEGInstanceLabel")) {
+      tkEGInstanceLabel_(conf.getParameter<std::string>("tkEGInstanceLabel")),
+      l2egsorter(conf.getParameter<edm::ParameterSet>("sorter")) {
 
   produces<BXVector<l1t::EGamma>>(tkEGInstanceLabel_);
-  
-  for(const auto& pset: conf.getParameter<std::vector<edm::ParameterSet>>("boards")) {
-    board_map_[std::make_pair(pset.getParameter<double>("eta"), pset.getParameter<double>("phi"))] = pset.getParameter<uint32_t>("index");
+
+  for (const auto &pset :
+       conf.getParameter<std::vector<edm::ParameterSet>>("boards")) {
+    board_map_[std::make_pair(pset.getParameter<double>("eta"),
+                              pset.getParameter<double>("phi"))] =
+        pset.getParameter<uint32_t>("index");
   }
 }
 
@@ -160,23 +185,25 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent,
   merge(tkEGMerger, iEvent, refmapper, outEgs);
   iEvent.put(std::move(outEgs), tkEGInstanceLabel_);
 
-  auto boards = std::make_unique<std::vector<l1ct::OutputBoard>>(board_map_.size());
+  auto boards =
+      std::make_unique<std::vector<l1ct::OutputBoard>>(board_map_.size());
 
   merge(tkEleMerger, iEvent, refmapper, boards);
   merge(tkEmMerger, iEvent, refmapper, boards);
-  //
-  //
-  // l2sorterEmulator-> run(const std::vector<l1ct::OutputBoard> &in,
-  //              std::vector<EGIsoObjEmu> &out_photons,
-  //              std::vector<EGIsoEleObjEmu> &out_eles) const;
+
+  std::vector<EGIsoObjEmu> out_photons_emu;
+  std::vector<EGIsoEleObjEmu> out_eles_emu;
+  l2egsorter.run(*boards, out_photons_emu, out_eles_emu);
+  
+  putEgObjects<l1t::TkEmCollection>(iEvent, refmapper, "L1CtTkEm", out_photons_emu);
+  putEgObjects<l1t::TkElectronCollection>(iEvent, refmapper, "L1CtTkElectron", out_eles_emu);
+  
 }
 
-unsigned int L1TCtL2EgProducer::mapBoardId(float eta, float phi) const {
+int L1TCtL2EgProducer::mapBoardId(float eta, float phi) const {
   const auto idxitr = board_map_.find(std::make_pair(eta, phi));
-  // FIXME: is it ok?
-  // throw cms::Exception("Configuration", "caloSectors phi range too large for phi_t data type");
-
-  assert(idxitr != board_map_.end());
+  if (idxitr == board_map_.end())
+    return -1;
   return idxitr->second;
 }
 
@@ -225,6 +252,39 @@ void L1TCtL2EgProducer::convertToEmu(const l1t::TkEm &tkem,
                l1ct::Scales::makeIso(tkem.pfIsolPV()));
 
   boarOut.egphoton.push_back(emu);
+}
+
+l1t::TkEm L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso,
+                                       const RefRemapper &refRemapper) const {
+  
+  reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.floatEta(), egiso.floatPhi(), 0.);
+  l1t::TkEm tkem(reco::Candidate::LorentzVector(mom),
+                 refRemapper.origRefAndPtr[egiso.sta_idx].first,
+                 egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIso),
+                 egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIsoPV));
+  // FIXME: need to define a global quality (barrel+endcap)?
+  tkem.setHwQual(egiso.hwQual);
+  tkem.setPFIsol(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIso));
+  tkem.setPFIsolPV(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIsoPV));
+  // FIXME: shall we put the GT formatted packed object here?
+  tkem.setEgBinaryWord(egiso.pack());                             
+  return tkem;                            
+}
+                                       
+l1t::TkElectron L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoEleObjEmu &egele,
+                                       const RefRemapper &refRemapper) const {
+    reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta, egele.hwPhi, 0.);
+
+  l1t::TkElectron tkele(reco::Candidate::LorentzVector(mom),
+                        refRemapper.origRefAndPtr[egele.sta_idx].first,
+                        refRemapper.origRefAndPtr[egele.sta_idx].second,
+                        egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::TkIso));
+  // FIXME: need to define a global quality (barrel+endcap)?
+  tkele.setHwQual(egele.hwQual);
+  tkele.setPFIsol(egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::PfIso));
+  // FIXME: shall we put the GT formatted packed object here?
+  tkele.setEgBinaryWord(egele.pack());
+  return tkele;                                       
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

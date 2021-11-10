@@ -519,33 +519,38 @@ l1ctLayer2EG = cms.EDProducer(
     tkEGInstanceLabel=cms.string("L1CtEgEE"),
     boards=cms.VPSet(
         cms.PSet(
-            eta=cms.double(0.),
+            eta=cms.double(-1.25),
             phi=cms.double(0.),
             index=cms.uint32(0)
         ),
         cms.PSet(
-            eta=cms.double(1.),
+            eta=cms.double(0.),
             phi=cms.double(0.),
             index=cms.uint32(1)
         ),
         cms.PSet(
-            eta=cms.double(2.),
+            eta=cms.double(1.25),
             phi=cms.double(0.),
             index=cms.uint32(2)
         ),
         cms.PSet(
-            eta=cms.double(3.),
+            eta=cms.double(-2.),
             phi=cms.double(0.),
             index=cms.uint32(3)
         ),
         cms.PSet(
-            eta=cms.double(4.),
+            eta=cms.double(2.),
             phi=cms.double(0.),
             index=cms.uint32(4)
         ),
+    ),
+    sorter=cms.PSet(
+        nBOARDS=cms.uint32(5),
+        nEGPerBoard=cms.uint32(16),
+        nEGOut=cms.uint32(12),
+        debug=cms.untracked.uint32(1),
     )
 )
-
 
 
 l1ctLayer1TaskInputsTask = cms.Task(
