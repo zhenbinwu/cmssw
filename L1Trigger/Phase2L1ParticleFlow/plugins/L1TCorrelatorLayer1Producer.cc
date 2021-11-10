@@ -549,9 +549,8 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
   event_.board_out.resize(board_params.size());
   for (unsigned int bidx = 0; bidx < board_params.size(); bidx++) {
     event_.board_out[bidx].region_index = board_params[bidx].getParameter<std::vector<unsigned int>>("regions");
-    double eta = board_params[bidx].getParameter<double>("eta");
-    double phi = board_params[bidx].getParameter<double>("phi");
-    // FIXME: write this to the OutputBoard object and propagate it to the regionalOutput
+    event_.board_out[bidx].eta = board_params[bidx].getParameter<double>("eta");
+    event_.board_out[bidx].phi = board_params[bidx].getParameter<double>("phi");
   }
 }
 
@@ -988,7 +987,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
             edm::Ref<BXVector<l1t::EGamma>>(egptr.id(), dynamic_cast<const l1t::EGamma *>(egptr.get()), egptr.key());
       }
 
-      reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.hwEta, egiso.hwPhi, 0.);
+      reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.floatEta(), egiso.floatPhi(), 0.);
 
       l1t::TkEm tkem(reco::Candidate::LorentzVector(mom),
                      ref_egsta,
@@ -1001,8 +1000,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
       tkems->push_back(tkem);
       npho_obj.push_back(tkems->size() - 1);
     }
-    // FIXME: need realistic coordinates?
-    tkemPerBoard->addRegion(npho_obj, 0, 0);
+    tkemPerBoard->addRegion(npho_obj, board.eta, board.phi);
 
     nele_obj.clear();
     for (const auto &egele : board.egelectron) {
@@ -1018,7 +1016,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
             edm::Ref<BXVector<l1t::EGamma>>(egptr.id(), dynamic_cast<const l1t::EGamma *>(egptr.get()), egptr.key());
       }
 
-      reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta, egele.hwPhi, 0.);
+      reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.floatEta(), egele.floatPhi(), 0.);
 
       l1t::TkElectron tkele(reco::Candidate::LorentzVector(mom),
                             ref_egsta,
@@ -1030,7 +1028,7 @@ void L1TCorrelatorLayer1Producer::putEgObjects(edm::Event &iEvent,
       tkeles->push_back(tkele);
       nele_obj.push_back(tkeles->size() - 1);
     }
-    tkelePerBoard->addRegion(nele_obj, 0, 0);
+    tkelePerBoard->addRegion(nele_obj, board.eta, board.phi);
   }
 
   iEvent.put(std::move(tkems), tkEmLabel);
