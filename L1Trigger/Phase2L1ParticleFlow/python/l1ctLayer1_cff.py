@@ -549,6 +549,86 @@ l1ctLayer2EG = cms.EDProducer(
         nEGPerBoard=cms.uint32(16),
         nEGOut=cms.uint32(12),
         debug=cms.untracked.uint32(1),
+    ),
+    writeInPattern=cms.bool(True),
+    writeOutPattern=cms.bool(True),
+    writetGTPattern=cms.bool(True),
+    inPatternFile=cms.PSet(
+        nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
+        format=cms.string("EMP"),
+        outputFilename=cms.string("L1TCTL2EG_InPattern"),
+        TMUX=cms.uint32(6),
+        maxLinesPerFile=cms.uint32(1024),
+        channels=cms.VPSet(
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(16),
+                interface=cms.string("egstage1"),
+                id=cms.uint32(0),
+                channels=cms.vuint32(0)
+                ),
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(16),
+                interface=cms.string("egstage1"),
+                id=cms.uint32(1),
+                channels=cms.vuint32(1)
+                ),
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(16),
+                interface=cms.string("egstage1"),
+                id=cms.uint32(2),
+                channels=cms.vuint32(2)
+                ),
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(16),
+                interface=cms.string("egstage1"),
+                id=cms.uint32(3),
+                channels=cms.vuint32(3)
+                ),
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(16),
+                interface=cms.string("egstage1"),
+                id=cms.uint32(4),
+                channels=cms.vuint32(4)
+                ),
+
+        )
+    ),
+    outPatternFile=cms.PSet(
+        nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
+        format=cms.string("EMP"),
+        outputFilename=cms.string("L1TCTL2EG_OuPattern"),
+        TMUX=cms.uint32(6),
+        maxLinesPerFile=cms.uint32(1024),
+        channels=cms.VPSet(
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(12),
+                interface=cms.string("egstage2"),
+                id=cms.uint32(0),
+                channels=cms.vuint32(0)
+                )
+        )
+    ),
+    gtPatternFile=cms.PSet(
+        nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
+        format=cms.string("EMP"),
+        outputFilename=cms.string("L1TCTL2EG_ToGTPattern"),
+        TMUX=cms.uint32(1),
+        maxLinesPerFile=cms.uint32(1024),
+        channels=cms.VPSet(
+            cms.PSet(
+                TMUX=cms.uint32(6),
+                nWords=cms.uint32(12),
+                interface=cms.string("egstage2"),
+                id=cms.uint32(0),
+                channels=cms.vuint32(0, 1, 2, 3, 4, 5)
+                )
+        )
     )
 )
 
