@@ -1,7 +1,7 @@
 #ifndef L1Trigger_L1TTrackMatch_L1TkHTMissEmulatorProducer_HH
 #define L1Trigger_L1TTrackMatch_L1TkHTMissEmulatorProducer_HH 
 
-// Original Author:  Hardik Routray                                                                                               
+// Original Author:  Hardik Routray                                                              
 //         Created:  Mon, 11 Oct 2021 
 
 #include <ap_int.h>
@@ -17,8 +17,8 @@
 #include "DataFormats/L1Trigger/interface/TkJetWord.h"
 
 using namespace std;
-// Namespace that defines constants and types used by the HTMiss Emulation
 
+// Namespace that defines constants and types used by the HTMiss Emulation
 namespace l1tmhtemu { 
 
   const unsigned int kPtSize_ = l1t::TkJetWord::TkJetBitWidths::kPtSize;
@@ -107,7 +107,6 @@ namespace l1tmhtemu {
     float phi = 0;
     std::vector<phi_t> cosLUT;
     for (unsigned int LUT_idx = 0; LUT_idx < size; LUT_idx++) {
-      /* cosLUT.push_back((phi_t)(floor(cos(phi) * (kPhiBins - 1)))); */
       cosLUT.push_back(digitizeSignedValue<phi_t>(cos(phi), l1tmhtemu::kInternalPhiWidth, l1tmhtemu::kStepPhi));
 
       phi += l1tmhtemu::kStepPhi;
@@ -122,7 +121,6 @@ namespace l1tmhtemu {
     std::vector<MHTphi_t> atanLUT;
     for (int cordicStep = 0; cordicStep < cordicSteps; cordicStep++) {
       atanLUT.push_back(MHTphi_t(round((kMHTPhiBins * atan(pow(2,-1*cordicStep))) / (2 * M_PI))));
-      /* std::cout<< cordicStep << " -- "  << pow(2,-1*cordicStep)<<"| "; */
     }
     return atanLUT;
   }
@@ -184,7 +182,6 @@ namespace l1tmhtemu {
       y = -y;
     }
 
-    /* std::cout<< " Cordic x: " << x << " Cordic y: " << y << " Cordic phi: " << phi <<endl; */
 
     for (int step = 0; step < cordicSteps; step++) {
       if (y < 0) {
@@ -205,18 +202,14 @@ namespace l1tmhtemu {
     y = new_y;
     phi = new_phi;
 
-    /* std::cout<< " Cordic x: " << x << " Cordic y: " << y << " Cordic phi: " << phi <<std::endl; */
 
     }
 
-    /* std::cout<< " sqrt (Cordic x * MagNorm / kMHTbins ): " << float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) << " to actual float: " << ( float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) ) * float(kStepPt*kStepPhi) <<std::endl; */
 
     float sqrtval = ( float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) ) * float(kStepPt*kStepPhi);
 
     ret_etmiss.Et = std::floor(sqrtval / l1tmhtemu::kStepMHT);
     ret_etmiss.Phi = phi;
-
-    /* std::cout<< " Et: " << ret_etmiss.Et << " phi: " << ret_etmiss.Phi <<std::endl; */
 
     return ret_etmiss;
   }
