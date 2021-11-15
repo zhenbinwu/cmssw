@@ -271,8 +271,7 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
     << "-------------------------------------------------------------------------\n";
   }
 
-  EtSum L1HTSum(missingEt, EtSum::EtSumType::kMissingHt, (int)EtMiss.Et, 0, (int)phi, (int)jetn);
-  // EtSum L1HTSum(missingEt, EtSum::EtSumType::kMissingHt, (int)HT, 0, (int)phi, (int)jetn);
+  EtSum L1HTSum(missingEt, EtSum::EtSumType::kMissingHt, (int)HT, 0, (int)phi, (int)jetn);
 
   MHTCollection->push_back(L1HTSum);
   iEvent.put(std::move(MHTCollection), L1MHTCollectionName_);
