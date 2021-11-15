@@ -365,6 +365,8 @@ private:
   float trkMHTEmuPhi = 0;
   float trkMHTEmuExt = 0;
   float trkMHTEmuPhiExt = 0;
+  float trkHTEmu = 0;
+  float trkHTEmuExt = 0;
 
   std::vector<float>* m_2ltrkjet_vz;
   std::vector<float>* m_2ltrkjet_p;
@@ -982,6 +984,7 @@ void L1TrackObjectNtupleMaker::beginJob() {
       eventTree->Branch("trkHT", &trkHT, "trkHT/F");
       eventTree->Branch("trkMHTEmu", &trkMHTEmu, "trkMHTEmu/F");
       eventTree->Branch("trkMHTEmuPhi", &trkMHTEmuPhi, "trkMHTEmuPhi/F");
+      eventTree->Branch("trkHTEmu", &trkHTEmu, "trkHTEmu/F");
     }
     if (Displaced == "Displaced" || Displaced == "Both") {
       eventTree->Branch("trkMETExt", &trkMETExt, "trkMETExt/F");
@@ -989,6 +992,7 @@ void L1TrackObjectNtupleMaker::beginJob() {
       eventTree->Branch("trkHTExt", &trkHTExt, "trkHTExt/F");
       eventTree->Branch("trkMHTEmuExt", &trkMHTEmuExt, "trkMHTEmuExt/F");
       eventTree->Branch("trkMHTEmuPhiExt", &trkMHTEmuPhiExt, "trkMHTEmuPhiExt/F");
+      eventTree->Branch("trkHTEmuExt", &trkHTEmuExt, "trkHTEmuExt/F");
     }
   }
 }
@@ -2332,7 +2336,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       if (L1TkMHTEmuHandle.isValid()) {
         trkMHTEmu = L1TkMHTEmuHandle->begin()->p4().energy() * l1tmhtemu::kStepMHT;
-	// access emulated HT via L1TkMHTEmuHandle->begin()->hwPt() * l1tmhtemu::kStepPt
+	trkHTEmu = L1TkMHTEmuHandle->begin()->hwPt() * l1tmhtemu::kStepPt;
         trkMHTEmuPhi = L1TkMHTEmuHandle->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi - M_PI;
       } else {
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmu handle not found in the event" << std::endl;
@@ -2356,7 +2360,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       if (L1TkMHTEmuExtendedHandle.isValid()) {
         trkMHTEmuExt = L1TkMHTEmuExtendedHandle->begin()->p4().energy() * l1tmhtemu::kStepMHT;
-	// access emulated HT via L1TkMHTEmuExtendedHandle->begin()->hwPt() * l1tmhtemu::kStepPt
+	trkHTEmuExt = L1TkMHTEmuExtendedHandle->begin()->hwPt() * l1tmhtemu::kStepPt;
         trkMHTEmuPhiExt = L1TkMHTEmuExtendedHandle->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi - M_PI;
       } else {
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmuExtended handle not found in the event" << std::endl;
