@@ -27,6 +27,17 @@ public:
   ~L1TCtL2EgProducer() override;
 
 private:
+
+  ap_uint<64> encodeLayer1(const EGIsoObjEmu& egiso) const;
+  ap_uint<128> encodeLayer1(const EGIsoEleObjEmu& egiso) const;
+
+  std::vector<ap_uint<64>> encodeLayer1(const std::vector<EGIsoObjEmu>& photons) const;
+  std::vector<ap_uint<64>> encodeLayer1(const std::vector<EGIsoEleObjEmu>& electrons) const;
+
+  std::vector<ap_uint<64>> encodeLayer1EgObjs(unsigned int nObj, 
+    const std::vector<EGIsoObjEmu>& photons, 
+    const std::vector<EGIsoEleObjEmu>& electrons) const;
+
   std::vector<ap_uint<64>> encodeEgObjs(unsigned int nObj, 
     const std::vector<EGIsoObjEmu>& photons, 
     const std::vector<EGIsoEleObjEmu>& electrons) const;
@@ -202,6 +213,8 @@ private:
   InstanceMerger<l1t::TkEmRegionalOutput> tkEmMerger;
   InstanceMerger<l1t::TkElectronRegionalOutput> tkEleMerger;
   std::string tkEGInstanceLabel_;
+  std::string tkEmInstanceLabel_;
+  std::string tkEleInstanceLabel_;
   std::map<std::pair<double, double>, unsigned int> board_map_;
   l1ct::L2EgSorterEmulator l2egsorter;
   bool doInPtrn_;
@@ -216,7 +229,9 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
     : tkEGMerger(this, conf.getParameter<edm::ParameterSet>("tkEgs")),
       tkEmMerger(this, conf.getParameter<edm::ParameterSet>("tkEms")),
       tkEleMerger(this, conf.getParameter<edm::ParameterSet>("tkElectrons")),
-      tkEGInstanceLabel_(conf.getParameter<std::string>("tkEGInstanceLabel")),
+      tkEGInstanceLabel_(conf.getParameter<std::string>("egStaInstanceLabel")),
+      tkEmInstanceLabel_(conf.getParameter<std::string>("tkEmInstanceLabel")),
+      tkEleInstanceLabel_(conf.getParameter<std::string>("tkEleInstanceLabel")),
       l2egsorter(conf.getParameter<edm::ParameterSet>("sorter")),
       doInPtrn_(conf.getParameter<bool>("writeInPattern")),
       doOutPtrn_(conf.getParameter<bool>("writeOutPattern")),
@@ -224,10 +239,8 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
       inPtrnWrt_(nullptr), outPtrnWrt_(nullptr), gtPtrnWrt_(nullptr) {
 
   produces<BXVector<l1t::EGamma>>(tkEGInstanceLabel_);
-  produces<l1t::TkEmCollection>(
-      "L1CtTkEm"); // FIXME: add parameter for instance label
-  produces<l1t::TkElectronCollection>(
-      "L1CtTkElectron"); // FIXME: add parameter for instance label
+  produces<l1t::TkEmCollection>(tkEmInstanceLabel_);
+  produces<l1t::TkElectronCollection>(tkEleInstanceLabel_);
 
   for (const auto &pset :
        conf.getParameter<std::vector<edm::ParameterSet>>("boards")) {
@@ -253,6 +266,53 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
 L1TCtL2EgProducer::~L1TCtL2EgProducer() {}
 
 
+  
+  
+ap_uint<64> L1TCtL2EgProducer::encodeLayer1(const EGIsoObjEmu& egiso) const {
+  ap_uint<64> ret = 0;
+  ret(EGIsoObjEmu::BITWIDTH, 0) = egiso.pack();
+  return ret;
+}
+
+ap_uint<128> L1TCtL2EgProducer::encodeLayer1(const EGIsoEleObjEmu& egiso) const {
+  ap_uint<128> ret = 0;
+  ret(EGIsoEleObjEmu::BITWIDTH, 0) = egiso.pack();
+  return ret;
+}
+
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoObjEmu>& photons) const {
+  std::vector<ap_uint<64>> ret;
+  for(const auto& phot: photons) {
+    ret.push_back(encodeLayer1(phot));
+  }
+  return ret;
+}
+
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoEleObjEmu>& electrons) const {
+  std::vector<ap_uint<64>> ret;
+  for(const auto& ele: electrons) {
+    auto eleword = encodeLayer1(ele);
+    ret.push_back(eleword(127, 64));
+    ret.push_back(eleword(63, 0));
+  }
+  return ret;
+}
+
+
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj, 
+  const std::vector<EGIsoObjEmu>& photons, 
+  const std::vector<EGIsoEleObjEmu>& electrons) const {
+    std::vector<ap_uint<64>> ret;
+    auto encoded_photons = encodeLayer1(photons);
+    encoded_photons.resize(nObj, {0});
+    auto encoded_eles = encodeLayer1(electrons);
+    encoded_eles.resize(2*nObj, {0});
+    
+    std::copy(encoded_photons.begin(), encoded_photons.end(), std::back_inserter(ret));
+    std::copy(encoded_eles.begin(), encoded_eles.end(), std::back_inserter(ret));
+    
+    return ret;
+}
 
 
 
@@ -283,7 +343,7 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent,
   if(doInPtrn_) {
     l1t::demo::EventData inData;
     for(unsigned int ibrd = 0; ibrd < boards->size(); ibrd++) {
-      inData.add({"egstage1", ibrd}, encodeEgObjs(16, (*boards)[ibrd].egphoton, (*boards)[ibrd].egelectron));
+      inData.add({"eglayer1", ibrd}, encodeLayer1EgObjs(16, (*boards)[ibrd].egphoton, (*boards)[ibrd].egelectron));
     }
     inPtrnWrt_->addEvent(inData);
   }
@@ -295,15 +355,15 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent,
 
   if(doOutPtrn_ || doGTPtrn_) {
     l1t::demo::EventData outData;
-    outData.add({"egstage2", 0}, encodeEgObjs(12, out_photons_emu, out_eles_emu));
+    outData.add({"eglayer2", 0}, encodeEgObjs(12, out_photons_emu, out_eles_emu));
     if(doOutPtrn_) outPtrnWrt_->addEvent(outData);
     if(doGTPtrn_) gtPtrnWrt_->addEvent(outData);
   }
 
 
-  putEgObjects<l1t::TkEmCollection>(iEvent, refmapper, "L1CtTkEm",
+  putEgObjects<l1t::TkEmCollection>(iEvent, refmapper, tkEmInstanceLabel_,
                                     out_photons_emu);
-  putEgObjects<l1t::TkElectronCollection>(iEvent, refmapper, "L1CtTkElectron",
+  putEgObjects<l1t::TkElectronCollection>(iEvent, refmapper, tkEleInstanceLabel_,
                                           out_eles_emu);
 
 }

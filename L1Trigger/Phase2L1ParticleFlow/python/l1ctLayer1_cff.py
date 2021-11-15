@@ -516,7 +516,9 @@ l1ctLayer2EG = cms.EDProducer(
             cms.InputTag("l1ctLayer1HGCalNoTK", 'L1Eg')
         )
     ),
-    tkEGInstanceLabel=cms.string("L1CtEgEE"),
+    egStaInstanceLabel=cms.string("L1CtEgEE"),
+    tkEmInstanceLabel=cms.string("L1CtTkEm"),
+    tkEleInstanceLabel=cms.string("L1CtTkElectron"),
     boards=cms.VPSet(
         cms.PSet(
             eta=cms.double(-1.25),
@@ -552,7 +554,7 @@ l1ctLayer2EG = cms.EDProducer(
     ),
     writeInPattern=cms.bool(True),
     writeOutPattern=cms.bool(True),
-    writetGTPattern=cms.bool(True),
+    writetGTPattern=cms.bool(False),
     inPatternFile=cms.PSet(
         nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
         format=cms.string("EMP"),
@@ -562,36 +564,36 @@ l1ctLayer2EG = cms.EDProducer(
         channels=cms.VPSet(
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(16),
-                interface=cms.string("egstage1"),
+                nWords=cms.uint32(48),  # = 16*2words ele + 16words photons
+                interface=cms.string("eglayer1"),
                 id=cms.uint32(0),
                 channels=cms.vuint32(0)
                 ),
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(16),
-                interface=cms.string("egstage1"),
+                nWords=cms.uint32(48),
+                interface=cms.string("eglayer1"),
                 id=cms.uint32(1),
                 channels=cms.vuint32(1)
                 ),
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(16),
-                interface=cms.string("egstage1"),
+                nWords=cms.uint32(48),
+                interface=cms.string("eglayer1"),
                 id=cms.uint32(2),
                 channels=cms.vuint32(2)
                 ),
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(16),
-                interface=cms.string("egstage1"),
+                nWords=cms.uint32(48),
+                interface=cms.string("eglayer1"),
                 id=cms.uint32(3),
                 channels=cms.vuint32(3)
                 ),
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(16),
-                interface=cms.string("egstage1"),
+                nWords=cms.uint32(48),
+                interface=cms.string("eglayer1"),
                 id=cms.uint32(4),
                 channels=cms.vuint32(4)
                 ),
@@ -607,8 +609,8 @@ l1ctLayer2EG = cms.EDProducer(
         channels=cms.VPSet(
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(12),
-                interface=cms.string("egstage2"),
+                nWords=cms.uint32(12),  # 36 = 12*3/2words ele + 12*3/2words phhotons
+                interface=cms.string("eglayer2"),
                 id=cms.uint32(0),
                 channels=cms.vuint32(0)
                 )
@@ -624,7 +626,7 @@ l1ctLayer2EG = cms.EDProducer(
             cms.PSet(
                 TMUX=cms.uint32(6),
                 nWords=cms.uint32(12),
-                interface=cms.string("egstage2"),
+                interface=cms.string("eglayer2"),
                 id=cms.uint32(0),
                 channels=cms.vuint32(0, 1, 2, 3, 4, 5)
                 )
