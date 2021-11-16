@@ -550,11 +550,10 @@ l1ctLayer2EG = cms.EDProducer(
         nBOARDS=cms.uint32(5),
         nEGPerBoard=cms.uint32(16),
         nEGOut=cms.uint32(12),
-        debug=cms.untracked.uint32(1),
+        debug=cms.untracked.uint32(0),
     ),
     writeInPattern=cms.bool(True),
     writeOutPattern=cms.bool(True),
-    writetGTPattern=cms.bool(False),
     inPatternFile=cms.PSet(
         nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
         format=cms.string("EMP"),
@@ -609,29 +608,30 @@ l1ctLayer2EG = cms.EDProducer(
         channels=cms.VPSet(
             cms.PSet(
                 TMUX=cms.uint32(6),
-                nWords=cms.uint32(12),  # 36 = 12*3/2words ele + 12*3/2words phhotons
+                nWords=cms.uint32(36),  # 36 = 12*3/2words ele + 12*3/2words phhotons
                 interface=cms.string("eglayer2"),
                 id=cms.uint32(0),
                 channels=cms.vuint32(0)
                 )
         )
     ),
-    gtPatternFile=cms.PSet(
-        nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
-        format=cms.string("EMP"),
-        outputFilename=cms.string("L1TCTL2EG_ToGTPattern"),
-        TMUX=cms.uint32(1),
-        maxLinesPerFile=cms.uint32(1024),
-        channels=cms.VPSet(
-            cms.PSet(
-                TMUX=cms.uint32(6),
-                nWords=cms.uint32(12),
-                interface=cms.string("eglayer2"),
-                id=cms.uint32(0),
-                channels=cms.vuint32(0, 1, 2, 3, 4, 5)
-                )
-        )
-    )
+    # NOTE: to write out the GT input from 6TS 
+    # outPatternFile=cms.PSet(
+    #     nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
+    #     format=cms.string("EMP"),
+    #     outputFilename=cms.string("L1TCTL2EG_ToGTPattern"),
+    #     TMUX=cms.uint32(1),
+    #     maxLinesPerFile=cms.uint32(1024),
+    #     channels=cms.VPSet(
+    #         cms.PSet(
+    #             TMUX=cms.uint32(6),
+    #             nWords=cms.uint32(36),  # 36 = 12*3/2words ele + 12*3/2words phhotons
+    #             interface=cms.string("eglayer2"),
+    #             id=cms.uint32(0),
+    #             channels=cms.vuint32(0, 1, 2, 3, 4, 5)
+    #             )
+    #     )
+    # )
 )
 
 

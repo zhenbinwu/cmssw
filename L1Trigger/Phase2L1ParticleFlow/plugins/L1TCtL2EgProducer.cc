@@ -38,7 +38,14 @@ private:
     const std::vector<EGIsoObjEmu>& photons, 
     const std::vector<EGIsoEleObjEmu>& electrons) const;
 
-  std::vector<ap_uint<64>> encodeEgObjs(unsigned int nObj, 
+    
+  template<class T>
+  std::vector<ap_uint<96>> encodeLayer2(const std::vector<T>& egisos) const;
+  template<class T>
+  ap_uint<96> encodeLayer2(const T& egiso) const;
+  void encodeLayer2To64bits(const std::vector<ap_uint<96>>& packed96, std::vector<ap_uint<64>>& packed64) const;
+
+  std::vector<ap_uint<64>> encodeLayer2EgObjs(unsigned int nObj, 
     const std::vector<EGIsoObjEmu>& photons, 
     const std::vector<EGIsoEleObjEmu>& electrons) const;
   
@@ -219,10 +226,8 @@ private:
   l1ct::L2EgSorterEmulator l2egsorter;
   bool doInPtrn_;
   bool doOutPtrn_;
-  bool doGTPtrn_;
   std::unique_ptr<PatternWriter> inPtrnWrt_;
   std::unique_ptr<PatternWriter> outPtrnWrt_;
-  std::unique_ptr<PatternWriter> gtPtrnWrt_;
 };
 
 L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
@@ -235,8 +240,7 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
       l2egsorter(conf.getParameter<edm::ParameterSet>("sorter")),
       doInPtrn_(conf.getParameter<bool>("writeInPattern")),
       doOutPtrn_(conf.getParameter<bool>("writeOutPattern")),
-      doGTPtrn_(conf.getParameter<bool>("writetGTPattern")),
-      inPtrnWrt_(nullptr), outPtrnWrt_(nullptr), gtPtrnWrt_(nullptr) {
+      inPtrnWrt_(nullptr), outPtrnWrt_(nullptr) {
 
   produces<BXVector<l1t::EGamma>>(tkEGInstanceLabel_);
   produces<l1t::TkEmCollection>(tkEmInstanceLabel_);
@@ -256,10 +260,6 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
   if (doOutPtrn_) {
     outPtrnWrt_ = std::make_unique<PatternWriter>(
         conf.getParameter<edm::ParameterSet>("outPatternFile"));
-  }
-  if (doGTPtrn_) {
-    gtPtrnWrt_ = std::make_unique<PatternWriter>(
-        conf.getParameter<edm::ParameterSet>("gtPatternFile"));
   }
 }
 
@@ -298,6 +298,43 @@ std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIso
   return ret;
 }
 
+template<class T>
+ap_uint<96> L1TCtL2EgProducer::encodeLayer2(const T& egiso) const {
+  ap_uint<96> ret = 0;
+  ret(T::BITWIDTH, 0) = egiso.pack();
+  return ret;
+}
+
+
+template<class T>
+std::vector<ap_uint<96>> L1TCtL2EgProducer::encodeLayer2(const std::vector<T>& egisos) const {
+  std::vector<ap_uint<96>> ret;
+  for(const auto&egiso: egisos) {
+    // FIXME; should be packed in GT format
+    ap_uint<96> packed = 0;
+    packed(T::BITWIDTH, 0) = egiso.pack();
+    ret.push_back(packed);
+  }
+  return ret;
+}
+
+
+void L1TCtL2EgProducer::encodeLayer2To64bits(const std::vector<ap_uint<96>>& packed96, std::vector<ap_uint<64>>& packed64) const {
+  for(unsigned int i = 0; i < packed96.size(); i+=2) {
+
+    packed64.push_back(packed96[i](63, 0));
+    packed64.push_back((ap_uint<32>(packed96[i+1](95, 64)), ap_uint<32>(packed96[i](95, 64))));
+    packed64.push_back(packed96[i+1](63, 0));
+
+    // std::cout << "obj [" << i << "]: " << std::hex << packed96[i] << std::endl;
+    // std::cout << "obj [" << i+1 << "]: " << std::hex << packed96[i+1] << std::endl;
+    // std::cout << "frame [" << std::dec << packed64.size()-3 << "]" << std::hex << packed64[packed64.size()-3] << std::endl;
+    // std::cout << "frame [" << std::dec << packed64.size()-2 << "]" << std::hex << packed64[packed64.size()-2] << std::endl;
+    // std::cout << "frame [" << std::dec << packed64.size()-1 << "]" << std::hex << packed64[packed64.size()-1] << std::endl;
+    
+  }
+}
+
 
 std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj, 
   const std::vector<EGIsoObjEmu>& photons, 
@@ -316,13 +353,19 @@ std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj
 
 
 
-std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeEgObjs(unsigned int nObj, 
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer2EgObjs(unsigned int nObj, 
   const std::vector<EGIsoObjEmu>& photons, 
   const std::vector<EGIsoEleObjEmu>& electrons) const {
     std::vector<ap_uint<64>> ret;
-    for(unsigned int i = 0; i < nObj; i++) {
-      ret.push_back(i);
-    }
+    
+    auto encoded_photons = encodeLayer2(photons);
+    encoded_photons.resize(nObj, {0});
+    auto encoded_eles = encodeLayer2(electrons);
+    encoded_eles.resize(nObj, {0});
+
+    encodeLayer2To64bits(encoded_photons, ret);
+    encodeLayer2To64bits(encoded_eles, ret);
+
     return ret;
 }
 
@@ -353,11 +396,10 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent,
   std::vector<EGIsoEleObjEmu> out_eles_emu;
   l2egsorter.run(*boards, out_photons_emu, out_eles_emu);
 
-  if(doOutPtrn_ || doGTPtrn_) {
+  if(doOutPtrn_) {
     l1t::demo::EventData outData;
-    outData.add({"eglayer2", 0}, encodeEgObjs(12, out_photons_emu, out_eles_emu));
-    if(doOutPtrn_) outPtrnWrt_->addEvent(outData);
-    if(doGTPtrn_) gtPtrnWrt_->addEvent(outData);
+    outData.add({"eglayer2", 0}, encodeLayer2EgObjs(12, out_photons_emu, out_eles_emu));
+    outPtrnWrt_->addEvent(outData);
   }
 
 
@@ -372,7 +414,6 @@ void L1TCtL2EgProducer::endJob() {
   // Writing pending events to file before exiting
   if(doOutPtrn_) outPtrnWrt_->flush();
   if(doInPtrn_) inPtrnWrt_->flush();
-  if(doGTPtrn_) gtPtrnWrt_->flush();
 }
 
 
