@@ -17,17 +17,13 @@
 #include "DataFormats/L1Trigger/interface/TkJetWord.h"
 
 using namespace std;
-
 // Namespace that defines constants and types used by the HTMiss Emulation
+
 namespace l1tmhtemu { 
 
-  const unsigned int kPtSize_ = l1t::TkJetWord::TkJetBitWidths::kPtSize;
-  const unsigned int kEtaSize_ = l1t::TkJetWord::TkJetBitWidths::kGlbEtaSize;
-  const unsigned int kPhiSize_ = l1t::TkJetWord::TkJetBitWidths::kGlbPhiSize;
-
-  const unsigned int kInternalPtWidth{kPtSize_};
-  const unsigned int kInternalEtaWidth{kEtaSize_};
-  const unsigned int kInternalPhiWidth{kPhiSize_};
+  const unsigned int kInternalPtWidth{l1t::TkJetWord::TkJetBitWidths::kPtSize};
+  const unsigned int kInternalEtaWidth{l1t::TkJetWord::TkJetBitWidths::kGlbEtaSize};
+  const unsigned int kInternalPhiWidth{l1t::TkJetWord::TkJetBitWidths::kGlbPhiSize};
 
   // extra room for sumPx, sumPy
   const unsigned int kEtExtra{10};
@@ -49,13 +45,9 @@ namespace l1tmhtemu {
   const unsigned int kMHTBins = 1 << kMHTSize;
   const unsigned int kMHTPhiBins = 1 << kMHTPhiSize;
 
-  const double kStepPt_ = 0.25;
-  const double kStepEta_ = M_PI / (720);
-  const double kStepPhi_ = M_PI / (720);
-
-  const double kStepPt{kStepPt_}; 
-  const double kStepEta{kStepEta_};
-  const double kStepPhi{kStepPhi_};
+  const double kStepPt{0.25}; 
+  const double kStepEta{M_PI / (720)};
+  const double kStepPhi{M_PI / (720)};
   
   const double kStepMHT = (l1tmhtemu::kMaxMHT / l1tmhtemu::kMHTBins);
   const double kStepMHTPhi = (l1tmhtemu::kMaxMHTPhi / l1tmhtemu::kMHTPhiBins);
@@ -143,13 +135,7 @@ namespace l1tmhtemu {
   };
 
 
-  EtMiss cordicSqrt(Et_t x, Et_t y, int cordicSteps) {
-
-    std::vector<l1tmhtemu::MHTphi_t> atanLUT;
-    atanLUT = generateaTanLUT(cordicSteps);
-
-    std::vector<Et_t> magNormalisationLUT;
-    magNormalisationLUT = generatemagNormalisationLUT(cordicSteps);
+  EtMiss cordicSqrt(Et_t x, Et_t y, int cordicSteps, std::vector<l1tmhtemu::MHTphi_t> atanLUT, std::vector<Et_t> magNormalisationLUT) {
 
     Et_t new_x = 0;
     Et_t new_y = 0;
