@@ -58,7 +58,6 @@ namespace l1tmhtemu {
 
   const string kLUTdir{"LUTs/"};
 
-
   template <typename T>
     T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
     T digitized_value = std::floor(std::abs(value) / lsb);
@@ -70,14 +69,12 @@ namespace l1tmhtemu {
     return digitized_value;
   }
 
-
   //Ouput LUTs to file for use in FW
   template <typename T>
     void writeLUTtoFile(vector<T>(&LUT), const string& filename, const string& delimiter) {
     int fail = system((string("mkdir -p ") + l1tmhtemu::kLUTdir).c_str());
     if (fail)
-      throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory "
-                                     << l1tmhtemu::kLUTdir;
+      throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " << l1tmhtemu::kLUTdir;
 
     const string fname = l1tmhtemu::kLUTdir + filename + ".tab";
     ofstream outstream(fname);
@@ -94,20 +91,16 @@ namespace l1tmhtemu {
     outstream.close();
   }
 
-
   std::vector<phi_t> generateCosLUT(unsigned int size) {  // Fill cosine LUT with integer values
     float phi = 0;
     std::vector<phi_t> cosLUT;
     for (unsigned int LUT_idx = 0; LUT_idx < size; LUT_idx++) {
       cosLUT.push_back(digitizeSignedValue<phi_t>(cos(phi), l1tmhtemu::kInternalPhiWidth, l1tmhtemu::kStepPhi));
-
       phi += l1tmhtemu::kStepPhi;
     }
     cosLUT.push_back((phi_t)(0));  //Prevent overflow in last bin
-
     return cosLUT;
   }
-
 
   std::vector<MHTphi_t> generateaTanLUT(int cordicSteps) {  // Fill atan LUT with integer values
     std::vector<MHTphi_t> atanLUT;
@@ -116,7 +109,6 @@ namespace l1tmhtemu {
     }
     return atanLUT;
   }
-
 
   std::vector<Et_t> generatemagNormalisationLUT(int cordicSteps) {
     float val = 1.0;
@@ -128,12 +120,10 @@ namespace l1tmhtemu {
     return magNormalisationLUT;
   }
 
-
   struct EtMiss {
     MHT_t Et;
     MHTphi_t Phi;
   };
-
 
   EtMiss cordicSqrt(Et_t x, Et_t y, int cordicSteps, std::vector<l1tmhtemu::MHTphi_t> atanLUT, std::vector<Et_t> magNormalisationLUT) {
 
@@ -168,7 +158,6 @@ namespace l1tmhtemu {
       y = -y;
     }
 
-
     for (int step = 0; step < cordicSteps; step++) {
       if (y < 0) {
 	new_x = x - (y >> step);
@@ -178,19 +167,16 @@ namespace l1tmhtemu {
 	new_y = y - (x >> step);
       }
     
-    if ((y < 0) == sign) {
-      new_phi = phi - atanLUT[step];
-    } else {
-      new_phi = phi + atanLUT[step];
+      if ((y < 0) == sign) {
+	new_phi = phi - atanLUT[step];
+      } else {
+	new_phi = phi + atanLUT[step];
+      }
+
+      x = new_x;
+      y = new_y;
+      phi = new_phi;
     }
-
-    x = new_x;
-    y = new_y;
-    phi = new_phi;
-
-
-    }
-
 
     float sqrtval = ( float(x *  magNormalisationLUT[cordicSteps - 1]) / float(kMHTBins) ) * float(kStepPt*kStepPhi);
 
@@ -199,7 +185,6 @@ namespace l1tmhtemu {
 
     return ret_etmiss;
   }
-
 
 }
 #endif
