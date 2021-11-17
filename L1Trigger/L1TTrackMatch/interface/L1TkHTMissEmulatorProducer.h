@@ -56,7 +56,7 @@ namespace l1tmhtemu {
 
   const float kMaxCosLUTPhi{M_PI};
 
-  const string kLUTdir{"LUTs/"};
+  const string kLUTdir{"LUTsforMHT/"};
 
   template <typename T>
     T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
