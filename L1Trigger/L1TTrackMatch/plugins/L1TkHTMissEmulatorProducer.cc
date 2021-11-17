@@ -231,7 +231,7 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
 
     jetnpasscuts++;
 
-    if(debug_){
+    if (debug_) {
       sumPx_ += tmp_jet_px_;
       sumPy_ += tmp_jet_py_;
       HT_ += tmp_jet_pt_;
