@@ -73,13 +73,13 @@ namespace l1ct {
 
     l1gt::Jet toGT() const {
       l1gt::Jet j;
+      j.valid = hwPt != 0;
       j.v3.pt = CTtoGT_pt(hwPt);
       j.v3.phi = CTtoGT_phi(hwPhi);
       j.v3.eta = CTtoGT_eta(hwEta);
       j.z0 = 0;
       return j;
     }
-
   };
 
   inline void clear(Jet &c) { c.clear(); }

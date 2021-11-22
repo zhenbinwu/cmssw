@@ -13,17 +13,21 @@
 #endif
 
 #include "bit_encoding.h"
+#include <array>
+#include <cstdint>
 
 namespace l1gt{
   // Using rounding & saturation modes to avoid unnecessary rounding errors
+  // Don't saturate phi since -π to +π periodicity is handled by numerical wrap around
   // Rounding and saturation settings are lost when sending the data over the link
   // Unless the receiving end uses the same data types
 
   // Common fields
   typedef ap_ufixed<16,11,AP_RND_CONV,AP_SAT> pt_t;
-  typedef ap_fixed<13,13,AP_RND_CONV,AP_SAT> phi_t;
+  typedef ap_fixed<13,13,AP_RND_CONV> phi_t;
   typedef ap_fixed<14,14,AP_RND_CONV,AP_SAT> eta_t;
   typedef ap_fixed<10,9,AP_RND_CONV,AP_SAT> z0_t;
+  typedef ap_uint<1> valid_t;
 
   // E/gamma fields
   typedef ap_fixed<11,9> iso_t;
@@ -33,8 +37,8 @@ namespace l1gt{
   typedef ap_ufixed<10,8> tauseed_pt_t;
 
   namespace Scales {
-    const int INTPHI_PI = 4096;
-    const float INTPT_LSB = 0.03125;
+    const int INTPHI_PI = 1 << (phi_t::width - 1);
+    const float INTPT_LSB = 1.0 / (1 << (pt_t::width - pt_t::iwidth));
     const int INTPHI_TWOPI = 2 * INTPHI_PI;
     constexpr float ETAPHI_LSB = M_PI / INTPHI_PI;
     inline float floatPt(pt_t pt) { return pt.to_float(); }
@@ -59,6 +63,7 @@ namespace l1gt{
   };
 
   struct Jet {
+    valid_t valid;
     ThreeVector v3;
     z0_t z0;
 
@@ -66,6 +71,7 @@ namespace l1gt{
     inline ap_uint<BITWIDTH> pack_ap() const {
       ap_uint<BITWIDTH> ret = 0;
       unsigned int start = 0;
+      _pack_into_bits(ret, start, valid);
       _pack_into_bits(ret, start, v3.pack());
       _pack_into_bits(ret, start, z0);
       return ret;
@@ -82,6 +88,7 @@ namespace l1gt{
   }; // struct Jet
 
   struct Sum {
+    valid_t valid;
     pt_t vector_pt;
     phi_t vector_phi;
     pt_t scalar_pt;
@@ -90,6 +97,7 @@ namespace l1gt{
     inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
+      _pack_into_bits(ret, start, valid);
       _pack_into_bits(ret, start, vector_pt);
       _pack_into_bits(ret, start, vector_phi);
       _pack_into_bits(ret, start, scalar_pt);
@@ -98,6 +106,7 @@ namespace l1gt{
   }; // struct Sum
 
   struct Tau {
+    valid_t valid;
     ThreeVector v3;
     tauseed_pt_t seed_pt;
     z0_t seed_z0;
@@ -111,6 +120,7 @@ namespace l1gt{
     inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
+      _pack_into_bits(ret, start, valid);
       _pack_into_bits(ret, start, v3.pack());
       _pack_into_bits(ret, start, seed_pt);
       _pack_into_bits(ret, start, seed_z0);
@@ -124,6 +134,7 @@ namespace l1gt{
   }; // struct Tau
 
   struct Electron {
+    valid_t valid;
     ThreeVector v3;
     egquality_t quality;
     ap_uint<1> charge;
@@ -134,17 +145,18 @@ namespace l1gt{
     inline ap_uint<BITWIDTH> pack() const{
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
+      _pack_into_bits(ret, start, valid);
       _pack_into_bits(ret, start, v3.pack());
       _pack_into_bits(ret, start, quality);
+      _pack_into_bits(ret, start, isolation);
       _pack_into_bits(ret, start, charge);
       _pack_into_bits(ret, start, z0);
-      start = 64;
-      _pack_into_bits(ret, start, isolation);
       return ret;
     }
   };
 
   struct Photon {
+    valid_t valid;
     ThreeVector v3;
     egquality_t quality;
     iso_t isolation;
@@ -152,6 +164,7 @@ namespace l1gt{
     inline ap_uint<96> pack() const{
       ap_uint<96> ret;
       unsigned int start = 0;
+      _pack_into_bits(ret, start, valid);
       _pack_into_bits(ret, start, v3.pack());
       _pack_into_bits(ret, start, quality);
       _pack_into_bits(ret, start, isolation);
