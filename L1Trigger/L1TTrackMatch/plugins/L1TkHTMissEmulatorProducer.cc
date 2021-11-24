@@ -44,7 +44,6 @@ private:
   // ----------member data ---------------------------
 
   bool debug_ = false;
-  bool saveLUTs_ = false;
   bool displaced_;
 
   int cosLUTbins;
@@ -68,7 +67,6 @@ L1TkHTMissEmulatorProducer::L1TkHTMissEmulatorProducer(const edm::ParameterSet& 
   : jetToken_(consumes<TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("L1TkJetEmulationInputTag"))) {
 
   debug_ = iConfig.getParameter<bool>("debug");
-  saveLUTs_ = iConfig.getParameter<bool>("saveLUTs");
   displaced_ = iConfig.getParameter<bool>("displaced");
 
   jetMinPt_ = l1tmhtemu::digitizeSignedValue<l1tmhtemu::pt_t>((float)iConfig.getParameter<double>("jet_minPt"), l1tmhtemu::kInternalPtWidth, l1tmhtemu::kStepPt);
@@ -82,13 +80,6 @@ L1TkHTMissEmulatorProducer::L1TkHTMissEmulatorProducer(const edm::ParameterSet& 
   atanLUT_ = l1tmhtemu::generateaTanLUT(aSteps);
   magNormalisationLUT_ = l1tmhtemu::generatemagNormalisationLUT(aSteps);
     
-  // save LUTs
-  if (saveLUTs_) {
-    l1tmhtemu::writeLUTtoFile<l1tmhtemu::phi_t>(cosLUT_, "cos", ",");
-    l1tmhtemu::writeLUTtoFile<l1tmhtemu::MHTphi_t>(atanLUT_, "cordicatan", ",");
-    l1tmhtemu::writeLUTtoFile<l1tmhtemu::Et_t>(magNormalisationLUT_, "cordicrenorm", ",");
-  }
-
   // Name of output ED Product
   L1MHTCollectionName_ = (std::string)iConfig.getParameter<std::string>("L1MHTCollectionName");
   

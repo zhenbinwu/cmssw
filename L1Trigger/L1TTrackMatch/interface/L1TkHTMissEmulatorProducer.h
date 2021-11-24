@@ -56,8 +56,6 @@ namespace l1tmhtemu {
 
   const float kMaxCosLUTPhi{M_PI};
 
-  const string kLUTdir{"LUTsforMHT/"};
-
   template <typename T>
     T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
     T digitized_value = std::floor(std::abs(value) / lsb);
@@ -67,28 +65,6 @@ namespace l1tmhtemu {
     if (value < 0)
       digitized_value = (1 << nBits) - digitized_value;  // two's complement encoding
     return digitized_value;
-  }
-
-  //Ouput LUTs to file for use in FW
-  template <typename T>
-    void writeLUTtoFile(vector<T>(&LUT), const string& filename, const string& delimiter) {
-    int fail = system((string("mkdir -p ") + l1tmhtemu::kLUTdir).c_str());
-    if (fail)
-      throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " << l1tmhtemu::kLUTdir;
-
-    const string fname = l1tmhtemu::kLUTdir + filename + ".tab";
-    ofstream outstream(fname);
-    if (outstream.fail())
-      throw cms::Exception("BadFile") << __FILE__ << " " << __LINE__ << " could not create file " << fname;
-
-    outstream << "{" << endl;
-    for (unsigned int i = 0; i < LUT.size(); i++) {
-      if (i != 0)
-        outstream << delimiter << endl;
-      outstream << LUT[i];
-    }
-    outstream << endl << "};" << endl;
-    outstream.close();
   }
 
   std::vector<phi_t> generateCosLUT(unsigned int size) {  // Fill cosine LUT with integer values

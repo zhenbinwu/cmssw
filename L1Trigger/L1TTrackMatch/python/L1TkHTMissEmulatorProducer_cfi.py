@@ -7,8 +7,7 @@ L1TrackerEmuHTMiss = cms.EDProducer("L1TkHTMissEmulatorProducer",
     jet_minPt = cms.double(5.0),
     jet_minNtracksLowPt = cms.int32(2),
     jet_minNtracksHighPt = cms.int32(3),
-    debug = cms.bool(True),
-    saveLUTs = cms.bool(False),
+    debug = cms.bool(False),
     displaced = cms.bool(False)
 )
 
@@ -19,7 +18,6 @@ L1TrackerEmuHTMissExtended = cms.EDProducer("L1TkHTMissEmulatorProducer",
     jet_minPt = cms.double(5.0),
     jet_minNtracksLowPt = cms.int32(2),
     jet_minNtracksHighPt = cms.int32(3),
-    debug = cms.bool(True),
-    saveLUTs = cms.bool(False),
+    debug = cms.bool(False),
     displaced = cms.bool(True)
 )
