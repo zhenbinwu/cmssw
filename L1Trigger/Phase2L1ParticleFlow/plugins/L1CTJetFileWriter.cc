@@ -39,7 +39,7 @@ private:
   // ----------member functions ----------------------
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
-  std::array<std::vector<ap_uint<64>>, 1> encodeJets(const edm::View<l1t::PFJet>& jets);
+  std::vector<ap_uint<64>> encodeJets(const edm::View<l1t::PFJet>& jets);
 
   edm::EDGetTokenT<edm::View<l1t::PFJet>> jetsToken_;
   l1t::demo::BoardDataWriter fileWriterOutputToGT_;
@@ -49,12 +49,12 @@ L1CTJetFileWriter::L1CTJetFileWriter(const edm::ParameterSet& iConfig) :
       nJets(iConfig.getParameter<unsigned>("nJets")),
       kFramesPerBX(iConfig.getParameter<unsigned>("nFramesPerBX")),
       kCTL2BoardTMUX(iConfig.getParameter<unsigned>("TMUX")),
-      kGapLengthOutput(kFramesPerBX - 2 * nJets),
+      kGapLengthOutput(kCTL2BoardTMUX * kFramesPerBX - 2 * nJets),
       kMaxLinesPerFile(iConfig.getParameter<unsigned>("maxLinesPerFile")),
       kChannelSpecsOutputToGT{{{"jets", 0}, {{kCTL2BoardTMUX, kGapLengthOutput}, {0}}}},
-      jetsToken_(consumes<edm::View<l1t::PFJet>>(iConfig.getUntrackedParameter<edm::InputTag>("jets"))),
-      fileWriterOutputToGT_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
-                            iConfig.getUntrackedParameter<std::string>("outputFilename"),
+      jetsToken_(consumes<edm::View<l1t::PFJet>>(iConfig.getParameter<edm::InputTag>("jets"))),
+      fileWriterOutputToGT_(l1t::demo::parseFileFormat(iConfig.getParameter<std::string>("format")),
+                            iConfig.getParameter<std::string>("outputFilename"),
                             kFramesPerBX,
                             kCTL2BoardTMUX,
                             kMaxLinesPerFile,
@@ -69,7 +69,7 @@ void L1CTJetFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   // 2) Pack jet information into 'event data' object, and pass that to file writer
   l1t::demo::EventData eventDataJets;
-  eventDataJets.add({"jets", 0}, outputJets.at(0));
+  eventDataJets.add({"jets", 0}, outputJets);
   fileWriterOutputToGT_.addEvent(eventDataJets);
 
 }
@@ -80,7 +80,7 @@ void L1CTJetFileWriter::endJob() {
   fileWriterOutputToGT_.flush();
 }
 
-std::array<std::vector<ap_uint<64>>, 1> L1CTJetFileWriter::encodeJets(const edm::View<l1t::PFJet>& jets) {
+std::vector<ap_uint<64>> L1CTJetFileWriter::encodeJets(const edm::View<l1t::PFJet>& jets) {
     std::vector<ap_uint<64>> jet_words;
     for(unsigned i=0; i < nJets; i++){
         l1t::PFJet j;
@@ -92,8 +92,7 @@ std::array<std::vector<ap_uint<64>>, 1> L1CTJetFileWriter::encodeJets(const edm:
         jet_words.push_back(j.encodedJet()[0]);
         jet_words.push_back(j.encodedJet()[1]);
     }
-    std::array<std::vector<ap_uint<64>>, 1> link = {{ jet_words }};
-    return link;
+    return jet_words;
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
@@ -101,7 +100,13 @@ void L1CTJetFileWriter::fillDescriptions(edm::ConfigurationDescriptions& descrip
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
-  desc.setUnknown();
+  desc.add<edm::InputTag>("jets");
+  desc.add<std::string>("outputFilename");
+  desc.add<uint32_t>("nJets", 12);
+  desc.add<uint32_t>("nFramesPerBX", 9);
+  desc.add<uint32_t>("TMUX", 6);
+  desc.add<uint32_t>("maxLinesPerFile", 1024);
+  desc.add<std::string>("format","EMP");
   descriptions.addDefault(desc);
 }
 
