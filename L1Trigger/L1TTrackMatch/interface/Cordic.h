@@ -17,7 +17,7 @@ using namespace l1tmetemu;
 class Cordic {
 public:
   Cordic();
-  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs);
+  Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug);
 
   EtMiss toPolar(Et_t x, Et_t y) const;
 
