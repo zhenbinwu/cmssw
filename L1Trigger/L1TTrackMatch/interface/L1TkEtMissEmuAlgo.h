@@ -19,9 +19,9 @@ using namespace std;
 // Includes functions for writing LUTs and converting to integer representations
 namespace l1tmetemu {
 
-  const unsigned int kInternalVTXWidth{8};   //default 8   max 12
-  const unsigned int kInternalEtaWidth{10};  //default 10  max 16
-  const unsigned int kInternalPtWidth{15};   // default 14  max 14
+  const unsigned int kInternalVTXWidth{12};   //default 8   max 12
+  const unsigned int kInternalEtaWidth{8};  //default 8 max 16
+  const unsigned int kInternalPtWidth{15};   // default 15  max 15
   const unsigned int kInternalPhiWidth{8};   //default 8  max  12
 
   // Extra bits needed by global phi to span full range
@@ -63,8 +63,6 @@ namespace l1tmetemu {
   const float kMaxTrackPt{512};
   const float kMaxTrackEta{4};
 
-  //const int cordicScale{kMETPhiBins};
-
   // Steps used to convert from track word floats to track MET integer representations
 
   const double kStepPt = (std::abs(kMaxTrackPt)) / (1 << kInternalPtWidth);
@@ -76,16 +74,9 @@ namespace l1tmetemu {
   const double kStepMET = (l1tmetemu::kMaxMET / l1tmetemu::kMETBins);
   const double kStepMETPhi = (l1tmetemu::kMaxMETPhi / l1tmetemu::kMETPhiBins);
 
-  // Track to vertex eta regions
-  const float kEtaRegionBins[kNEtaRegion + 1] = {0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4};
-  // Track to vertex z thresholds
-  const float kDeltaZBins[kNEtaRegion] = {0.4, 0.6, 0.76, 1.0, 1.7, 2.2};
-
   // Enough symmetry in cos and sin between 0 and pi/2 to get all possible values
   // of cos and sin phi
   const float kMaxCosLUTPhi{M_PI / 2};
-
-  const string kLUTdir{"LUTs/"};
 
   // Simple struct used for ouput of cordic
   struct EtMiss {
@@ -94,18 +85,28 @@ namespace l1tmetemu {
   };
 
   std::vector<global_phi_t> generateCosLUT(unsigned int size);
-  std::vector<eta_t> generateEtaRegionLUT();
-  std::vector<z_t> generateDeltaZLUT();
+  std::vector<eta_t> generateEtaRegionLUT( vector<double> EtaRegions);
+  std::vector<z_t> generateDeltaZLUT( vector<double> DeltaZBins );
 
   template <typename T>
   T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
-    T digitized_value = std::floor(std::abs(value) / lsb);
-    T digitized_maximum = (1 << (nBits - 1)) - 1;  // The remove 1 bit from nBits to account for the sign
-    if (digitized_value > digitized_maximum)
-      digitized_value = digitized_maximum;
-    if (value < 0)
-      digitized_value = (1 << nBits) - digitized_value;  // two's complement encoding
-    return digitized_value;
+    // Digitize the incoming value
+    int digitizedValue = std::floor(value / lsb);
+
+    // Calculate the maxmum possible positive value given an output of nBits in size
+    int digitizedMaximum = (1 << (nBits - 1)) - 1;  // The remove 1 bit from nBits to account for the sign
+    int digitizedMinimum = -1. * (digitizedMaximum + 1);
+
+    // Saturate the digitized value
+    digitizedValue = std::clamp(digitizedValue, digitizedMinimum, digitizedMaximum);
+
+    // Do the two's compliment encoding
+    T twosValue = digitizedValue;
+    if (digitizedValue < 0) {
+      twosValue += (1 << nBits);
+    }
+
+    return twosValue;
   }
 
   template <typename T>
@@ -115,30 +116,9 @@ namespace l1tmetemu {
   }
 
   int unpackSignedValue(unsigned int bits, unsigned int nBits);
+
+  
   unsigned int transformSignedValue(unsigned int bits, unsigned int oldnBits, unsigned int newnBits);
-
-  //Ouput LUTs to file for use in FW
-  template <typename T>
-  void writeLUTtoFile(vector<T>(&LUT), const string& filename, const string& delimiter) {
-    int fail = system((string("mkdir -p ") + l1tmetemu::kLUTdir).c_str());
-    if (fail)
-      throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory "
-                                     << l1tmetemu::kLUTdir;
-
-    const string fname = l1tmetemu::kLUTdir + filename + ".tab";
-    ofstream outstream(fname);
-    if (outstream.fail())
-      throw cms::Exception("BadFile") << __FILE__ << " " << __LINE__ << " could not create file " << fname;
-
-    outstream << "{" << endl;
-    for (unsigned int i = 0; i < LUT.size(); i++) {
-      if (i != 0)
-        outstream << delimiter << endl;
-      outstream << LUT[i];
-    }
-    outstream << endl << "};" << endl;
-    outstream.close();
-  }
 
 }  // namespace l1tmetemu
 #endif

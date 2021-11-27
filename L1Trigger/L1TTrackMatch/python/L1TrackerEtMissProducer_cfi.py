@@ -7,9 +7,9 @@ L1TrackerEtMiss = cms.EDProducer('L1TrackerEtMissProducer',
     L1MetCollectionName = cms.string("L1TrackerEtMiss"),
     maxZ0 = cms.double ( 15. ) ,    # in cm
     maxEta = cms.double ( 2.4 ) ,   # max eta allowed for chosen tracks
-    chi2dofMax = cms.double( 100. ), # max chi2/dof allowed for chosen tracks
-    splitChi2dofMax = cms.double( 10. ), # max chi2/dof allowed for chosen tracks
-    bendChi2Max = cms.double( 2. ),# max bendchi2 allowed for chosen tracks
+    chi2rzdofMax = cms.double( 5. ), # max chi2rz/dof allowed for chosen tracks
+    chi2rphidofMax = cms.double( 20. ), # max chi2rphi/dof allowed for chosen tracks
+    bendChi2Max = cms.double( 2.25 ),# max bendchi2 allowed for chosen tracks
     minPt = cms.double( 2. ),       # in GeV
     deltaZ = cms.double( 3. ),      # in cm
     nStubsmin = cms.int32( 4 ),     # min number of stubs for the tracks
@@ -21,8 +21,11 @@ L1TrackerEtMiss = cms.EDProducer('L1TrackerEtMissProducer',
                                     # when = 1 : saturation. Tracks with PT above maxPt are set to PT=maxPt.
                                     # When maxPt < 0, no special treatment is done for high PT tracks.
     displaced = cms.bool(False),     # Use promt/displaced tracks
+
+    z0Thresholds = cms.vdouble( 0.37, 0.5, 0.6, 0.75, 1.0, 1.6 ), # Threshold for track to vertex association.
+    etaRegions = cms.vdouble( 0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4 ), # Eta bins for choosing deltaZ threshold.
     
-                                 debug     = cms.bool(False)
+    debug     = cms.bool(False)
 )
 
 L1TrackerEtMissExtended = cms.EDProducer('L1TrackerEtMissProducer',
