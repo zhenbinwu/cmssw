@@ -56,7 +56,7 @@ namespace l1ct {
       ret.initFromBits(src);
       return ret;
     }
-    
+
     inline void initFromBits(const ap_uint<BITWIDTH> &src) {
       unsigned int start = 0;
       _unpack_from_bits(src, start, hwPt);
@@ -64,7 +64,7 @@ namespace l1ct {
       _unpack_from_bits(src, start, hwPhi);
       _unpack_from_bits(src, start, hwQual);
       _unpack_from_bits(src, start, hwIso);
-    }    
+    }
   };
 
   inline void clear(EGIsoObj &c) { c.clear(); }
@@ -128,7 +128,7 @@ namespace l1ct {
       ret.initFromBits(src);
       return ret;
     }
-        
+
     inline void initFromBits(const ap_uint<BITWIDTH> &src) {
       unsigned int start = 0;
       _unpack_from_bits(src, start, hwPt);
@@ -140,11 +140,7 @@ namespace l1ct {
       _unpack_from_bits(src, start, hwDPhi);
       _unpack_from_bits(src, start, hwZ0);
       _unpack_bool_from_bits(src, start, hwCharge);
-    }    
-
-    
-    
-    
+    }
   };
 
   inline void clear(EGIsoEleObj &c) { c.clear(); }

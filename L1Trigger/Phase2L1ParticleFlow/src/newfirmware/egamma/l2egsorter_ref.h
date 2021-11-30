@@ -25,10 +25,9 @@ namespace l1ct {
   class L2EgSorterEmulator {
   public:
     L2EgSorterEmulator(unsigned int nBoards, unsigned int nEGPerBoard, unsigned int nEGOut, bool debug)
-      : nBOARDS(nBoards), nEGPerBoard(nEGPerBoard), nEGOut(nEGOut), debug_(debug) {}
+        : nBOARDS(nBoards), nEGPerBoard(nEGPerBoard), nEGOut(nEGOut), debug_(debug) {}
 
     L2EgSorterEmulator(const edm::ParameterSet &iConfig);
-
 
     virtual ~L2EgSorterEmulator() {}
 
