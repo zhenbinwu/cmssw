@@ -40,6 +40,20 @@ process.L1VertexFinderEmulator.l1TracksInputTag = cms.InputTag("L1GTTInputProduc
 
 process.l1ctLayer1Barrel9 = process.l1ctLayer1Barrel.clone()
 process.l1ctLayer1Barrel9.regions[0].etaBoundaries = [ -1.5, -0.5, 0.5, 1.5 ] 
+process.l1ctLayer1Barrel9.boards=cms.VPSet(
+        cms.PSet(
+            eta=cms.double(0.),
+            phi=cms.double(1.22),      
+            regions=cms.vuint32(range(0, 3) + [x+9 for x in range(0, 3)] + [x+18 for x in range(0, 3)])),
+        cms.PSet(
+            eta=cms.double(0.),
+            phi=cms.double(3.32),      
+            regions=cms.vuint32(range(3, 6) + [x+9 for x in range(3, 6)] + [x+18 for x in range(3, 6)])),
+        cms.PSet(
+            eta=cms.double(0.),
+            phi=cms.double(5.41),      
+            regions=cms.vuint32(range(6, 9) + [x+9 for x in range(6, 9)] + [x+18 for x in range(6, 9)])),
+    )
 
 process.runPF = cms.Path( 
         process.standaloneMuons +
