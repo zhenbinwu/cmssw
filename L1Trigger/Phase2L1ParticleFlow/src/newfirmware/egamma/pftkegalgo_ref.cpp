@@ -174,7 +174,8 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
     }
   }
 
-  // FIXME: can be removed since now running with the "interceptor"
+  // FIXME: can be removed in the endcap since now running with the "interceptor".
+  // Might still be needed in barrel
   // filter and select first N elements of input clusters
   std::vector<EmCaloObjEmu> emcalo_sel;
   sel_emCalo(cfg.nEMCALO_EGIN, in.emcalo, emcalo_sel);

@@ -6,15 +6,18 @@
 #include "../dataformats/egamma.h"
 #include "../dataformats/pf.h"
 #include "../common/bitonic_hybrid_sort_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
 
 #else
 #include "../../dataformats/layer1_emulator.h"
 #include "../../dataformats/egamma.h"
 #include "../../dataformats/pf.h"
 #include "../../common/bitonic_hybrid_sort_ref.h"
+#include "../../utils/dbgPrintf.h"
 
 #endif
 #include <algorithm>
+#include <bitset>
 
 namespace edm {
   class ParameterSet;
@@ -68,8 +71,8 @@ namespace l1ct {
     template <typename T>
     void print_objects(const std::vector<T> &objs, const std::string &label) const {
       for (unsigned int i; i < objs.size(); ++i) {
-        std::cout << label << " [" << i << "] pt: " << objs[i].hwPt << " eta: " << objs[i].hwEta
-                  << " phi: " << objs[i].hwPhi << " qual: " << objs[i].hwQual << std::endl;
+        dbgCout() << label << " [" << i << "] pt: " << objs[i].hwPt << " eta: " << objs[i].hwEta
+                  << " phi: " << objs[i].hwPhi << " qual: " << std::bitset<4>(objs[i].hwQual) << std::endl;
       }
     }
 

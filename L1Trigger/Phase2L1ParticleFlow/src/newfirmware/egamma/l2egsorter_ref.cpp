@@ -75,7 +75,7 @@ void L2EgSorterEmulator::run(const std::vector<l1ct::OutputBoard> &in,
   if (debug_) {
     unsigned int board_n = 0;
     for (const auto &board : in) {
-      std::cout << "BOARD " << board_n++ << std::endl;
+      dbgCout() << "BOARD " << board_n++ << std::endl;
       print_objects(board.egphoton, "photon_in");
       print_objects(board.egelectron, "electron_in");
     }

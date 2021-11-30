@@ -6,9 +6,11 @@
 
 #ifdef CMSSW_GIT_HASH
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
 #include "../dataformats/layer1_emulator.h"
 #else
 #include "../../../dataformats/layer1_emulator.h"
+#include "../../../utils/dbgPrintf.h"
 #endif
 
 namespace edm {
@@ -18,11 +20,8 @@ namespace edm {
 namespace l1ct {
   class PFTkEGSorterEmulator {
   public:
-    PFTkEGSorterEmulator(const unsigned int nObjToSort = 6,
-                         const unsigned int nObjSorted = 54)  //FIXME: Numbers to be revised
-        : nObjToSort_(nObjToSort),
-          nObjSorted_(nObjSorted),  // FIXME: is it needed?
-          debug_(false) {}
+    PFTkEGSorterEmulator(const unsigned int nObjToSort = 6, const unsigned int nObjSorted = 16)
+        : nObjToSort_(nObjToSort), nObjSorted_(nObjSorted), debug_(false) {}
 
 #ifdef CMSSW_GIT_HASH
     PFTkEGSorterEmulator(const edm::ParameterSet& iConfig)
@@ -44,26 +43,25 @@ namespace l1ct {
       mergeEGObjFromRegions<T>(pfregions, outregions, region_index, eg_unsorted_inBoard);
 
       if (debug_) {
-        std::cout << "\nUNSORTED\n";
+        dbgCout() << "\nUNSORTED\n";
         for (int j = 0, nj = eg_unsorted_inBoard.size(); j < nj; j++)
-          std::cout << "EG[" << j << "]: pt = " << eg_unsorted_inBoard[j].hwPt
+          dbgCout() << "EG[" << j << "]: pt = " << eg_unsorted_inBoard[j].hwPt
                     << ",\t eta = " << eg_unsorted_inBoard[j].hwEta << ",\t phi = " << eg_unsorted_inBoard[j].hwPhi
                     << "\n";
       }
 
       if (debug_)
-        std::cout << "\nSORTED\n";
+        dbgCout() << "\nSORTED\n";
 
       eg_sorted_inBoard = eg_unsorted_inBoard;
       std::reverse(eg_sorted_inBoard.begin(), eg_sorted_inBoard.end());
       std::stable_sort(eg_sorted_inBoard.begin(), eg_sorted_inBoard.end(), comparePt<T>);
-      eg_sorted_inBoard.resize(nObjSorted_);
-      while (!eg_sorted_inBoard.empty() && eg_sorted_inBoard.back().hwPt == 0)
-        eg_sorted_inBoard.pop_back();  // Zero suppression
+      if (eg_sorted_inBoard.size() > nObjSorted_)
+        eg_sorted_inBoard.resize(nObjSorted_);
 
       if (debug_) {
         for (int j = 0, nj = eg_sorted_inBoard.size(); j < nj; j++)
-          std::cout << "EG[" << j << "]: pt = " << eg_sorted_inBoard[j].hwPt
+          dbgCout() << "EG[" << j << "]: pt = " << eg_sorted_inBoard[j].hwPt
                     << ",\t eta = " << eg_sorted_inBoard[j].hwEta << ",\t phi = " << eg_sorted_inBoard[j].hwPhi << "\n";
       }
     }
@@ -108,19 +106,19 @@ namespace l1ct {
         const auto& region = pfregions[i].region;
 
         if (debug_)
-          std::cout << "\nOutput Region " << i << ": eta = " << region.floatEtaCenter()
+          dbgCout() << "\nOutput Region " << i << ": eta = " << region.floatEtaCenter()
                     << " and phi = " << region.floatPhiCenter() << " \n";
 
         std::vector<T> eg_tmp;
         extractEGObjEmu(region, outregions[i], eg_tmp);
         for (int j = 0, nj = (eg_tmp.size() > nObjToSort_ ? nObjToSort_ : eg_tmp.size()); j < nj; j++) {
           if (debug_)
-            std::cout << "EG[" << j << "] pt = " << eg_tmp[j].hwPt << ",\t eta = " << eg_tmp[j].hwEta
+            dbgCout() << "EG[" << j << "] pt = " << eg_tmp[j].hwPt << ",\t eta = " << eg_tmp[j].hwEta
                       << ",\t phi = " << eg_tmp[j].hwPhi << "\n";
           eg_unsorted_inBoard.push_back(eg_tmp[j]);
         }
         if (debug_)
-          std::cout << "\n";
+          dbgCout() << "\n";
       }
     }
   };

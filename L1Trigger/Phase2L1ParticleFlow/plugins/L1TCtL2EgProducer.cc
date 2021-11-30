@@ -146,9 +146,7 @@ private:
 
   template <class TT>
   void remapRefs(edm::Event &iEvent, std::unique_ptr<TT> &out,
-                 RefRemapper &refRemapper) const {
-    // FIXME: remove from design?
-  }
+                 RefRemapper &refRemapper) const {}
 
   void remapRefs(edm::Event &iEvent,
                  std::unique_ptr<BXVector<l1t::EGamma>> &out,
@@ -486,11 +484,11 @@ L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso,
                  refRemapper.origRefAndPtr[egiso.sta_idx].first,
                  egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIso),
                  egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIsoPV));
-  // FIXME: need to define a global quality (barrel+endcap)?
+  // FIXME: need to define a global quality (barrel+endcap) or add a bit to distibguish them?
   tkem.setHwQual(egiso.hwQual);
   tkem.setPFIsol(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIso));
   tkem.setPFIsolPV(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIsoPV));
-  // FIXME: shall we put the GT formatted packed object here?
+  // FIXME: we shall put the GT formatted packed object here
   tkem.setEgBinaryWord(egiso.pack());
   return tkem;
 }
