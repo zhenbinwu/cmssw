@@ -1,6 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
 
+produceEGStage2Pattern = False
+
 process = cms.Process("RESP", eras.Phase2C9)
 
 process.load('Configuration.StandardSequences.Services_cff')
@@ -50,8 +52,13 @@ process.runPF = cms.Path(
         process.l1ctLayer1HGCal +
         process.l1ctLayer1HGCalNoTK +
         process.l1ctLayer1HF +
-        process.l1ctLayer1
+        process.l1ctLayer1 +
+        process.l1ctLayer2EG
     )
+
+if produceEGStage2Pattern:
+    process.l1ctLayer2EG.writeInPattern = True
+    process.l1ctLayer2EG.writeOutPattern = True
 
 process.source.fileNames  = [ '/store/cmst3/group/l1tr/gpetrucc/11_1_0/NewInputs110X/110121.done/TTbar_PU200/inputs110X_%d.root' % i for i in (1,3,7,8,9) ]
 

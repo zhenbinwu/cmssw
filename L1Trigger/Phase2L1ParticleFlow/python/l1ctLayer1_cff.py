@@ -552,8 +552,8 @@ l1ctLayer2EG = cms.EDProducer(
         nEGOut=cms.uint32(12),
         debug=cms.untracked.uint32(0),
     ),
-    writeInPattern=cms.bool(True),
-    writeOutPattern=cms.bool(True),
+    writeInPattern=cms.bool(False),
+    writeOutPattern=cms.bool(False),
     inPatternFile=cms.PSet(
         nFramesPerBX=cms.uint32(9),  # 360 MHz clock or 25 Gb/s link
         format=cms.string("EMP"),
