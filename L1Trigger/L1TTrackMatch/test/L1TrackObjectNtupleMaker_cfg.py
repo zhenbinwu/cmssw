@@ -68,6 +68,8 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string('Checki
 #process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 #process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
+from L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi import L1TrackerEmuHTMiss
+from L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi import L1TrackerEmuHTMissExtended
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load("L1Trigger.L1TTrackMatch.L1TrackJetProducer_cfi")
@@ -76,7 +78,7 @@ process.load("L1Trigger.L1TTrackMatch.L1TrackJetEmulationProducer_cfi")
 process.load("L1Trigger.L1TTrackMatch.L1TrackFastJetProducer_cfi")
 process.load("L1Trigger.L1TTrackMatch.L1TrackerEtMissProducer_cfi")
 process.load("L1Trigger.L1TTrackMatch.L1TkHTMissProducer_cfi")
-
+process.load("L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi")
 
 # HYBRID: prompt tracking
 if (L1TRKALGO == 'HYBRID'):
@@ -88,6 +90,7 @@ if (L1TRKALGO == 'HYBRID'):
     process.pL1TrackJetsEmulation = cms.Path(process.L1TrackJetsEmulation)
     process.pTkMET = cms.Path(process.L1TrackerEtMiss)
     process.pTkMHT = cms.Path(process.L1TrackerHTMiss)
+    process.pTkMHTEmulator = cms.Path(process.L1TrackerEmuHTMiss)
     DISPLACED = 'Prompt'
 
 # HYBRID: extended tracking
@@ -100,6 +103,7 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED'):
     process.pL1TrackJetsEmulation = cms.Path(process.L1TrackJetsExtendedEmulation)
     process.pTkMET = cms.Path(process.L1TrackerEtMissExtended)
     process.pTkMHT = cms.Path(process.L1TrackerHTMissExtended)
+    process.pTkMHTEmulator = cms.Path(process.L1TrackerEmuHTMissExtended)
     DISPLACED = 'Displaced'#
 
 # HYBRID: extended tracking
@@ -112,6 +116,7 @@ elif (L1TRKALGO == 'HYBRID_PROMPTANDDISP'):
     process.pL1TrackJetsEmulation = cms.Path(process.L1TrackJetsEmulation*process.L1TrackJetsExtendedEmulation)
     process.pTkMET = cms.Path(process.L1TrackerEtMiss*process.L1TrackerEtMissExtended)
     process.pTkMHT = cms.Path(process.L1TrackerHTMiss*process.L1TrackerHTMissExtended)
+    process.pTkMHTEmulator = cms.Path(process.L1TrackerEmuHTMiss*process.L1TrackerEmuHTMissExtended)
     DISPLACED = 'Both'
 
 
@@ -170,6 +175,8 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         TrackMETExtendedInputTag = cms.InputTag("L1TrackerEtMissExtended","L1TrackerEtMissExtended"),
         TrackMHTInputTag = cms.InputTag("L1TrackerHTMiss","L1TrackerHTMiss","L1TrackJets"),
         TrackMHTExtendedInputTag = cms.InputTag("L1TrackerHTMissExtended","L1TrackerHTMiss"),
+        TrackMHTEmuInputTag = cms.InputTag("L1TrackerEmuHTMiss",L1TrackerEmuHTMiss.L1MHTCollectionName.value()),
+        TrackMHTEmuExtendedInputTag = cms.InputTag("L1TrackerEmuHTMissExtended",L1TrackerEmuHTMissExtended.L1MHTCollectionName.value()),
         GenParticleInputTag = cms.InputTag("genParticles",""),
         RecoVertexInputTag=cms.InputTag("VertexProducer", process.VertexProducer.l1VertexCollectionName.value()),
 )
@@ -193,4 +200,4 @@ process.pOut = cms.EndPath(process.out)
 #process.schedule = cms.Schedule(process.pPV, process.pL1TrackJets, process.pL1TrackFastJets, process.pTkMET, process.pTkMHT,process.pOut)
 #process.schedule = cms.Schedule(process.pPV, process.pL1TrackJets, process.pL1TrackFastJets, process.pTkMET, process.pTkMHT, process.ntuple)
 #process.schedule = cms.Schedule(process.ntuple)
-process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth, process.pL1GTTInput, process.pPV, process.pL1TrackJets, process.pL1TrackJetsEmulation, process.pL1TrackFastJets, process.pTkMET, process.pTkMHT, process.ntuple)
+process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth, process.pL1GTTInput, process.pPV, process.pL1TrackJets, process.pL1TrackJetsEmulation, process.pL1TrackFastJets, process.pTkMET, process.pTkMHT, process.pTkMHTEmulator, process.ntuple)

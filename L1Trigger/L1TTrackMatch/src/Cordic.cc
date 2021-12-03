@@ -5,7 +5,7 @@
 
 using namespace l1tmetemu;
 
-Cordic::Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, bool writeLUTs)
+Cordic::Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug )
     : mPhiScale(aPhiScale),
       mMagnitudeScale(1 << aMagnitudeBits),
       mMagnitudeBits(aMagnitudeBits),
@@ -36,11 +36,6 @@ Cordic::Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug, 
       edm::LogVerbatim("L1TkEtMissEmulator") << magNormalisationLUT[j] << " | ";
     }
   }
-
-  if (writeLUTs) {
-    writeLUTtoFile<METphi_t>(atanLUT, "cordicatan", ",");
-    writeLUTtoFile<Et_t>(magNormalisationLUT, "cordicrenorm", ",");
-  }
 }
 
 EtMiss Cordic::toPolar(Et_t x, Et_t y) const {
@@ -66,7 +61,7 @@ EtMiss Cordic::toPolar(Et_t x, Et_t y) const {
     phi = mPhiScale >> 1;
     sign = false;
     x = -x;
-    y = -y;
+    y = y;
   } else if (x < 0 && y < 0) {
     phi = mPhiScale >> 1;
     sign = true;

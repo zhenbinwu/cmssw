@@ -12,19 +12,18 @@ L1TrackerEmuEtMiss = cms.EDProducer('L1TrackerEtMissEmulatorProducer',
 
     maxZ0 = cms.double ( 15. ) ,    # in cm
     maxEta = cms.double ( 2.4 ) ,   # max eta allowed for chosen tracks
-    minPt = cms.double( 2. ),
-    chi2rzdofMax = cms.double( 10. ), # max chi2rz/dof allowed for chosen tracks
-    chi2rphidofMax = cms.double( 10. ), # max chi2rphi/dof allowed for chosen tracks
-    chi2Max        = cms.int32( 120 ), # max combined bin for chi2rphi+chi2rz (this != to a cut on floating point chi2)
-    bendChi2Max = cms.double( 2. ),# max bendchi2 allowed for chosen tracks
+    minPt = cms.double( 2.02 ),
+    chi2rzdofMax = cms.double( 5. ), # max chi2rz/dof allowed for chosen tracks
+    chi2rphidofMax = cms.double( 20. ), # max chi2rphi/dof allowed for chosen tracks
+    bendChi2Max = cms.double( 2.25 ),# max bendchi2 allowed for chosen tracks
     nStubsmin = cms.int32( 4 ),     # min number of stubs for the tracks
-  
+
+    z0Thresholds = cms.vdouble( 0.37, 0.5, 0.6, 0.75, 1.0, 1.6 ), # Threshold for track to vertex association.
+    etaRegions = cms.vdouble( 0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4 ), # Eta bins for choosing deltaZ threshold.
+    
     nCordicSteps = cms.int32( 8 ), #Number of steps for cordic sqrt and phi computation
     debug        = cms.int32( 0 ),  #0 - No Debug, 1 - LUT debug, 2 - Phi Debug, 3 - Z debug, 4 - Et Debug, 5 - Cordic Debug, 6 - Output, 7 - Every Selected Track
-    writeLUTs    = cms.bool( False ), #Write LUTs to file for use in FW
-
     useGTTinput  = cms.bool( True ),
-    useVertexEmulator = cms.bool( True )
 
 )
 

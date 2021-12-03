@@ -49,7 +49,8 @@ private:
   float deltaZ_;  // in cm
   float maxEta_;
   float chi2dofMax_;
-  float splitChi2dofMax_;
+  float Chi2RphidofMax_;
+  float Chi2RzdofMax_;
   float bendChi2Max_;
   float minPt_;  // in GeV
   int nStubsmin_;
@@ -57,6 +58,9 @@ private:
   float maxPt_;       // in GeV
   int highPtTracks_;  // saturate or truncate
   bool displaced_;    // prompt/displaced tracks
+
+  vector<double> z0Thresholds_; // Threshold for track to vertex association
+  vector<double> etaRegions_; // Eta bins for choosing deltaZ threshold
 
   bool debug_;
 
@@ -73,8 +77,8 @@ L1TrackerEtMissProducer::L1TrackerEtMissProducer(const edm::ParameterSet& iConfi
       trackToken_(consumes<L1TTTrackCollectionType>(iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))) {
   maxZ0_ = (float)iConfig.getParameter<double>("maxZ0");
   deltaZ_ = (float)iConfig.getParameter<double>("deltaZ");
-  chi2dofMax_ = (float)iConfig.getParameter<double>("chi2dofMax");
-  splitChi2dofMax_ = (float)iConfig.getParameter<double>("splitChi2dofMax");
+  Chi2RphidofMax_ = (float)iConfig.getParameter<double>("chi2rphidofMax");
+  Chi2RzdofMax_ = (float)iConfig.getParameter<double>("chi2rzdofMax");
   bendChi2Max_ = (float)iConfig.getParameter<double>("bendChi2Max");
   minPt_ = (float)iConfig.getParameter<double>("minPt");
   nStubsmin_ = iConfig.getParameter<int>("nStubsmin");
@@ -83,6 +87,8 @@ L1TrackerEtMissProducer::L1TrackerEtMissProducer(const edm::ParameterSet& iConfi
   maxEta_ = (float)iConfig.getParameter<double>("maxEta");
   highPtTracks_ = iConfig.getParameter<int>("highPtTracks");
   displaced_ = iConfig.getParameter<bool>("displaced");
+  z0Thresholds_ = iConfig.getParameter<std::vector<double>>("z0Thresholds");
+  etaRegions_ = iConfig.getParameter<std::vector<double>>("etaRegions");
 
   debug_ = iConfig.getParameter<bool>("debug");
 
@@ -141,9 +147,8 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     float pt = trackIter->momentum().perp();
     float phi = trackIter->momentum().phi();
     float eta = trackIter->momentum().eta();
-    float chi2dof = trackIter->chi2Red();
-    float chi2rphidof = trackIter->chi2XY();
-    float chi2rzdof = trackIter->chi2Z();
+    float chi2rphidof = trackIter->chi2XYRed();
+    float chi2rzdof = trackIter->chi2ZRed();
     float bendChi2 = trackIter->stubPtConsistency();
     float z0 = trackIter->z0();
     unsigned int Sector = trackIter->phiSector();
@@ -157,11 +162,9 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
       continue;
     if (fabs(eta) > maxEta_)
       continue;
-    if (chi2rphidof > splitChi2dofMax_)
+    if (chi2rphidof > Chi2RphidofMax_)
       continue;
-    if (chi2rzdof > splitChi2dofMax_)
-      continue;
-    if (chi2dof > chi2dofMax_)
+    if (chi2rzdof > Chi2RzdofMax_)
       continue;
     if (bendChi2 > bendChi2Max_)
       continue;
@@ -193,23 +196,16 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
 
     if (!displaced_) {  // if displaced, deltaZ = 3.0 cm, very loose
       // construct deltaZ cut to be based on track eta
-      if (fabs(eta) >= 0 && fabs(eta) < 0.7)
-        deltaZ_ = 0.4;
-      else if (fabs(eta) >= 0.7 && fabs(eta) < 1.0)
-        deltaZ_ = 0.6;
-      else if (fabs(eta) >= 1.0 && fabs(eta) < 1.2)
-        deltaZ_ = 0.76;
-      else if (fabs(eta) >= 1.2 && fabs(eta) < 1.6)
-        deltaZ_ = 1.0;
-      else if (fabs(eta) >= 1.6 && fabs(eta) < 2.0)
-        deltaZ_ = 1.7;
-      else if (fabs(eta) >= 2.0 && fabs(eta) <= 2.4)
-        deltaZ_ = 2.2;
+      for (unsigned int reg = 0; reg < etaRegions_.size(); reg++) {
+        if (fabs(eta) >= etaRegions_[reg] && fabs(eta) < etaRegions_[reg + 1]) {
+          deltaZ_ = z0Thresholds_[reg];
+          break;
+        }
+      }
     }
 
     if (fabs(z0 - zVTX) <= deltaZ_) {
       numassoctracks++;
-
       sumPx += pt * cos(phi);
       sumPy += pt * sin(phi);
       etTot += pt;

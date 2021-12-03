@@ -39,29 +39,6 @@ nstub_t L1TkEtMissEmuTrackTransform::countNStub(TTTrack_TrackWord::hit_t Hitpatt
   return Nstub;
 }
 
-TTTrack_TrackWord::phi_t L1TkEtMissEmuTrackTransform::floatGlobalPhiToSectorPhi(float phi, unsigned int sector) {
-  float tempPhi = 0.0;
-  if (sector < 4) {
-    tempPhi = phi - (sector * (2 * M_PI) / 9);
-  } else if (sector > 5) {
-    tempPhi = phi + ((9 - sector) * (2 * M_PI) / 9);
-  } else if (sector == 4) {
-    if (phi > 0) {
-      tempPhi = phi - (sector * (2 * M_PI) / 9);
-    } else {
-      tempPhi = phi + ((9 - sector) * (2 * M_PI) / 9);
-    }
-  } else if (sector == 5) {
-    if (phi < 0) {
-      tempPhi = phi + ((9 - sector) * (2 * M_PI) / 9);
-    } else {
-      tempPhi = phi - (sector * (2 * M_PI) / 9);
-    }
-  }
-  return digitizeSignedValue<TTTrack_TrackWord::phi_t>(
-      tempPhi, TTTrack_TrackWord::TrackBitWidths::kPhiSize, TTTrack_TrackWord::stepPhi0);
-}
-
 std::vector<global_phi_t> L1TkEtMissEmuTrackTransform::generatePhiSliceLUT(unsigned int N) {
   float sliceCentre = 0.0;
   std::vector<global_phi_t> phiLUT;
