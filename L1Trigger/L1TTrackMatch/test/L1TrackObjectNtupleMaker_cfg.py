@@ -40,8 +40,8 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 readFiles = cms.untracked.vstring(
-'file:F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root'
-    # '/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root'
+    # 'file:F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root'
+    '/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root'
 )
 secFiles = cms.untracked.vstring()
 
@@ -68,9 +68,6 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string('Checki
 
 #process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 #process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
-
-# from L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi import L1TrackerEmuHTMiss //EM
-# from L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi import L1TrackerEmuHTMissExtended
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load("L1Trigger.L1TTrackMatch.L1TrackJetProducer_cfi")
@@ -213,22 +210,11 @@ process.out = cms.OutputModule( "PoolOutputModule",
 process.pOut = cms.EndPath(process.out)
 
 
-
 # use this if you want to re-run the stub making
 # process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmuWithTruth,process.ntuple)
 
 # use this if cluster/stub associators not available
 # process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmuWithTruth,process.ntuple)
 
-#process.schedule = cms.Schedule(process.pPV, process.pL1TrackJets, process.pL1TrackFastJets, process.pTkMET, process.pTkMHT,process.pOut)
-#process.schedule = cms.Schedule(process.pPV, process.pL1TrackJets, process.pL1TrackFastJets, process.pTkMET, process.pTkMHT, process.ntuple)
-#process.schedule = cms.Schedule(process.ntuple)
-
-
-
 process.schedule = cms.Schedule(process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pPV, process.pPVemu, process.pL1TrackJets, process.pL1TrackJetsEmu,
 process.pL1TrackFastJets, process.pTkMET, process.pTkMETEmu, process.pTkMHT, process.pTkMHTEmulator, process.ntuple)
-
-# process.schedule = cms.Schedule(process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pPV, process.pPVemu, process.ntuple)
-# process.schedule = cms.Schedule(process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pPV, process.pPVemu, process.pOut)
-#"L1VertexFinder"            "l1vertices"
