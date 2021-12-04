@@ -9,10 +9,11 @@
 
 using namespace std;
 
-const int PT_EXTRABITS = 18;
-const int ETA_EXTRABITS = 20;
-const int PHI_EXTRABITS = 21;
-const int Z0_EXTRABITS = 22;
+//For precision studies
+const int PT_EXTRABITS = 0;
+const int ETA_EXTRABITS = 0;
+const int PHI_EXTRABITS = 0;
+const int Z0_EXTRABITS = 0;
 
 typedef ap_ufixed<14 + PT_EXTRABITS, 12, AP_TRN, AP_SAT> pt_intern;
 typedef ap_int<12+ETA_EXTRABITS> glbeta_intern;

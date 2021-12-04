@@ -44,7 +44,7 @@
 #include "TH2D.h"
 #include <TMath.h>
 #include <ap_int.h>
-#include "L1TrackJetEmulationProducer.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TrackJetEmulationProducer.h"
 
 using namespace std;
 using namespace edm;

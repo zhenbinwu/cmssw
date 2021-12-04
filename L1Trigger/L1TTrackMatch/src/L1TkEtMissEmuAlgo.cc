@@ -18,7 +18,7 @@ namespace l1tmetemu {
     for (unsigned int q = 0; q < EtaRegions.size(); q++) {
       LUT.push_back(digitizeSignedValue<eta_t>(
           EtaRegions[q], l1tmetemu::kInternalEtaWidth, l1tmetemu::kStepEta));
-          std::cout << LUT[q] << "|" <<  EtaRegions[q] << std::endl;
+          //std::cout << LUT[q] << "|" <<  EtaRegions[q] << std::endl;
     }
     return LUT;
   }
@@ -28,7 +28,7 @@ namespace l1tmetemu {
     for (unsigned int q = 0; q < DeltaZBins.size(); q++) {
       LUT.push_back(
           digitizeSignedValue<z_t>(DeltaZBins[q], l1tmetemu::kInternalVTXWidth, l1tmetemu::kStepZ0));
-          std::cout << LUT[q] << "|" <<  DeltaZBins[q] << std::endl;
+          //std::cout << LUT[q] << "|" <<  DeltaZBins[q] << std::endl;
     }
     return LUT;
   }
