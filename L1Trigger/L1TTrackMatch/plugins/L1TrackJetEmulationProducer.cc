@@ -68,7 +68,7 @@ private:
   // ----------member data ---------------------------
 
   const EDGetTokenT<vector<TTTrack<Ref_Phase2TrackerDigi_>>> trackToken_;
-  ESGetToken<TrackerTopology,TrackerTopologyRcd> tTopoToken_;
+  ESGetToken<TrackerTopology, TrackerTopologyRcd> tTopoToken_;
   ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> tGeomToken_;
   vector<Ptr<L1TTTrackType>> L1TrkPtrs_;
   vector<int> zBinCount_;
@@ -106,11 +106,10 @@ private:
   float nStubs5DisplacedBendTight_;
 };
 
-L1TrackJetEmulationProducer::L1TrackJetEmulationProducer(const ParameterSet &iConfig) :
-trackToken_(consumes<vector<TTTrack<Ref_Phase2TrackerDigi_>>>(iConfig.getParameter<InputTag>("L1TrackInputTag"))),
-tTopoToken_(esConsumes<TrackerTopology,TrackerTopologyRcd>(edm::ESInputTag("",""))),
-tGeomToken_(esConsumes<TrackerGeometry,TrackerDigiGeometryRecord>(edm::ESInputTag("","")))
-{
+L1TrackJetEmulationProducer::L1TrackJetEmulationProducer(const ParameterSet &iConfig)
+    : trackToken_(consumes<vector<TTTrack<Ref_Phase2TrackerDigi_>>>(iConfig.getParameter<InputTag>("L1TrackInputTag"))),
+      tTopoToken_(esConsumes<TrackerTopology, TrackerTopologyRcd>(edm::ESInputTag("", ""))),
+      tGeomToken_(esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>(edm::ESInputTag("", ""))) {
   trkZMax_ = (float)iConfig.getParameter<double>("trk_zMax");
   trkPtMax_ = (float)iConfig.getParameter<double>("trk_ptMax");
   trkPtMin_ = (float)iConfig.getParameter<double>("trk_ptMin");
@@ -140,7 +139,7 @@ tGeomToken_(esConsumes<TrackerGeometry,TrackerDigiGeometryRecord>(edm::ESInputTa
 
   zStep_ = convert::makeZ0(2.0 * trkZMax_ / zBins_);
   etaStep_ = convert::makeGlbEta(2.0 * trkEtaMax_ / etaBins_);  //etaStep is the width of an etabin
-  phiStep_ = convert::makeGlbPhi(2.0 * M_PI / phiBins_);           ////phiStep is the width of a phibin
+  phiStep_ = convert::makeGlbPhi(2.0 * M_PI / phiBins_);        ////phiStep is the width of a phibin
 
   if (displaced_)
     produces<l1t::TkJetWordCollection>("L1TrackJetsExtended");
@@ -155,7 +154,7 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
 
   // For TTStubs
   const TrackerTopology &tTopo = iSetup.getData(tTopoToken_);
-  const TrackerGeometry & tGeom = iSetup.getData(tGeomToken_);
+  const TrackerGeometry &tGeom = iSetup.getData(tGeomToken_);
 
   edm::Handle<vector<TTTrack<Ref_Phase2TrackerDigi_>>> TTTrackHandle;
   iEvent.getByToken(trackToken_, TTTrackHandle);
@@ -243,8 +242,7 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
         //trkJet.setDispCounters(DispCounters);
         L1L1TrackJetProducer->push_back(trkJet);
       }
-    }
-    else if (mzb.clusters == nullptr) {
+    } else if (mzb.clusters == nullptr) {
       edm::LogWarning("L1TrackJetEmulationProducer") << "mzb.clusters Not Assigned!\n";
     }
     //free(mzb.clusters);
@@ -253,19 +251,17 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
     else
       iEvent.put(std::move(L1L1TrackJetProducer), "L1TrackJets");
     delete[] mzb.clusters;
-  }
-  else if (L1TrkPtrs_.empty()) {
-      edm::LogWarning("L1TrackJetEmulationProducer") << "L1TrkPtrs Not Assigned!\n";
+  } else if (L1TrkPtrs_.empty()) {
+    edm::LogWarning("L1TrackJetEmulationProducer") << "L1TrkPtrs Not Assigned!\n";
   }
 }
 
 void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtrs_, MaxZBin &mzb) {
-
   enum TrackBitWidths {
-    kEtaSize = 16,             // Width of z-position (40cm / 0.1)
-    kEtaMagSize = 3,           // Width of z-position magnitude (signed)
-    kPtSize = 14,             // Width of pt
-    kPtMagSize = 9,           // Width of pt magnitude (unsigned)
+    kEtaSize = 16,    // Width of z-position (40cm / 0.1)
+    kEtaMagSize = 3,  // Width of z-position magnitude (signed)
+    kPtSize = 14,     // Width of pt
+    kPtMagSize = 9,   // Width of pt magnitude (unsigned)
     kPhiSize = 12,
     kPhiMagSize = 1,
   };
@@ -320,25 +316,28 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
 
     for (unsigned int k = 0; k < L1TrkPtrs_.size(); ++k) {
       ap_ufixed<TrackBitWidths::kPtSize, TrackBitWidths::kPtMagSize, AP_RND_CONV, AP_SAT> inputTrkPt = 0;
-      inputTrkPt.V = L1TrkPtrs_[k]->getTrackWord()(
-          TTTrack_TrackWord::TrackBitLocations::kRinvMSB - 1, TTTrack_TrackWord::TrackBitLocations::kRinvLSB);
+      inputTrkPt.V = L1TrkPtrs_[k]->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kRinvMSB - 1,
+                                                   TTTrack_TrackWord::TrackBitLocations::kRinvLSB);
       pt_intern trkpt = inputTrkPt;
 
       ap_fixed<TrackBitWidths::kEtaSize, TrackBitWidths::kEtaMagSize, AP_RND_CONV, AP_SAT> trketainput = 0;
-      trketainput.V = L1TrkPtrs_[k]->getTrackWord()(
-          TTTrack_TrackWord::TrackBitLocations::kTanlMSB, TTTrack_TrackWord::TrackBitLocations::kTanlLSB);
-      ap_ufixed<32+ETA_EXTRABITS, 8+ETA_EXTRABITS> eta_conv = 1.0 / convert::ETA_LSB; //conversion factor from input eta format to output format
+      trketainput.V = L1TrkPtrs_[k]->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kTanlMSB,
+                                                    TTTrack_TrackWord::TrackBitLocations::kTanlLSB);
+      ap_ufixed<32 + ETA_EXTRABITS, 8 + ETA_EXTRABITS> eta_conv =
+          1.0 / convert::ETA_LSB;  //conversion factor from input eta format to output format
       glbeta_intern trketa = eta_conv * trketainput;
 
-      glbphi_intern trkphi = convert::makeGlbPhi(L1TrkPtrs_[k]->momentum().phi()); //global phi of track in output format
+      glbphi_intern trkphi =
+          convert::makeGlbPhi(L1TrkPtrs_[k]->momentum().phi());  //global phi of track in output format
 
-      ap_int<TTTrack_TrackWord::TrackBitWidths::kZ0Size> inputTrkZ0 = L1TrkPtrs_[k]->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kZ0MSB,
-                                                                         TTTrack_TrackWord::TrackBitLocations::kZ0LSB);
-      ap_ufixed<32+Z0_EXTRABITS, 1+Z0_EXTRABITS> z0_conv = TTTrack_TrackWord::stepZ0 / convert::Z0_LSB; //conversion factor from input z format to output format
+      ap_int<TTTrack_TrackWord::TrackBitWidths::kZ0Size> inputTrkZ0 = L1TrkPtrs_[k]->getTrackWord()(
+          TTTrack_TrackWord::TrackBitLocations::kZ0MSB, TTTrack_TrackWord::TrackBitLocations::kZ0LSB);
+      ap_ufixed<32 + Z0_EXTRABITS, 1 + Z0_EXTRABITS> z0_conv =
+          TTTrack_TrackWord::stepZ0 / convert::Z0_LSB;  //conversion factor from input z format to output format
       z0_intern trkZ = z0_conv * inputTrkZ0;
-      
-      ap_ufixed<32+PHI_EXTRABITS, 1+PHI_EXTRABITS> phi_conv = TTTrack_TrackWord::stepPhi0 / convert::PHI_LSB;
-      
+
+      ap_ufixed<32 + PHI_EXTRABITS, 1 + PHI_EXTRABITS> phi_conv = TTTrack_TrackWord::stepPhi0 / convert::PHI_LSB;
+
       for (int i = 0; i < phiBins_; ++i) {
         for (int j = 0; j < etaBins_; ++j) {
           L2cluster[k] = epbins[i][j];
@@ -364,7 +363,7 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
         L1clusters[phislice][ind].used = false;
       }
     }
-    
+
     //Create clusters array to hold output cluster data for Layer2; can't have more clusters than tracks.
     //Find eta-phibin with maxpT, make center of cluster, add neighbors if not already used.
     pt_intern hipT = 0;
@@ -503,9 +502,9 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
           if (L2cluster[n].pTtot > L2cluster[m].pTtot) {
             L2cluster[m].phi = L2cluster[n].phi;
           }
-            L2cluster[m].pTtot += L2cluster[n].pTtot;
-            L2cluster[m].ntracks += L2cluster[n].ntracks;
-            L2cluster[m].nxtracks += L2cluster[n].nxtracks;
+          L2cluster[m].pTtot += L2cluster[n].pTtot;
+          L2cluster[m].ntracks += L2cluster[n].ntracks;
+          L2cluster[m].nxtracks += L2cluster[n].nxtracks;
           for (int m1 = n; m1 < nclust - 1; ++m1) {
             L2cluster[m1] = L2cluster[m1 + 1];
           }
@@ -519,9 +518,11 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
 
     pt_intern ht = 0;
     for (int k = 0; k < nclust; ++k) {
-      if (L2cluster[k].pTtot > convert::makePtFromFloat(lowpTJetMinpT_) && L2cluster[k].ntracks < lowpTJetMinTrackMultiplicity_)
+      if (L2cluster[k].pTtot > convert::makePtFromFloat(lowpTJetMinpT_) &&
+          L2cluster[k].ntracks < lowpTJetMinTrackMultiplicity_)
         continue;
-      if (L2cluster[k].pTtot > convert::makePtFromFloat(highpTJetMinpT_) && L2cluster[k].ntracks < highpTJetMinTrackMultiplicity_)
+      if (L2cluster[k].pTtot > convert::makePtFromFloat(highpTJetMinpT_) &&
+          L2cluster[k].ntracks < highpTJetMinTrackMultiplicity_)
         continue;
       if (L2cluster[k].pTtot > convert::makePtFromFloat(minTrkJetpT_))
         ht += L2cluster[k].pTtot;
@@ -554,12 +555,11 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
     }
     delete[] all_zBins[zbin].clusters;
   }
-
 }
 
 EtaPhiBin *L1TrackJetEmulationProducer::L1_cluster(EtaPhiBin *phislice) {
   EtaPhiBin *clusters = new EtaPhiBin[etaBins_ / 2];
-  for (int etabin = 0; etabin < etaBins_/2; ++etabin) {
+  for (int etabin = 0; etabin < etaBins_ / 2; ++etabin) {
     clusters[etabin].pTtot = 0;
     clusters[etabin].ntracks = 0;
     clusters[etabin].nxtracks = 0;
@@ -567,7 +567,7 @@ EtaPhiBin *L1TrackJetEmulationProducer::L1_cluster(EtaPhiBin *phislice) {
     clusters[etabin].eta = 0;
     clusters[etabin].used = false;
   }
-  
+
   if (clusters == nullptr)
     edm::LogWarning("L1TrackJetEmulationProducer") << "Clusters memory not assigned!\n";
 

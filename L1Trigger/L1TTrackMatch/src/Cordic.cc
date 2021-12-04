@@ -5,7 +5,7 @@
 
 using namespace l1tmetemu;
 
-Cordic::Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug )
+Cordic::Cordic(int aPhiScale, int aMagnitudeBits, const int aSteps, bool debug)
     : mPhiScale(aPhiScale),
       mMagnitudeScale(1 << aMagnitudeBits),
       mMagnitudeBits(aMagnitudeBits),

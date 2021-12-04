@@ -202,7 +202,7 @@ double L1GTTInputProducer::unpackSignedValue(unsigned int bits, unsigned int nBi
   // Convert from twos compliment to C++ signed integer (normal digitized value)
   int digitizedValue = bits;
   if (bits & (1 << (nBits - 1))) {  // check if the 'bits' is negative
-     digitizedValue -= (1 << nBits);
+    digitizedValue -= (1 << nBits);
   }
 
   // Convert to floating point value

@@ -382,7 +382,6 @@ private:
   std::vector<float>* m_trkfastjetExt_tp_sumpt;
   std::vector<float>* m_trkfastjetExt_truetp_sumpt;
 
-
   std::vector<float>* m_trkjet_vz;
   std::vector<float>* m_trkjet_p;
   std::vector<float>* m_trkjet_phi;
@@ -401,8 +400,6 @@ private:
   std::vector<int>* m_trkjetem_ntracks;
   std::vector<int>* m_trkjetem_nxtracks;
 
-
-
   std::vector<float>* m_trkjetExt_vz;
   std::vector<float>* m_trkjetExt_p;
   std::vector<float>* m_trkjetExt_phi;
@@ -420,8 +417,6 @@ private:
   std::vector<float>* m_trkjetemExt_z;
   std::vector<int>* m_trkjetemExt_ntracks;
   std::vector<int>* m_trkjetemExt_nxtracks;
-
-
 };
 
 //////////////////////////////////
@@ -667,7 +662,6 @@ void L1TrackObjectNtupleMaker::beginJob() {
   m_allstub_matchTP_eta = new std::vector<float>;
   m_allstub_matchTP_phi = new std::vector<float>;
   m_allstub_genuine = new std::vector<int>;
-
 
   m_pv_L1reco = new std::vector<float>;
   m_pv_L1reco_sum = new std::vector<float>;
@@ -1103,7 +1097,6 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     m_allstub_genuine->clear();
   }
 
-
   if (SaveTrackJets) {
     if (Displaced == "Prompt" || Displaced == "Both") {
       m_trkjet_eta->clear();
@@ -1165,7 +1158,6 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     m_MC_lep->clear();
   }
 
-
   // -----------------------------------------------------------------------------------------------
   // retrieve various containers
   // -----------------------------------------------------------------------------------------------
@@ -1213,7 +1205,6 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
   edm::Handle<l1t::VertexWordCollection> L1TkPrimaryVertexEmuHandle;
   iEvent.getByToken(L1VertexEmuToken_, L1TkPrimaryVertexEmuHandle);
   std::vector<l1t::VertexWord>::const_iterator vtxEmuIter;
-
 
   // Track jets
   edm::Handle<std::vector<l1t::TkJet>> TrackFastJetsHandle;
@@ -1669,7 +1660,6 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         tmp_trk_unknown = 1;
       if (MCTruthTTTrackExtendedHandle->isCombinatoric(l1track_ptr))
         tmp_trk_combinatoric = 1;
-
 
       if (DebugMode) {
         edm::LogVerbatim("Tracklet") << "L1 track,"
@@ -2277,19 +2267,16 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       m_pv_L1reco->push_back(vtxIter->z0());
       m_pv_L1reco_sum->push_back(vtxIter->pt());
     }
-  }
-  else
-    edm::LogWarning("DataNotFound") << "\nWarning: L1TkPrimaryVertexHandle not found! Looking for "<< RecoVertexInputTag << std::endl;
-
+  } else
+    edm::LogWarning("DataNotFound") << "\nWarning: L1TkPrimaryVertexHandle not found" << std::endl;
 
   if (L1TkPrimaryVertexEmuHandle.isValid()) {
-    for (vtxEmuIter = L1TkPrimaryVertexEmuHandle->begin(); vtxEmuIter != L1TkPrimaryVertexEmuHandle->end(); ++vtxEmuIter) {
+    for (vtxEmuIter = L1TkPrimaryVertexEmuHandle->begin(); vtxEmuIter != L1TkPrimaryVertexEmuHandle->end();
+         ++vtxEmuIter) {
       m_pv_L1reco_emu->push_back(vtxEmuIter->z0());
     }
-  }
-  else
-    edm::LogWarning("DataNotFound") << "\nWarning: L1TkPrimaryVertexEmuHandle not found! Looking for "<< RecoVertexInputTag << std::endl;
-
+  } else
+    edm::LogWarning("DataNotFound") << "\nWarning: L1TkPrimaryVertexEmuHandle not found" << std::endl;
 
   if (SaveTrackSums) {
     if (Displaced == "Prompt" || Displaced == "Both") {
@@ -2306,15 +2293,15 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       if (L1TkMHTHandle.isValid()) {
         trkMHT = L1TkMHTHandle->begin()->EtMiss();
         trkHT = L1TkMHTHandle->begin()->etTotal();
-      }
-      else edm::LogWarning("DataNotFound") << "\nWarning: tkMHT handle not found" << std::endl;
+      } else
+        edm::LogWarning("DataNotFound") << "\nWarning: tkMHT handle not found" << std::endl;
 
       if (L1TkMHTEmuHandle.isValid()) {
         trkMHTEmu = L1TkMHTEmuHandle->begin()->p4().energy() * l1tmhtemu::kStepMHT;
         trkHTEmu = L1TkMHTEmuHandle->begin()->hwPt() * l1tmhtemu::kStepPt;
         trkMHTEmuPhi = L1TkMHTEmuHandle->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi - M_PI;
-      }
-      else edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmu handle not found" << std::endl;
+      } else
+        edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmu handle not found" << std::endl;
     }  //end prompt-track quantities
 
     if (Displaced == "Displaced" || Displaced == "Both") {
@@ -2326,16 +2313,14 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       if (L1TkMHTExtendedHandle.isValid()) {
         trkMHTExt = L1TkMHTExtendedHandle->begin()->EtMiss();
         trkHTExt = L1TkMHTExtendedHandle->begin()->etTotal();
-      }
-      else
+      } else
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTExtended handle not found" << std::endl;
 
       if (L1TkMHTEmuExtendedHandle.isValid()) {
         trkMHTEmuExt = L1TkMHTEmuExtendedHandle->begin()->p4().energy() * l1tmhtemu::kStepMHT;
         trkHTEmuExt = L1TkMHTEmuExtendedHandle->begin()->hwPt() * l1tmhtemu::kStepPt;
         trkMHTEmuPhiExt = L1TkMHTEmuExtendedHandle->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi - M_PI;
-      }
-      else
+      } else
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmuExtended handle not found" << std::endl;
     }  //end displaced-track quantities
   }

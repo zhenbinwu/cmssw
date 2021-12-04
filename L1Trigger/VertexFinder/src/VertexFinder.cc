@@ -879,14 +879,14 @@ namespace l1tVertexFinder {
       zsliding_t z = iz - histbin_t(std::floor(nbins / 2.));
       std::unique_ptr<edm::LogInfo> log;
       if (settings_->debug() >= 1) {
-         log = std::make_unique<edm::LogInfo>("VertexProducer");
-         *log << "bin_center information ...\n"
-              << "iz = " << iz << "\n"
-              << "histbin_t(std::floor(nbins / 2.)) = " << histbin_t(std::floor(nbins / 2.)) << "\n"
-              << "binwidth = " << zsliding_t(settings_->vx_histogram_binwidth()) << "\n"
-              << "z = " << z << "\n"
-              << "zsliding_t(z * zsliding_t(binwidth)) = " << std::setprecision(7)
-              << z0_t(z * zsliding_t(settings_->vx_histogram_binwidth()));
+        log = std::make_unique<edm::LogInfo>("VertexProducer");
+        *log << "bin_center information ...\n"
+             << "iz = " << iz << "\n"
+             << "histbin_t(std::floor(nbins / 2.)) = " << histbin_t(std::floor(nbins / 2.)) << "\n"
+             << "binwidth = " << zsliding_t(settings_->vx_histogram_binwidth()) << "\n"
+             << "z = " << z << "\n"
+             << "zsliding_t(z * zsliding_t(binwidth)) = " << std::setprecision(7)
+             << z0_t(z * zsliding_t(settings_->vx_histogram_binwidth()));
       }
       return z0_t(z * zsliding_t(settings_->vx_histogram_binwidth()));
     };
@@ -910,15 +910,15 @@ namespace l1tVertexFinder {
       for (ap_uint<BitsToRepresent(HistogramBitWidths::kWindowSize)> w = 0; w < HistogramBitWidths::kWindowSize; ++w) {
         zvtx_sliding_sum += (binpt.at(w) * w);
         if (settings_->debug() >= 1) {
-           *log << "(" << w << " * " << binpt.at(w) << ")";
-           if (w < HistogramBitWidths::kWindowSize - 1) {
-              *log << " + ";
-           }
+          *log << "(" << w << " * " << binpt.at(w) << ")";
+          if (w < HistogramBitWidths::kWindowSize - 1) {
+            *log << " + ";
+          }
         }
       }
 
       if (settings_->debug() >= 1) {
-        *log <<" = " << zvtx_sliding_sum << "\n";
+        *log << " = " << zvtx_sliding_sum << "\n";
       }
 
       if (maximums != 0) {
@@ -928,7 +928,7 @@ namespace l1tVertexFinder {
         zvtx_sliding = (settings_->vx_windowSize() / 2.0) + (((int(settings_->vx_windowSize()) % 2) != 0) ? 0.5 : 0.0);
       }
       if (settings_->debug() >= 1) {
-        *log << "inversion(" << maximums <<  ") = " << inv << "\nzvtx_sliding = " << zvtx_sliding << "\n";
+        *log << "inversion(" << maximums << ") = " << inv << "\nzvtx_sliding = " << zvtx_sliding << "\n";
       }
 
       // Add the starting index plus half an index to shift the z position to its weighted position (still in inxex space) within all of the bins
@@ -956,7 +956,7 @@ namespace l1tVertexFinder {
 
     // Loop over the tracks and fill the histogram
     if (settings_->debug() > 2) {
-       edm::LogInfo("VertexProducer") << "FastHistoEmulation::Processing " << fitTracks_.size() << " tracks";
+      edm::LogInfo("VertexProducer") << "FastHistoEmulation::Processing " << fitTracks_.size() << " tracks";
     }
     for (const L1Track& track : fitTracks_) {
       // Get the track pt and z0
@@ -1000,9 +1000,8 @@ namespace l1tVertexFinder {
           edm::LogInfo("VertexProducer") << "FastHistoEmulation::\npt sum in bin " << bin.first.to_int()
                                          << " AFTER adding track = " << hist.at(bin.first).to_double();
         }
-      }
-      else {
-         if (settings_->debug() > 2) {
+      } else {
+        if (settings_->debug() > 2) {
           edm::LogInfo("VertexProducer") << "FastHistoEmulation::Did not add the following track ... \n"
                                          << "track word = " << track.getTTTrackPtr()->getTrackWord().to_string(2)
                                          << "\n"
