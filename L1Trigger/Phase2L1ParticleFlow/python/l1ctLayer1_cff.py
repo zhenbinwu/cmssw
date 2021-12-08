@@ -552,6 +552,9 @@ l1ctLayer2EG = cms.EDProducer(
         nEGOut=cms.uint32(12),
         debug=cms.untracked.uint32(0),
     ),
+    encoder=cms.PSet(
+        n64BitWords=cms.uint32(36),
+    ),
     writeInPattern=cms.bool(False),
     writeOutPattern=cms.bool(False),
     inPatternFile=cms.PSet(
