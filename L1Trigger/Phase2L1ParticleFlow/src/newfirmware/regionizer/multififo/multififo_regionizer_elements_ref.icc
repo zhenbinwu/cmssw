@@ -223,7 +223,7 @@ bool l1ct::multififo_regionizer::RegionMux<T>::stream(bool newevt, std::vector<T
         out[i].clear();
       }
     }
-    if (++iter_ >= (outii_+pauseii_)) {
+    if (++iter_ >= (outii_ + pauseii_)) {
       ireg_++;
       iter_ = 0;
     }
@@ -237,8 +237,12 @@ bool l1ct::multififo_regionizer::RegionMux<T>::stream(bool newevt, std::vector<T
 }
 
 template <typename T>
-l1ct::multififo_regionizer::Regionizer<T>::Regionizer(
-    unsigned int nsorted, unsigned int nout, bool streaming, unsigned int outii, unsigned int pauseii, bool useAlsoVtxCoords)
+l1ct::multififo_regionizer::Regionizer<T>::Regionizer(unsigned int nsorted,
+                                                      unsigned int nout,
+                                                      bool streaming,
+                                                      unsigned int outii,
+                                                      unsigned int pauseii,
+                                                      bool useAlsoVtxCoords)
     : nsectors_(0),
       nregions_(0),
       nsorted_(nsorted),

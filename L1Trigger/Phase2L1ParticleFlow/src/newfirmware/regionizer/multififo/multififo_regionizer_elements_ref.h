@@ -97,7 +97,12 @@ namespace l1ct {
     class RegionMux {
     public:
       RegionMux() : nregions_(0) {}
-      RegionMux(unsigned int nregions, unsigned int nsort, unsigned int nout, bool streaming, unsigned int outii = 0, unsigned int pauseii = 0)
+      RegionMux(unsigned int nregions,
+                unsigned int nsort,
+                unsigned int nout,
+                bool streaming,
+                unsigned int outii = 0,
+                unsigned int pauseii = 0)
           : nregions_(nregions),
             nsort_(nsort),
             nout_(nout),

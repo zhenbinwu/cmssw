@@ -92,26 +92,16 @@ namespace l1ct {
     // barrel DPhi propagation, in layer-1 units (float parameterization, no rounding)
     float floatDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
 
-    void setDEtaBarrelParams(float pZ0) {
-      dEtaBarrelParamZ0_ = pZ0;
-    }
-    void setDPhiBarrelParams(float pC) {
-      dPhiBarrelParamC_ = pC;
-    }
+    void setDEtaBarrelParams(float pZ0) { dEtaBarrelParamZ0_ = pZ0; }
+    void setDPhiBarrelParams(float pC) { dPhiBarrelParamC_ = pC; }
 
     //=== Track propagation to calo (bitwise accurate) ===
     l1ct::tkdeta_t calcDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
     l1ct::tkdphi_t calcDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
 
     //=== Configuration of bitwise accurate propagation to calo ===
-    void configDEtaBarrel(int dEtaBarrelBits,
-                         int dEtaBarrelZ0PreShift,
-                         int dEtaBarrelZ0PostShift,
-                         float offs = 0);
-    void configDPhiBarrel(int dPhiBarrelBits,
-                         int dPhiBarrelRInvPreShift,
-                         int dPhiBarrelRInvPostShift,
-                         float offs = 0);
+    void configDEtaBarrel(int dEtaBarrelBits, int dEtaBarrelZ0PreShift, int dEtaBarrelZ0PostShift, float offs = 0);
+    void configDPhiBarrel(int dPhiBarrelBits, int dPhiBarrelRInvPreShift, int dPhiBarrelRInvPostShift, float offs = 0);
 
     // endcap DEta propagation, in layer-1 units (float parameterization, no rounding)
     float floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;

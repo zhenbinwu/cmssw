@@ -227,7 +227,8 @@ l1ct::glbeta_t l1ct::TrackInputEmulator::convEta(ap_int<16> tanl) const {
   return ret;
 }
 
-void l1ct::TrackInputEmulator::configEta(int lutBits, int preOffs, int shift, int postOffs, bool lutSigned, bool endcap) {
+void l1ct::TrackInputEmulator::configEta(
+    int lutBits, int preOffs, int shift, int postOffs, bool lutSigned, bool endcap) {
   tanlLUTSigned_ = lutSigned;
   tanlLUTPreOffs_ = preOffs;
   tanlLUTPostOffs_ = postOffs;
@@ -337,8 +338,7 @@ void l1ct::TrackInputEmulator::configZ0(int bits) {
 }
 
 float l1ct::TrackInputEmulator::floatDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
-
-  float ret = floatEta(tanl)-floatEta(tanl+z0.to_float()*dEtaBarrelParamZ0_);
+  float ret = floatEta(tanl) - floatEta(tanl + z0.to_float() * dEtaBarrelParamZ0_);
   if (debug_) {
     dbgPrintf(
         "flt deta for z0 %+6d Rinv %+6d tanl %+6d:  eta(calo) %+8.2f  eta(vtx)  %+8.3f  ret  "
@@ -346,23 +346,22 @@ float l1ct::TrackInputEmulator::floatDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, 
         z0.to_int(),
         Rinv.to_int(),
         tanl.to_int(),
-        floatEta(tanl+z0.to_float()*dEtaBarrelParamZ0_),
+        floatEta(tanl + z0.to_float() * dEtaBarrelParamZ0_),
         floatEta(tanl),
         ret);
   }
-  return ret/l1ct::Scales::ETAPHI_LSB;
+  return ret / l1ct::Scales::ETAPHI_LSB;
 }
 
 l1ct::tkdeta_t l1ct::TrackInputEmulator::calcDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
-
   int vtxEta = convEta(tanl);
 
   ap_uint<14> absZ0 = z0 >= 0 ? ap_uint<14>(z0) : ap_uint<14>(-z0);
   int preSum = ((absZ0 >> dEtaBarrelZ0PreShift_) * dEtaBarrelZ0_) >> dEtaBarrelZ0PostShift_;
 
-  int caloEta = convEta(tanl+(z0 > 0 ? 1 : -1)*((preSum + dEtaBarrelOffs_) >> dEtaBarrelBits_));
+  int caloEta = convEta(tanl + (z0 > 0 ? 1 : -1) * ((preSum + dEtaBarrelOffs_) >> dEtaBarrelBits_));
 
-  int ret = vtxEta-caloEta;
+  int ret = vtxEta - caloEta;
   if (debug_) {
     dbgPrintf(
         "int deta for z0 %+6d Rinv %+6d tanl %+6d:  preSum %+8.2f  eta(calo) %+8.2f  eta(vtx)  %+8.3f  ret  "
@@ -380,27 +379,25 @@ l1ct::tkdeta_t l1ct::TrackInputEmulator::calcDEtaBarrel(ap_int<12> z0, ap_int<15
 
 //use eta LUTs
 void l1ct::TrackInputEmulator::configDEtaBarrel(int dEtaBarrelBits,
-                                               int dEtaBarrelZ0PreShift,
-                                               int dEtaBarrelZ0PostShift,
-                                               float offs) {
-
-
+                                                int dEtaBarrelZ0PreShift,
+                                                int dEtaBarrelZ0PostShift,
+                                                float offs) {
   dEtaBarrelBits_ = dEtaBarrelBits;
 
   dEtaBarrelZ0PreShift_ = dEtaBarrelZ0PreShift;
   dEtaBarrelZ0PostShift_ = dEtaBarrelZ0PostShift;
-  dEtaBarrelZ0_ = std::round(dEtaBarrelParamZ0_ * (1 << (dEtaBarrelZ0PreShift + dEtaBarrelZ0PostShift + dEtaBarrelBits)));
+  dEtaBarrelZ0_ =
+      std::round(dEtaBarrelParamZ0_ * (1 << (dEtaBarrelZ0PreShift + dEtaBarrelZ0PostShift + dEtaBarrelBits)));
 
   int finalShift = dEtaBarrelBits_;
   dEtaBarrelOffs_ = std::round((1 << finalShift) * (0.5 + offs));
 
   if (debug_)
-    dbgPrintf(
-        "Configured deta with %d bits: preshift %8d  postshift %8d, offset %8d\n",
-        dEtaBarrelBits,
-        dEtaBarrelZ0PreShift_,
-        dEtaBarrelZ0PostShift_,
-        offs);
+    dbgPrintf("Configured deta with %d bits: preshift %8d  postshift %8d, offset %8d\n",
+              dEtaBarrelBits,
+              dEtaBarrelZ0PreShift_,
+              dEtaBarrelZ0PostShift_,
+              offs);
 
   assert(finalShift >= 0);
 }
@@ -409,13 +406,12 @@ float l1ct::TrackInputEmulator::floatDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, 
   float ret = dPhiBarrelParamC_ * std::abs(Rinv.to_int());
   //ret = atan(ret / sqrt(1-ret*ret)); //use linear approx for now
   if (debug_) {
-    dbgPrintf(
-        "flt dphi for z0 %+6d Rinv %+6d tanl %+6d:  Rinv/1k  %8.2f   ret  %8.2f\n",
-        z0.to_int(),
-        Rinv.to_int(),
-        tanl.to_int(),
-        std::abs(Rinv.to_int()) / 1024.0,
-        ret);
+    dbgPrintf("flt dphi for z0 %+6d Rinv %+6d tanl %+6d:  Rinv/1k  %8.2f   ret  %8.2f\n",
+              z0.to_int(),
+              Rinv.to_int(),
+              tanl.to_int(),
+              std::abs(Rinv.to_int()) / 1024.0,
+              ret);
   }
   return ret;
 }
@@ -425,12 +421,11 @@ l1ct::tkdphi_t l1ct::TrackInputEmulator::calcDPhiBarrel(ap_int<12> z0, ap_int<15
   int preSum = ((absRinv >> dPhiBarrelRInvPreShift_) * dPhiBarrelC_) >> dPhiBarrelRInvPostShift_;
 
   if (debug_) {
-    dbgPrintf(
-        "int dphi for z0 %+6d Rinv %+6d tanl %+6d:  ret  %8.2f\n",
-        z0.to_int(),
-        Rinv.to_int(),
-        tanl.to_int(),
-        (preSum + dPhiBarrelOffs_) >> dPhiBarrelBits_);
+    dbgPrintf("int dphi for z0 %+6d Rinv %+6d tanl %+6d:  ret  %8.2f\n",
+              z0.to_int(),
+              Rinv.to_int(),
+              tanl.to_int(),
+              (preSum + dPhiBarrelOffs_) >> dPhiBarrelBits_);
   }
 
   return (preSum + dPhiBarrelOffs_) >> dPhiBarrelBits_;
@@ -438,25 +433,25 @@ l1ct::tkdphi_t l1ct::TrackInputEmulator::calcDPhiBarrel(ap_int<12> z0, ap_int<15
 
 //using DSPs
 void l1ct::TrackInputEmulator::configDPhiBarrel(int dPhiBarrelBits,
-                                               int dPhiBarrelRInvPreShift,
-                                               int dPhiBarrelRInvPostShift,
-                                               float offs) {
+                                                int dPhiBarrelRInvPreShift,
+                                                int dPhiBarrelRInvPostShift,
+                                                float offs) {
   dPhiBarrelBits_ = dPhiBarrelBits;
 
   dPhiBarrelRInvPreShift_ = dPhiBarrelRInvPreShift;
   dPhiBarrelRInvPostShift_ = dPhiBarrelRInvPostShift;
-  dPhiBarrelC_ = std::round(dPhiBarrelParamC_ * (1 << (dPhiBarrelRInvPreShift + dPhiBarrelRInvPostShift + dPhiBarrelBits)));
+  dPhiBarrelC_ =
+      std::round(dPhiBarrelParamC_ * (1 << (dPhiBarrelRInvPreShift + dPhiBarrelRInvPostShift + dPhiBarrelBits)));
 
   int finalShift = dPhiBarrelBits_;
   dPhiBarrelOffs_ = std::round((1 << finalShift) * (0.5 + offs));
 
   if (debug_)
-    dbgPrintf(
-        "Configured dphi with %d bits: preshift %8d  postshift %8d, offset %8d\n",
-        dPhiBarrelBits,
-        dPhiBarrelRInvPreShift_,
-        dPhiBarrelRInvPostShift_,
-        offs);
+    dbgPrintf("Configured dphi with %d bits: preshift %8d  postshift %8d, offset %8d\n",
+              dPhiBarrelBits,
+              dPhiBarrelRInvPreShift_,
+              dPhiBarrelRInvPostShift_,
+              offs);
 
   assert(finalShift >= 0);
 }
