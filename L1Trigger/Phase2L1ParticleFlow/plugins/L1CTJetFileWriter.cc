@@ -29,12 +29,12 @@ public:
 
 private:
   // ----------constants, enums and typedefs ---------
-  unsigned nJets;
-  size_t kFramesPerBX; 
-  size_t kCTL2BoardTMUX; 
-  size_t kGapLengthOutput; 
-  size_t kMaxLinesPerFile; 
-  std::map<l1t::demo::LinkId, std::pair<l1t::demo::ChannelSpec, std::vector<size_t>>> kChannelSpecsOutputToGT; 
+  unsigned nJets_;
+  size_t nFramesPerBX_;
+  size_t ctl2BoardTMUX_;
+  size_t gapLengthOutput_;
+  size_t maxLinesPerFile_;
+  std::map<l1t::demo::LinkId, std::pair<l1t::demo::ChannelSpec, std::vector<size_t>>> channelSpecsOutputToGT_;
 
   // ----------member functions ----------------------
   void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -45,21 +45,20 @@ private:
   l1t::demo::BoardDataWriter fileWriterOutputToGT_;
 };
 
-L1CTJetFileWriter::L1CTJetFileWriter(const edm::ParameterSet& iConfig) :
-      nJets(iConfig.getParameter<unsigned>("nJets")),
-      kFramesPerBX(iConfig.getParameter<unsigned>("nFramesPerBX")),
-      kCTL2BoardTMUX(iConfig.getParameter<unsigned>("TMUX")),
-      kGapLengthOutput(kCTL2BoardTMUX * kFramesPerBX - 2 * nJets),
-      kMaxLinesPerFile(iConfig.getParameter<unsigned>("maxLinesPerFile")),
-      kChannelSpecsOutputToGT{{{"jets", 0}, {{kCTL2BoardTMUX, kGapLengthOutput}, {0}}}},
+L1CTJetFileWriter::L1CTJetFileWriter(const edm::ParameterSet& iConfig)
+    : nJets_(iConfig.getParameter<unsigned>("nJets")),
+      nFramesPerBX_(iConfig.getParameter<unsigned>("nFramesPerBX")),
+      ctl2BoardTMUX_(iConfig.getParameter<unsigned>("TMUX")),
+      gapLengthOutput_(ctl2BoardTMUX_ * nFramesPerBX_ - 2 * nJets_),
+      maxLinesPerFile_(iConfig.getParameter<unsigned>("maxLinesPerFile")),
+      channelSpecsOutputToGT_{{{"jets", 0}, {{ctl2BoardTMUX_, gapLengthOutput_}, {0}}}},
       jetsToken_(consumes<edm::View<l1t::PFJet>>(iConfig.getParameter<edm::InputTag>("jets"))),
       fileWriterOutputToGT_(l1t::demo::parseFileFormat(iConfig.getParameter<std::string>("format")),
                             iConfig.getParameter<std::string>("outputFilename"),
-                            kFramesPerBX,
-                            kCTL2BoardTMUX,
-                            kMaxLinesPerFile,
-                            kChannelSpecsOutputToGT) {
-      }
+                            nFramesPerBX_,
+                            ctl2BoardTMUX_,
+                            maxLinesPerFile_,
+                            channelSpecsOutputToGT_) {}
 
 void L1CTJetFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
@@ -71,7 +70,6 @@ void L1CTJetFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup&
   l1t::demo::EventData eventDataJets;
   eventDataJets.add({"jets", 0}, outputJets);
   fileWriterOutputToGT_.addEvent(eventDataJets);
-
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
@@ -81,18 +79,18 @@ void L1CTJetFileWriter::endJob() {
 }
 
 std::vector<ap_uint<64>> L1CTJetFileWriter::encodeJets(const edm::View<l1t::PFJet>& jets) {
-    std::vector<ap_uint<64>> jet_words;
-    for(unsigned i=0; i < nJets; i++){
-        l1t::PFJet j;
-        if(i < jets.size()){
-            j = jets.at(i);
-        }else{ // pad up to nJets with null jets
-            l1t::PFJet j(0,0,0,0,0,0);
-        }
-        jet_words.push_back(j.encodedJet()[0]);
-        jet_words.push_back(j.encodedJet()[1]);
+  std::vector<ap_uint<64>> jet_words;
+  for (unsigned i = 0; i < nJets_; i++) {
+    l1t::PFJet j;
+    if (i < jets.size()) {
+      j = jets.at(i);
+    } else {  // pad up to nJets_ with null jets
+      l1t::PFJet j(0, 0, 0, 0, 0, 0);
     }
-    return jet_words;
+    jet_words.push_back(j.encodedJet()[0]);
+    jet_words.push_back(j.encodedJet()[1]);
+  }
+  return jet_words;
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
@@ -106,7 +104,7 @@ void L1CTJetFileWriter::fillDescriptions(edm::ConfigurationDescriptions& descrip
   desc.add<uint32_t>("nFramesPerBX", 9);
   desc.add<uint32_t>("TMUX", 6);
   desc.add<uint32_t>("maxLinesPerFile", 1024);
-  desc.add<std::string>("format","EMP");
+  desc.add<std::string>("format", "EMP");
   descriptions.addDefault(desc);
 }
 

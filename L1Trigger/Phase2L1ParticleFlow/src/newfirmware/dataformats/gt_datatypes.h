@@ -16,25 +16,25 @@
 #include <array>
 #include <cstdint>
 
-namespace l1gt{
+namespace l1gt {
   // Using rounding & saturation modes to avoid unnecessary rounding errors
   // Don't saturate phi since -π to +π periodicity is handled by numerical wrap around
   // Rounding and saturation settings are lost when sending the data over the link
   // Unless the receiving end uses the same data types
 
   // Common fields
-  typedef ap_ufixed<16,11,AP_RND_CONV,AP_SAT> pt_t;
-  typedef ap_fixed<13,13,AP_RND_CONV> phi_t;
-  typedef ap_fixed<14,14,AP_RND_CONV,AP_SAT> eta_t;
-  typedef ap_fixed<10,9,AP_RND_CONV,AP_SAT> z0_t;
+  typedef ap_ufixed<16, 11, AP_RND_CONV, AP_SAT> pt_t;
+  typedef ap_fixed<13, 13, AP_RND_CONV> phi_t;
+  typedef ap_fixed<14, 14, AP_RND_CONV, AP_SAT> eta_t;
+  typedef ap_fixed<10, 9, AP_RND_CONV, AP_SAT> z0_t;
   typedef ap_uint<1> valid_t;
 
   // E/gamma fields
-  typedef ap_fixed<11,9> iso_t;
+  typedef ap_fixed<11, 9> iso_t;
   typedef ap_uint<4> egquality_t;
 
   // tau fields
-  typedef ap_ufixed<10,8> tauseed_pt_t;
+  typedef ap_ufixed<10, 8> tauseed_pt_t;
 
   namespace Scales {
     const int INTPHI_PI = 1 << (phi_t::width - 1);
@@ -44,7 +44,7 @@ namespace l1gt{
     inline float floatPt(pt_t pt) { return pt.to_float(); }
     inline float floatEta(eta_t eta) { return eta.to_float() * ETAPHI_LSB; }
     inline float floatPhi(phi_t phi) { return phi.to_float() * ETAPHI_LSB; }
-  } // namespace Scales
+  }  // namespace Scales
 
   struct ThreeVector {
     pt_t pt;
@@ -80,12 +80,12 @@ namespace l1gt{
     inline std::array<uint64_t, 2> pack() const {
       std::array<uint64_t, 2> packed;
       ap_uint<BITWIDTH> bits = this->pack_ap();
-      packed[0] = bits(63,0);
-      packed[1] = bits(127,64);
+      packed[0] = bits(63, 0);
+      packed[1] = bits(127, 64);
       return packed;
     }
-    
-  }; // struct Jet
+
+  };  // struct Jet
 
   struct Sum {
     valid_t valid;
@@ -103,7 +103,7 @@ namespace l1gt{
       _pack_into_bits(ret, start, scalar_pt);
       return ret;
     }
-  }; // struct Sum
+  };  // struct Sum
 
   struct Tau {
     valid_t valid;
@@ -131,7 +131,7 @@ namespace l1gt{
       _pack_into_bits(ret, start, id1);
       return ret;
     }
-  }; // struct Tau
+  };  // struct Tau
 
   struct Electron {
     valid_t valid;
@@ -142,7 +142,7 @@ namespace l1gt{
     iso_t isolation;
 
     static const int BITWIDTH = 96;
-    inline ap_uint<BITWIDTH> pack() const{
+    inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
       unsigned int start = 0;
       _pack_into_bits(ret, start, valid);
@@ -161,7 +161,7 @@ namespace l1gt{
     egquality_t quality;
     iso_t isolation;
 
-    inline ap_uint<96> pack() const{
+    inline ap_uint<96> pack() const {
       ap_uint<96> ret;
       unsigned int start = 0;
       _pack_into_bits(ret, start, valid);
@@ -172,32 +172,32 @@ namespace l1gt{
     }
   };
 
-} // namespace l1gt
+}  // namespace l1gt
 
 namespace l1ct {
 
-  typedef ap_fixed<18,5,AP_RND_CONV,AP_SAT> etaphi_sf_t; // use a DSP input width
+  typedef ap_fixed<18, 5, AP_RND_CONV, AP_SAT> etaphi_sf_t;  // use a DSP input width
 
-  namespace Scales{
+  namespace Scales {
     const etaphi_sf_t ETAPHI_CTtoGT_SCALE = (Scales::ETAPHI_LSB / l1gt::Scales::ETAPHI_LSB);
   }
 
-  inline l1gt::pt_t CTtoGT_pt(pt_t x){
+  inline l1gt::pt_t CTtoGT_pt(pt_t x) {
     // the CT & GT pT are both ap_fixed with different power-of-2 LSBs
     // -> conversion is just a cast
-    return (l1gt::pt_t) x;
+    return (l1gt::pt_t)x;
   }
 
-  inline l1gt::eta_t CTtoGT_eta(glbeta_t x){
+  inline l1gt::eta_t CTtoGT_eta(glbeta_t x) {
     // rescale the eta into the GT coordinates
     return x * Scales::ETAPHI_CTtoGT_SCALE;
   }
 
-  inline l1gt::phi_t CTtoGT_phi(glbphi_t x){
+  inline l1gt::phi_t CTtoGT_phi(glbphi_t x) {
     // rescale the phi into the GT coordinates
     return x * Scales::ETAPHI_CTtoGT_SCALE;
   }
 
-} // namespace l1ct
+}  // namespace l1ct
 
 #endif
