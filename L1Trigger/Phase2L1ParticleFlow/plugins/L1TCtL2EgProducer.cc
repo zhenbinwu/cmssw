@@ -12,6 +12,7 @@
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egsorter_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egencoder_ref.h"
 
 #include "L1Trigger/DemonstratorTools/interface/BoardDataWriter.h"
 #include "L1Trigger/DemonstratorTools/interface/utilities.h"
@@ -222,6 +223,7 @@ private:
   std::string tkEleInstanceLabel_;
   std::map<std::pair<double, double>, unsigned int> board_map_;
   l1ct::L2EgSorterEmulator l2egsorter;
+  l1ct::L2EgEncoderEmulator l2encoder;
   bool doInPtrn_;
   bool doOutPtrn_;
   std::unique_ptr<PatternWriter> inPtrnWrt_;
@@ -236,6 +238,7 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
       tkEmInstanceLabel_(conf.getParameter<std::string>("tkEmInstanceLabel")),
       tkEleInstanceLabel_(conf.getParameter<std::string>("tkEleInstanceLabel")),
       l2egsorter(conf.getParameter<edm::ParameterSet>("sorter")),
+      l2encoder(conf.getParameter<edm::ParameterSet>("encoder")),
       doInPtrn_(conf.getParameter<bool>("writeInPattern")),
       doOutPtrn_(conf.getParameter<bool>("writeOutPattern")),
       inPtrnWrt_(nullptr), outPtrnWrt_(nullptr) {
@@ -296,44 +299,6 @@ std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIso
   return ret;
 }
 
-template<class T>
-ap_uint<96> L1TCtL2EgProducer::encodeLayer2(const T& egiso) const {
-  ap_uint<96> ret = 0;
-  ret(T::BITWIDTH, 0) = egiso.pack();
-  return ret;
-}
-
-
-template<class T>
-std::vector<ap_uint<96>> L1TCtL2EgProducer::encodeLayer2(const std::vector<T>& egisos) const {
-  std::vector<ap_uint<96>> ret;
-  for(const auto&egiso: egisos) {
-    // FIXME; should be packed in GT format
-    ap_uint<96> packed = 0;
-    packed(T::BITWIDTH, 0) = egiso.pack();
-    ret.push_back(packed);
-  }
-  return ret;
-}
-
-
-void L1TCtL2EgProducer::encodeLayer2To64bits(const std::vector<ap_uint<96>>& packed96, std::vector<ap_uint<64>>& packed64) const {
-  for(unsigned int i = 0; i < packed96.size(); i+=2) {
-
-    packed64.push_back(packed96[i](63, 0));
-    packed64.push_back((ap_uint<32>(packed96[i+1](95, 64)), ap_uint<32>(packed96[i](95, 64))));
-    packed64.push_back(packed96[i+1](63, 0));
-
-    // std::cout << "obj [" << i << "]: " << std::hex << packed96[i] << std::endl;
-    // std::cout << "obj [" << i+1 << "]: " << std::hex << packed96[i+1] << std::endl;
-    // std::cout << "frame [" << std::dec << packed64.size()-3 << "]" << std::hex << packed64[packed64.size()-3] << std::endl;
-    // std::cout << "frame [" << std::dec << packed64.size()-2 << "]" << std::hex << packed64[packed64.size()-2] << std::endl;
-    // std::cout << "frame [" << std::dec << packed64.size()-1 << "]" << std::hex << packed64[packed64.size()-1] << std::endl;
-    
-  }
-}
-
-
 std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj, 
   const std::vector<EGIsoObjEmu>& photons, 
   const std::vector<EGIsoEleObjEmu>& electrons) const {
@@ -346,24 +311,6 @@ std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj
     std::copy(encoded_photons.begin(), encoded_photons.end(), std::back_inserter(ret));
     std::copy(encoded_eles.begin(), encoded_eles.end(), std::back_inserter(ret));
     
-    return ret;
-}
-
-
-
-std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer2EgObjs(unsigned int nObj, 
-  const std::vector<EGIsoObjEmu>& photons, 
-  const std::vector<EGIsoEleObjEmu>& electrons) const {
-    std::vector<ap_uint<64>> ret;
-    
-    auto encoded_photons = encodeLayer2(photons);
-    encoded_photons.resize(nObj, {0});
-    auto encoded_eles = encodeLayer2(electrons);
-    encoded_eles.resize(nObj, {0});
-
-    encodeLayer2To64bits(encoded_photons, ret);
-    encodeLayer2To64bits(encoded_eles, ret);
-
     return ret;
 }
 
@@ -396,7 +343,7 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent,
 
   if(doOutPtrn_) {
     l1t::demo::EventData outData;
-    outData.add({"eglayer2", 0}, encodeLayer2EgObjs(12, out_photons_emu, out_eles_emu));
+    outData.add({"eglayer2", 0}, l2encoder.encodeLayer2EgObjs(12, out_photons_emu, out_eles_emu));
     outPtrnWrt_->addEvent(outData);
   }
 
