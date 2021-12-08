@@ -97,11 +97,12 @@ namespace l1ct {
     class RegionMux {
     public:
       RegionMux() : nregions_(0) {}
-      RegionMux(unsigned int nregions, unsigned int nsort, unsigned int nout, bool streaming, unsigned int outii = 0)
+      RegionMux(unsigned int nregions, unsigned int nsort, unsigned int nout, bool streaming, unsigned int outii = 0, unsigned int pauseii = 0)
           : nregions_(nregions),
             nsort_(nsort),
             nout_(nout),
             outii_(outii),
+            pauseii_(pauseii),
             streaming_(streaming),
             buffer_(nregions * nsort),
             iter_(0),
@@ -114,7 +115,7 @@ namespace l1ct {
       bool stream(bool newevt, std::vector<T>& out);
 
     private:
-      unsigned int nregions_, nsort_, nout_, outii_;
+      unsigned int nregions_, nsort_, nout_, outii_, pauseii_;
       bool streaming_;
       std::vector<T> buffer_;
       unsigned int iter_, ireg_;
@@ -138,6 +139,7 @@ namespace l1ct {
                  unsigned int nout,
                  bool streaming,
                  unsigned int outii = 0,
+                 unsigned int pauseii = 0,
                  bool useAlsoVtxCoords = false);
       void initSectors(const std::vector<DetectorSector<T>>& sectors);
       void initSectors(const DetectorSector<T>& sector);
@@ -158,7 +160,7 @@ namespace l1ct {
       void destream(int iclock, const std::vector<T>& streams, std::vector<T>& out);
 
     private:
-      unsigned int nsectors_, nregions_, nsorted_, nout_, outii_;
+      unsigned int nsectors_, nregions_, nsorted_, nout_, outii_, pauseii_;
       bool streaming_, useAlsoVtxCoords_;
       std::vector<l1ct::PFRegionEmu> sectors_;
       std::vector<RegionBuffer<T>> buffers_;

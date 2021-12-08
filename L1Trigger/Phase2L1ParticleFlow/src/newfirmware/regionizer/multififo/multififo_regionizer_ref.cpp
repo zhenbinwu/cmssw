@@ -57,13 +57,14 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
       nem_(nem),
       nmu_(nmu),
       outii_(outii),
+      pauseii_(0),
       streaming_(streaming),
       emInterceptMode_(noIntercept),
       init_(false),
-      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, useAlsoVtxCoords),
-      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii),
-      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii),
-      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii) {
+      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, 0, useAlsoVtxCoords),
+      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii, 0),
+      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii, 0),
+      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii, 0) {
   // now we initialize the routes: track finder
   for (unsigned int ie = 0; ie < nendcaps && ntk > 0; ++ie) {
     for (unsigned int is = 0; is < NTK_SECTORS; ++is) {  // 9 tf sectors
@@ -111,6 +112,7 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(BarrelSetup barre
                                                                unsigned int nmu,
                                                                bool streaming,
                                                                unsigned int outii,
+                                                               unsigned int pauseii,
                                                                bool useAlsoVtxCoords)
     : RegionizerEmulator(useAlsoVtxCoords),
       NTK_SECTORS((barrelSetup == BarrelSetup::Phi18 || barrelSetup == BarrelSetup::Phi9) ? 5 : 9),
@@ -127,13 +129,14 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(BarrelSetup barre
       nem_(nem),
       nmu_(nmu),
       outii_(outii),
+      pauseii_(pauseii),
       streaming_(streaming),
       emInterceptMode_(noIntercept),
       init_(false),
-      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, useAlsoVtxCoords),
-      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii),
-      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii),
-      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii) {
+      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, pauseii, useAlsoVtxCoords),
+      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii, pauseii),
+      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii, pauseii),
+      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii, pauseii) {
   unsigned int nendcaps = 2, etaslices = 0;
   switch (barrelSetup) {
     case BarrelSetup::Full54:
@@ -534,7 +537,9 @@ void l1ct::MultififoRegionizerEmulator::run(const RegionizerDecodedInputs& in, s
     bool newevt = (iclock == 0), mux = true;
     step(newevt, tk_links_in, calo_links_in, em_links_in, mu_links_in, tk_out, calo_out, em_out, mu_out, mux);
 
-    unsigned int ireg = iclock / outii_;
+    unsigned int ireg = iclock / (outii_ + pauseii_);
+    if ((iclock % (outii_ + pauseii_)) >= outii_)
+      continue;
     if (ireg >= nregions_)
       break;
 

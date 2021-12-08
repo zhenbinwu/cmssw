@@ -42,7 +42,7 @@ l1ct::TrackInputEmulator::TrackInputEmulator(const edm::ParameterSet &iConfig)
     : TrackInputEmulator(parseRegion(iConfig.getParameter<std::string>("region")),
                          parseEncoding(iConfig.getParameter<std::string>("trackWordEncoding")),
                          iConfig.getParameter<bool>("bitwiseAccurate")) {
-  if (region_ != Region::Endcap) {
+  if (region_ != Region::Endcap && region_ != Region::Barrel) {
     edm::LogError("TrackInputEmulator") << "region '" << iConfig.getParameter<std::string>("region")
                                         << "' is not yet supported";
   }
@@ -52,9 +52,14 @@ l1ct::TrackInputEmulator::TrackInputEmulator(const edm::ParameterSet &iConfig)
             iConfig.getParameter<int32_t>("etaPreOffs"),
             iConfig.getParameter<uint32_t>("etaShift"),
             iConfig.getParameter<int32_t>("etaPostOffs"),
+            iConfig.getParameter<int32_t>("etaSigned"),
             region_ == Region::Endcap);
   configPhi(iConfig.getParameter<uint32_t>("phiBits"));
   configZ0(iConfig.getParameter<uint32_t>("z0Bits"));
+  if (region_ == Region::Barrel) {
+    //using eta LUTs for deta, no config needed
+    //using DSP for dphi, no config needed
+  }
   if (region_ == Region::Endcap) {
     configDEtaHGCal(iConfig.getParameter<uint32_t>("dEtaHGCalBits"),
                     iConfig.getParameter<uint32_t>("dEtaHGCalZ0PreShift"),
@@ -81,6 +86,8 @@ l1ct::TrackInputEmulator::TrackInputEmulator(Region region, Encoding encoding, b
       rInvToPt_(31199.5),
       phiScale_(0.00038349520),
       z0Scale_(0.00999469),
+      dEtaBarrelParamZ0_(0.31735),
+      dPhiBarrelParamC_(0.0056535),
       dEtaHGCalParamZ0_(-0.00655),
       dEtaHGCalParamRInv2C_(+0.66),
       dEtaHGCalParamRInv2ITanl1_(-0.72),
@@ -123,6 +130,11 @@ std::pair<l1ct::TkObjEmu, bool> l1ct::TrackInputEmulator::decodeTrack(ap_uint<96
       l1ct::phi_t vtxPhi = convPhi(phi);
 
       // track propagation
+      if (region_ == Region::Barrel) {
+        ret.hwDEta = calcDEtaBarrel(z0, Rinv, tanl);
+        ret.hwDPhi = calcDPhiBarrel(z0, Rinv, tanl);
+      }
+
       if (region_ == Region::Endcap) {
         ret.hwDEta = calcDEtaHGCal(z0, Rinv, tanl);
         ret.hwDPhi = calcDPhiHGCal(z0, Rinv, tanl);
@@ -139,6 +151,11 @@ std::pair<l1ct::TkObjEmu, bool> l1ct::TrackInputEmulator::decodeTrack(ap_uint<96
 
       // track propagation
       float fDEta = 0, fDPhi = 0;  // already in layer-1 units
+      if (region_ == Region::Barrel) {
+        fDEta = floatDEtaBarrel(z0, Rinv, tanl);
+        fDPhi = floatDPhiBarrel(z0, Rinv, tanl);
+      }
+
       if (region_ == Region::Endcap) {
         fDEta = floatDEtaHGCal(z0, Rinv, tanl);
         fDPhi = floatDPhiHGCal(z0, Rinv, tanl);
@@ -210,13 +227,13 @@ l1ct::glbeta_t l1ct::TrackInputEmulator::convEta(ap_int<16> tanl) const {
   return ret;
 }
 
-void l1ct::TrackInputEmulator::configEta(int lutBits, int preOffs, int shift, int postOffs, bool endcap) {
-  tanlLUTSigned_ = endcap;
+void l1ct::TrackInputEmulator::configEta(int lutBits, int preOffs, int shift, int postOffs, bool lutSigned, bool endcap) {
+  tanlLUTSigned_ = lutSigned;
   tanlLUTPreOffs_ = preOffs;
   tanlLUTPostOffs_ = postOffs;
   tanlLUTShift_ = shift;
   tanlLUT_.resize(1 << lutBits);
-  int etaCenter = endcap ? l1ct::Scales::makeGlbEtaRoundEven(2.5).to_int() / 2 : 0;
+  int etaCenter = lutSigned ? l1ct::Scales::makeGlbEtaRoundEven(2.5).to_int() / 2 : 0;
   int etamin = 1, etamax = -1;
   for (unsigned int u = 0, n = tanlLUT_.size(), h = n / 2; u < n; ++u) {
     int i = (tanlLUTSigned_ || (u < h)) ? int(u) : int(u) - int(n);
@@ -317,6 +334,131 @@ void l1ct::TrackInputEmulator::configZ0(int bits) {
               bits,
               z0OffsPos_,
               z0OffsNeg_);
+}
+
+float l1ct::TrackInputEmulator::floatDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
+
+  float ret = floatEta(tanl)-floatEta(tanl+z0.to_float()*dEtaBarrelParamZ0_);
+  if (debug_) {
+    dbgPrintf(
+        "flt deta for z0 %+6d Rinv %+6d tanl %+6d:  eta(calo) %+8.2f  eta(vtx)  %+8.3f  ret  "
+        "%+8.2f\n",
+        z0.to_int(),
+        Rinv.to_int(),
+        tanl.to_int(),
+        floatEta(tanl+z0.to_float()*dEtaBarrelParamZ0_),
+        floatEta(tanl),
+        ret);
+  }
+  return ret/l1ct::Scales::ETAPHI_LSB;
+}
+
+l1ct::tkdeta_t l1ct::TrackInputEmulator::calcDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
+
+  int vtxEta = convEta(tanl);
+
+  ap_uint<14> absZ0 = z0 >= 0 ? ap_uint<14>(z0) : ap_uint<14>(-z0);
+  int preSum = ((absZ0 >> dEtaBarrelZ0PreShift_) * dEtaBarrelZ0_) >> dEtaBarrelZ0PostShift_;
+
+  int caloEta = convEta(tanl+(z0 > 0 ? 1 : -1)*((preSum + dEtaBarrelOffs_) >> dEtaBarrelBits_));
+
+  int ret = vtxEta-caloEta;
+  if (debug_) {
+    dbgPrintf(
+        "int deta for z0 %+6d Rinv %+6d tanl %+6d:  preSum %+8.2f  eta(calo) %+8.2f  eta(vtx)  %+8.3f  ret  "
+        "%+8.2f\n",
+        z0.to_int(),
+        Rinv.to_int(),
+        tanl.to_int(),
+        preSum,
+        caloEta,
+        vtxEta,
+        ret);
+  }
+  return ret;
+}
+
+//use eta LUTs
+void l1ct::TrackInputEmulator::configDEtaBarrel(int dEtaBarrelBits,
+                                               int dEtaBarrelZ0PreShift,
+                                               int dEtaBarrelZ0PostShift,
+                                               float offs) {
+
+
+  dEtaBarrelBits_ = dEtaBarrelBits;
+
+  dEtaBarrelZ0PreShift_ = dEtaBarrelZ0PreShift;
+  dEtaBarrelZ0PostShift_ = dEtaBarrelZ0PostShift;
+  dEtaBarrelZ0_ = std::round(dEtaBarrelParamZ0_ * (1 << (dEtaBarrelZ0PreShift + dEtaBarrelZ0PostShift + dEtaBarrelBits)));
+
+  int finalShift = dEtaBarrelBits_;
+  dEtaBarrelOffs_ = std::round((1 << finalShift) * (0.5 + offs));
+
+  if (debug_)
+    dbgPrintf(
+        "Configured deta with %d bits: preshift %8d  postshift %8d, offset %8d\n",
+        dEtaBarrelBits,
+        dEtaBarrelZ0PreShift_,
+        dEtaBarrelZ0PostShift_,
+        offs);
+
+  assert(finalShift >= 0);
+}
+
+float l1ct::TrackInputEmulator::floatDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
+  float ret = dPhiBarrelParamC_ * std::abs(Rinv.to_int());
+  //ret = atan(ret / sqrt(1-ret*ret)); //use linear approx for now
+  if (debug_) {
+    dbgPrintf(
+        "flt dphi for z0 %+6d Rinv %+6d tanl %+6d:  Rinv/1k  %8.2f   ret  %8.2f\n",
+        z0.to_int(),
+        Rinv.to_int(),
+        tanl.to_int(),
+        std::abs(Rinv.to_int()) / 1024.0,
+        ret);
+  }
+  return ret;
+}
+
+l1ct::tkdphi_t l1ct::TrackInputEmulator::calcDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {
+  ap_uint<14> absRinv = Rinv >= 0 ? ap_uint<14>(Rinv) : ap_uint<14>(-Rinv);
+  int preSum = ((absRinv >> dPhiBarrelRInvPreShift_) * dPhiBarrelC_) >> dPhiBarrelRInvPostShift_;
+
+  if (debug_) {
+    dbgPrintf(
+        "int dphi for z0 %+6d Rinv %+6d tanl %+6d:  ret  %8.2f\n",
+        z0.to_int(),
+        Rinv.to_int(),
+        tanl.to_int(),
+        (preSum + dPhiBarrelOffs_) >> dPhiBarrelBits_);
+  }
+
+  return (preSum + dPhiBarrelOffs_) >> dPhiBarrelBits_;
+}
+
+//using DSPs
+void l1ct::TrackInputEmulator::configDPhiBarrel(int dPhiBarrelBits,
+                                               int dPhiBarrelRInvPreShift,
+                                               int dPhiBarrelRInvPostShift,
+                                               float offs) {
+  dPhiBarrelBits_ = dPhiBarrelBits;
+
+  dPhiBarrelRInvPreShift_ = dPhiBarrelRInvPreShift;
+  dPhiBarrelRInvPostShift_ = dPhiBarrelRInvPostShift;
+  dPhiBarrelC_ = std::round(dPhiBarrelParamC_ * (1 << (dPhiBarrelRInvPreShift + dPhiBarrelRInvPostShift + dPhiBarrelBits)));
+
+  int finalShift = dPhiBarrelBits_;
+  dPhiBarrelOffs_ = std::round((1 << finalShift) * (0.5 + offs));
+
+  if (debug_)
+    dbgPrintf(
+        "Configured dphi with %d bits: preshift %8d  postshift %8d, offset %8d\n",
+        dPhiBarrelBits,
+        dPhiBarrelRInvPreShift_,
+        dPhiBarrelRInvPostShift_,
+        offs);
+
+  assert(finalShift >= 0);
 }
 
 float l1ct::TrackInputEmulator::floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const {

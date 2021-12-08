@@ -217,7 +217,13 @@ bool l1ct::multififo_regionizer::RegionMux<T>::stream(bool newevt, std::vector<T
         shift(buffer_[ireg_ * nsort_ + i], buffer_[ireg_ * nsort_ + i - 1]);
       }
     }
-    if (++iter_ == outii_) {
+    if (iter_ >= outii_) {
+      assert(pauseii_ > 0);
+      for (unsigned int i = 0; i < nout_; ++i) {
+        out[i].clear();
+      }
+    }
+    if (++iter_ >= (outii_+pauseii_)) {
       ireg_++;
       iter_ = 0;
     }
@@ -232,12 +238,13 @@ bool l1ct::multififo_regionizer::RegionMux<T>::stream(bool newevt, std::vector<T
 
 template <typename T>
 l1ct::multififo_regionizer::Regionizer<T>::Regionizer(
-    unsigned int nsorted, unsigned int nout, bool streaming, unsigned int outii, bool useAlsoVtxCoords)
+    unsigned int nsorted, unsigned int nout, bool streaming, unsigned int outii, unsigned int pauseii, bool useAlsoVtxCoords)
     : nsectors_(0),
       nregions_(0),
       nsorted_(nsorted),
       nout_(nout),
       outii_(outii),
+      pauseii_(pauseii),
       streaming_(streaming),
       useAlsoVtxCoords_(useAlsoVtxCoords),
       nevt_(0) {}
@@ -272,7 +279,7 @@ void l1ct::multififo_regionizer::Regionizer<T>::initRegions(const std::vector<PF
     builders_[i] = RegionBuilder<T>(i, nsorted_);
   }
   // bigmux
-  bigmux_ = RegionMux<T>(nregions, nsorted_, nout_, streaming_, outii_);
+  bigmux_ = RegionMux<T>(nregions, nsorted_, nout_, streaming_, outii_, pauseii_);
 }
 
 template <typename T>
@@ -373,13 +380,16 @@ void l1ct::multififo_regionizer::Regionizer<T>::destream(int iclock,
                                                          std::vector<T>& out) {
   assert(streaming_ && outii_ > 0);
   assert(streams.size() == nout_);
-  int local_clk = iclock % outii_;
+  unsigned int local_clk = iclock % (outii_ + pauseii_);
   if (local_clk == 0) {
     out.resize(nsorted_);
     for (auto& o : out)
       o.clear();
   }
   for (unsigned int i = 0, j = local_clk; j < nsorted_; ++i, j += outii_) {
-    out[j] = streams[i];
+    if (local_clk < outii_)
+      out[j] = streams[i];
+    else
+      out[j].clear();
   }
 }

@@ -39,6 +39,7 @@ namespace l1ct {
                                 unsigned int nmu,
                                 bool streaming,
                                 unsigned int outii,
+                                unsigned int pauseii,
                                 bool useAlsoVtxCoords);
 
     // note: this one will work only in CMSSW
@@ -100,7 +101,7 @@ namespace l1ct {
   private:
     const unsigned int NTK_SECTORS, NCALO_SECTORS;  // max objects per sector per clock cycle
     const unsigned int NTK_LINKS, NCALO_LINKS, HCAL_LINKS, ECAL_LINKS, NMU_LINKS;
-    unsigned int nendcaps_, nclocks_, ntk_, ncalo_, nem_, nmu_, outii_, nregions_;
+    unsigned int nendcaps_, nclocks_, ntk_, ncalo_, nem_, nmu_, outii_, pauseii_, nregions_;
     bool streaming_;
     enum EmInterceptMode { noIntercept = 0, interceptPreFifo, interceptPostFifo } emInterceptMode_;
     std::unique_ptr<EGInputSelectorEmulator> interceptor_;
