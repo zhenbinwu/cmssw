@@ -52,7 +52,7 @@ l1ct::TrackInputEmulator::TrackInputEmulator(const edm::ParameterSet &iConfig)
             iConfig.getParameter<int32_t>("etaPreOffs"),
             iConfig.getParameter<uint32_t>("etaShift"),
             iConfig.getParameter<int32_t>("etaPostOffs"),
-            iConfig.getParameter<int32_t>("etaSigned"),
+            iConfig.getParameter<bool>("etaSigned"),
             region_ == Region::Endcap);
   configPhi(iConfig.getParameter<uint32_t>("phiBits"));
   configZ0(iConfig.getParameter<uint32_t>("z0Bits"));
