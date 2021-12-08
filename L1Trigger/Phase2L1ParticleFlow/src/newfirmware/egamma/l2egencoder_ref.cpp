@@ -6,13 +6,13 @@ using namespace l1ct;
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-l1ct::L2EgEncoderEmulator::L2EgEncoderEmulator(const edm::ParameterSet &pset)
+l1ct::L2EgEncoderEmulator::L2EgEncoderEmulator(const edm::ParameterSet& pset)
     : L2EgEncoderEmulator(pset.getParameter<uint32_t>("n64BitWords")) {}
 
 #endif
 
 void L2EgEncoderEmulator::toFirmware(const std::vector<ap_uint<64>>& encoded_in, ap_uint<64> encoded_fw[]) const {
-  for(unsigned int i = 0; i < nEncodedWords_; i++) {
+  for (unsigned int i = 0; i < nEncodedWords_; i++) {
     encoded_fw[i] = (i < encoded_in.size()) ? encoded_in[i] : ap_uint<64>(0);
   }
-} 
+}
