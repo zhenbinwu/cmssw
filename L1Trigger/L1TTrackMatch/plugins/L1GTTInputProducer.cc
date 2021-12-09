@@ -272,6 +272,7 @@ bool L1GTTInputProducer::getEtaBits(
       indexTanLambda >>
       (kEtaInputSize -
        kEtaOutputSize);  // Don't subtract 1 because we now want to take into account the sign bit of the output
+  indexTanLambda = (indexTanLambda < (1 << (kEtaOutputSize - 1))) ? indexTanLambda : in_eta_t((1 << (kEtaOutputSize - 1)) - 1);
   etaBits = eta_lut_[indexTanLambda];
 
   // Reinacting the sign
