@@ -422,7 +422,7 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
     //l1pualgo_->runNeutralsPU(l1region, z0, -1., puGlobals);
   }
 
-  // NOTE: This needs to happen before the EG sorting per board so that the EG objects 
+  // NOTE: This needs to happen before the EG sorting per board so that the EG objects
   // get a global reference to the EGSta before being mixed among differente regions
   std::vector<edm::Ref<BXVector<l1t::EGamma>>> egsta_refs;
   if (l1tkegalgo_->writeEgSta()) {
@@ -549,8 +549,14 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
   event_.board_out.resize(board_params.size());
   for (unsigned int bidx = 0; bidx < board_params.size(); bidx++) {
     event_.board_out[bidx].region_index = board_params[bidx].getParameter<std::vector<unsigned int>>("regions");
-    event_.board_out[bidx].eta = board_params[bidx].getParameter<double>("eta");
-    event_.board_out[bidx].phi = board_params[bidx].getParameter<double>("phi");
+    float etaBoard = 0.;
+    float phiBoard = 0.;
+    for (auto ridx : event_.board_out[bidx].region_index) {
+      etaBoard += event_.pfinputs[ridx].region.floatEtaCenter();
+      phiBoard += event_.pfinputs[ridx].region.floatPhiCenter();
+    }
+    event_.board_out[bidx].eta = etaBoard / event_.board_out[bidx].region_index.size();
+    event_.board_out[bidx].phi = phiBoard / event_.board_out[bidx].region_index.size();
   }
 }
 

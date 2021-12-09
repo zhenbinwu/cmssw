@@ -390,8 +390,12 @@ unsigned int l1ct::OutputRegion::nObj(ObjType type, bool usePuppi) const {
   }
 }
 
-bool l1ct::OutputBoard::read(std::fstream& from) { return readMany(from, egphoton) && readMany(from, egelectron); }
-bool l1ct::OutputBoard::write(std::fstream& to) const { return writeMany(egphoton, to) && writeMany(egelectron, to); }
+bool l1ct::OutputBoard::read(std::fstream& from) {
+  return readVar(from, eta) && readVar(from, phi) && readMany(from, egphoton) && readMany(from, egelectron);
+}
+bool l1ct::OutputBoard::write(std::fstream& to) const {
+  return writeVar(eta, to) && writeVar(phi, to) && writeMany(egphoton, to) && writeMany(egelectron, to);
+}
 
 void l1ct::OutputBoard::clear() {
   egphoton.clear();

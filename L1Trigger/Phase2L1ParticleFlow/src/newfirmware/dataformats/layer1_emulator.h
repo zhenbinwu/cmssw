@@ -317,9 +317,9 @@ namespace l1ct {
   };
 
   struct OutputBoard {
-    // FIXME: eta, phi and region_index are not written to binary file, do we need them?
     float eta;
     float phi;
+    // NOTE: region_index is not written to the dump file
     std::vector<unsigned int> region_index;
     std::vector<EGIsoObjEmu> egphoton;
     std::vector<EGIsoEleObjEmu> egelectron;
