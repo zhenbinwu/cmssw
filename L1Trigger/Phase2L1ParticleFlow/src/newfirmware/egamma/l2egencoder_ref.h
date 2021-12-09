@@ -21,21 +21,24 @@ namespace l1ct {
 
   struct L2EgEncoderEmulator {
   public:
-    L2EgEncoderEmulator(unsigned int nEncodedWords) : nEncodedWords_(nEncodedWords){};
+    L2EgEncoderEmulator(unsigned int nTKELE_OUT, unsigned int nTKPHO_OUT)
+        : nTkEleOut_(nTKELE_OUT), nTkPhoOut_(nTKPHO_OUT), nEncodedWords_(nTKELE_OUT * 1.5 + nTKPHO_OUT * 1.5) {
+      assert(nTkEleOut_ % 2 == 0);
+      assert(nTkPhoOut_ % 2 == 0);
+    };
 
     L2EgEncoderEmulator(const edm::ParameterSet& iConfig);
 
     void toFirmware(const std::vector<ap_uint<64>>& encoded_in, ap_uint<64> encoded_fw[]) const;
 
-    std::vector<ap_uint<64>> encodeLayer2EgObjs(unsigned int nObj,
-                                                const std::vector<EGIsoObjEmu>& photons,
+    std::vector<ap_uint<64>> encodeLayer2EgObjs(const std::vector<EGIsoObjEmu>& photons,
                                                 const std::vector<EGIsoEleObjEmu>& electrons) const {
       std::vector<ap_uint<64>> ret;
 
       auto encoded_photons = encodeLayer2(photons);
-      encoded_photons.resize(nObj, {0});
+      encoded_photons.resize(nTkEleOut_, {0});
       auto encoded_eles = encodeLayer2(electrons);
-      encoded_eles.resize(nObj, {0});
+      encoded_eles.resize(nTkPhoOut_, {0});
       //
       encodeLayer2To64bits(encoded_photons, ret);
       encodeLayer2To64bits(encoded_eles, ret);
@@ -76,6 +79,8 @@ namespace l1ct {
       }
     }
 
+    unsigned int nTkEleOut_;
+    unsigned int nTkPhoOut_;
     unsigned int nEncodedWords_;
   };
 

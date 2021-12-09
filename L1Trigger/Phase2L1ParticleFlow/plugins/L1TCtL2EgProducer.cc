@@ -187,7 +187,6 @@ private:
   PFInstanceInputs<BXVector<l1t::EGamma>> tkEGInputs_;
   PFInstanceInputs<l1t::TkEmRegionalOutput> tkEmInputs_;
   PFInstanceInputs<l1t::TkElectronRegionalOutput> tkEleInputs_;
-  unsigned int nChannels_;
   std::string tkEGInstanceLabel_;
   std::string tkEmInstanceLabel_;
   std::string tkEleInstanceLabel_;
@@ -203,7 +202,6 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
     : tkEGInputs_(this, conf.getParameter<std::vector<edm::ParameterSet>>("tkEgs")),
       tkEmInputs_(this, conf.getParameter<std::vector<edm::ParameterSet>>("tkEms")),
       tkEleInputs_(this, conf.getParameter<std::vector<edm::ParameterSet>>("tkElectrons")),
-      nChannels_(conf.getParameter<unsigned int>("nChannels")),
       tkEGInstanceLabel_(conf.getParameter<std::string>("egStaInstanceLabel")),
       tkEmInstanceLabel_(conf.getParameter<std::string>("tkEmInstanceLabel")),
       tkEleInstanceLabel_(conf.getParameter<std::string>("tkEleInstanceLabel")),
@@ -279,7 +277,7 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent, const edm::Ev
   merge(tkEGInputs_, iEvent, refmapper, outEgs);
   iEvent.put(std::move(outEgs), tkEGInstanceLabel_);
 
-  auto boards = std::make_unique<std::vector<l1ct::OutputBoard>>(nChannels_);
+  auto boards = std::make_unique<std::vector<l1ct::OutputBoard>>(l2egsorter.nInputBoards());
 
   merge(tkEleInputs_, iEvent, refmapper, boards);
   merge(tkEmInputs_, iEvent, refmapper, boards);
@@ -287,7 +285,9 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent, const edm::Ev
   if (doInPtrn_) {
     l1t::demo::EventData inData;
     for (unsigned int ibrd = 0; ibrd < boards->size(); ibrd++) {
-      inData.add({"eglayer1", ibrd}, encodeLayer1EgObjs(16, (*boards)[ibrd].egphoton, (*boards)[ibrd].egelectron));
+      inData.add(
+          {"eglayer1", ibrd},
+          encodeLayer1EgObjs(l2egsorter.nInputObjPerBoard(), (*boards)[ibrd].egphoton, (*boards)[ibrd].egelectron));
     }
     inPtrnWrt_->addEvent(inData);
   }
@@ -298,7 +298,7 @@ void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent, const edm::Ev
 
   if (doOutPtrn_) {
     l1t::demo::EventData outData;
-    outData.add({"eglayer2", 0}, l2encoder.encodeLayer2EgObjs(12, out_photons_emu, out_eles_emu));
+    outData.add({"eglayer2", 0}, l2encoder.encodeLayer2EgObjs(out_photons_emu, out_eles_emu));
     outPtrnWrt_->addEvent(outData);
   }
 

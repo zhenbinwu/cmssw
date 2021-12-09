@@ -7,7 +7,7 @@ using namespace l1ct;
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 l1ct::L2EgEncoderEmulator::L2EgEncoderEmulator(const edm::ParameterSet& pset)
-    : L2EgEncoderEmulator(pset.getParameter<uint32_t>("n64BitWords")) {}
+    : L2EgEncoderEmulator(pset.getParameter<uint32_t>("nTKELE_OUT"), pset.getParameter<uint32_t>("nTKPHO_OUT")) {}
 
 #endif
 

@@ -50,6 +50,10 @@ namespace l1ct {
 
     void setDebug(int verbose) { debug_ = verbose; }
 
+    unsigned int nInputBoards() const { return nBOARDS; }
+    unsigned int nInputObjPerBoard() const { return nEGPerBoard; }
+    unsigned int nOutputObj() const { return nEGOut; }
+
   private:
     template <typename T>
     void resize_input(std::vector<T> &in) const {

@@ -534,7 +534,6 @@ l1ctLayer2EG = cms.EDProducer(
     egStaInstanceLabel=cms.string("L1CtEgEE"),
     tkEmInstanceLabel=cms.string("L1CtTkEm"),
     tkEleInstanceLabel=cms.string("L1CtTkElectron"),
-    nChannels=cms.uint32(5),
     sorter=cms.PSet(
         nBOARDS=cms.uint32(5),
         nEGPerBoard=cms.uint32(16),
@@ -542,7 +541,8 @@ l1ctLayer2EG = cms.EDProducer(
         debug=cms.untracked.uint32(0),
     ),
     encoder=cms.PSet(
-        n64BitWords=cms.uint32(36),
+        nTKELE_OUT=cms.uint32(12),
+        nTKPHO_OUT=cms.uint32(12),
     ),
     writeInPattern=cms.bool(False),
     writeOutPattern=cms.bool(False),
