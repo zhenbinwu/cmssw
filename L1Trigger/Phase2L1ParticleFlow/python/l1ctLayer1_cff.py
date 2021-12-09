@@ -497,55 +497,44 @@ l1ctLayer1EG = cms.EDProducer(
 
 l1ctLayer2EG = cms.EDProducer(
     "L1TCtL2EgProducer",
-    tkElectrons=cms.PSet(
-        pfProducers=cms.VInputTag(
-            cms.InputTag("l1ctLayer1HGCal", 'L1TkElePerBoard'),
-            cms.InputTag("l1ctLayer1Barrel", 'L1TkElePerBoard')
-        )
+    tkElectrons=cms.VPSet(
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1HGCal", 'L1TkElePerBoard'),
+            channels=cms.vint32(3, 4)
+        ),
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1Barrel", 'L1TkElePerBoard'),
+            channels=cms.vint32(0, 1, 2)
+        ),
     ),
-    tkEms=cms.PSet(
-        pfProducers=cms.VInputTag(
-            cms.InputTag("l1ctLayer1HGCal", 'L1TkEmPerBoard'),
-            cms.InputTag("l1ctLayer1HGCalNoTK", 'L1TkEmPerBoard'),
-            cms.InputTag("l1ctLayer1Barrel", 'L1TkEmPerBoard')
-        )
+    tkEms=cms.VPSet(
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1HGCal", 'L1TkEmPerBoard'),
+            channels=cms.vint32(3, 4)
+        ),
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1HGCalNoTK", 'L1TkEmPerBoard'),
+            channels=cms.vint32(-1)
+        ),
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1Barrel", 'L1TkEmPerBoard'),
+            channels=cms.vint32(0, 1, 2)
+        ),
     ),
-    tkEgs=cms.PSet(
-        pfProducers=cms.VInputTag(
-            cms.InputTag("l1ctLayer1HGCal", 'L1Eg'),
-            cms.InputTag("l1ctLayer1HGCalNoTK", 'L1Eg')
-        )
+    tkEgs=cms.VPSet(
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1HGCal", 'L1Eg'),
+            channels=cms.vint32(-1)
+        ),
+        cms.PSet(
+            pfProducer=cms.InputTag("l1ctLayer1HGCalNoTK", 'L1Eg'),
+            channels=cms.vint32(-1)
+        ),
     ),
     egStaInstanceLabel=cms.string("L1CtEgEE"),
     tkEmInstanceLabel=cms.string("L1CtTkEm"),
     tkEleInstanceLabel=cms.string("L1CtTkElectron"),
-    boards=cms.VPSet(
-        cms.PSet(
-            eta=cms.double(-1.25),
-            phi=cms.double(0.),
-            index=cms.uint32(0)
-        ),
-        cms.PSet(
-            eta=cms.double(0.),
-            phi=cms.double(0.),
-            index=cms.uint32(1)
-        ),
-        cms.PSet(
-            eta=cms.double(1.25),
-            phi=cms.double(0.),
-            index=cms.uint32(2)
-        ),
-        cms.PSet(
-            eta=cms.double(-2.),
-            phi=cms.double(0.),
-            index=cms.uint32(3)
-        ),
-        cms.PSet(
-            eta=cms.double(2.),
-            phi=cms.double(0.),
-            index=cms.uint32(4)
-        ),
-    ),
+    nChannels=cms.uint32(5),
     sorter=cms.PSet(
         nBOARDS=cms.uint32(5),
         nEGPerBoard=cms.uint32(16),

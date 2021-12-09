@@ -28,66 +28,48 @@ public:
   ~L1TCtL2EgProducer() override;
 
 private:
+  ap_uint<64> encodeLayer1(const EGIsoObjEmu &egiso) const;
+  ap_uint<128> encodeLayer1(const EGIsoEleObjEmu &egiso) const;
 
-  ap_uint<64> encodeLayer1(const EGIsoObjEmu& egiso) const;
-  ap_uint<128> encodeLayer1(const EGIsoEleObjEmu& egiso) const;
+  std::vector<ap_uint<64>> encodeLayer1(const std::vector<EGIsoObjEmu> &photons) const;
+  std::vector<ap_uint<64>> encodeLayer1(const std::vector<EGIsoEleObjEmu> &electrons) const;
 
-  std::vector<ap_uint<64>> encodeLayer1(const std::vector<EGIsoObjEmu>& photons) const;
-  std::vector<ap_uint<64>> encodeLayer1(const std::vector<EGIsoEleObjEmu>& electrons) const;
+  std::vector<ap_uint<64>> encodeLayer1EgObjs(unsigned int nObj,
+                                              const std::vector<EGIsoObjEmu> &photons,
+                                              const std::vector<EGIsoEleObjEmu> &electrons) const;
 
-  std::vector<ap_uint<64>> encodeLayer1EgObjs(unsigned int nObj, 
-    const std::vector<EGIsoObjEmu>& photons, 
-    const std::vector<EGIsoEleObjEmu>& electrons) const;
-
-    
-  template<class T>
-  std::vector<ap_uint<96>> encodeLayer2(const std::vector<T>& egisos) const;
-  template<class T>
-  ap_uint<96> encodeLayer2(const T& egiso) const;
-  void encodeLayer2To64bits(const std::vector<ap_uint<96>>& packed96, std::vector<ap_uint<64>>& packed64) const;
-
-  std::vector<ap_uint<64>> encodeLayer2EgObjs(unsigned int nObj, 
-    const std::vector<EGIsoObjEmu>& photons, 
-    const std::vector<EGIsoEleObjEmu>& electrons) const;
-  
-  void produce(edm::StreamID, edm::Event &,
-               const edm::EventSetup &) const override;
+  void produce(edm::StreamID, edm::Event &, const edm::EventSetup &) const override;
 
   void endJob();
-
-  int mapBoardId(float eta, float phi) const;
 
   struct RefRemapper {
     typedef TTTrack<Ref_Phase2TrackerDigi_> L1TTTrackType;
 
     BXVector<edm::Ref<BXVector<l1t::EGamma>>> oldRefs;
-    std::map<edm::Ref<BXVector<l1t::EGamma>>, edm::Ref<BXVector<l1t::EGamma>>>
-        old2newRefMap;
-    std::vector<std::pair<const edm::Ref<l1t::EGammaBxCollection> &,
-                          edm::Ptr<L1TTTrackType>>>
-        origRefAndPtr;
+    std::map<edm::Ref<BXVector<l1t::EGamma>>, edm::Ref<BXVector<l1t::EGamma>>> old2newRefMap;
+    std::vector<std::pair<const edm::Ref<l1t::EGammaBxCollection> &, edm::Ptr<L1TTTrackType>>> origRefAndPtr;
   };
 
-  void convertToEmu(const l1t::TkElectron &tkele, RefRemapper &refRemapper,
-                    l1ct::OutputBoard &boarOut) const;
-  void convertToEmu(const l1t::TkEm &tkele, RefRemapper &refRemapper,
-                    l1ct::OutputBoard &boarOut) const;
+  void convertToEmu(const l1t::TkElectron &tkele, RefRemapper &refRemapper, l1ct::OutputBoard &boarOut) const;
+  void convertToEmu(const l1t::TkEm &tkele, RefRemapper &refRemapper, l1ct::OutputBoard &boarOut) const;
 
-  template <class T> class InstanceMerger {
+  template <class T>
+  class PFInstanceInputs {
   public:
-    InstanceMerger(L1TCtL2EgProducer *prod, const edm::ParameterSet &conf) {
-      for (const auto &producer_tag :
-           conf.getParameter<std::vector<edm::InputTag>>("pfProducers")) {
-        tokens_.push_back(prod->consumes<T>(
-            edm::InputTag(producer_tag.label(), producer_tag.instance(),
-                          producer_tag.process())));
+    typedef std::vector<std::pair<edm::EDGetTokenT<T>, std::vector<int>>> InputTokenAndChannels;
+    PFInstanceInputs(L1TCtL2EgProducer *prod, const std::vector<edm::ParameterSet> &confs) {
+      for (const auto &conf : confs) {
+        const auto &producer_tag = conf.getParameter<edm::InputTag>("pfProducer");
+        tokensAndChannels_.push_back(std::make_pair(
+            prod->consumes<T>(edm::InputTag(producer_tag.label(), producer_tag.instance(), producer_tag.process())),
+            conf.getParameter<std::vector<int>>("channels")));
       }
     }
 
-    const std::vector<edm::EDGetTokenT<T>> &tokens() const { return tokens_; }
+    const InputTokenAndChannels &tokensAndChannels() const { return tokensAndChannels_; }
 
   private:
-    std::vector<edm::EDGetTokenT<T>> tokens_;
+    InputTokenAndChannels tokensAndChannels_;
   };
 
   class PatternWriter {
@@ -95,38 +77,30 @@ private:
     PatternWriter(const edm::ParameterSet &conf) : dataWriter_(nullptr) {
       unsigned int nFramesPerBX = conf.getParameter<uint32_t>("nFramesPerBX");
 
-      std::map<l1t::demo::LinkId,
-               std::pair<l1t::demo::ChannelSpec, std::vector<size_t>>>
-          channelSpecs;
+      std::map<l1t::demo::LinkId, std::pair<l1t::demo::ChannelSpec, std::vector<size_t>>> channelSpecs;
 
-      for (const auto &channelConf :
-           conf.getParameter<std::vector<edm::ParameterSet>>("channels")) {
+      for (const auto &channelConf : conf.getParameter<std::vector<edm::ParameterSet>>("channels")) {
         unsigned int inTMUX = channelConf.getParameter<uint32_t>("TMUX");
-        unsigned int eventGap = inTMUX * nFramesPerBX -
-                                channelConf.getParameter<uint32_t>(
-                                    "nWords"); // assuming 96bit (= 3/2 word)
-                                               // words  = TMUX*9-2*3/2*words
+        unsigned int eventGap =
+            inTMUX * nFramesPerBX - channelConf.getParameter<uint32_t>("nWords");  // assuming 96bit (= 3/2 word)
+                                                                                   // words  = TMUX*9-2*3/2*words
         std::vector<uint32_t> chns = channelConf.getParameter<std::vector<uint32_t>>("channels");
-        channelSpecs[l1t::demo::LinkId{
-            channelConf.getParameter<std::string>("interface"),
-            channelConf.getParameter<uint32_t>("id")}] =
-            std::make_pair(
-                l1t::demo::ChannelSpec{inTMUX, eventGap},
-                std::vector<size_t>(std::begin(chns), 
-                std::end(chns)));
+        channelSpecs[l1t::demo::LinkId{channelConf.getParameter<std::string>("interface"),
+                                       channelConf.getParameter<uint32_t>("id")}] =
+            std::make_pair(l1t::demo::ChannelSpec{inTMUX, eventGap},
+                           std::vector<size_t>(std::begin(chns), std::end(chns)));
       }
 
       dataWriter_ = std::make_unique<l1t::demo::BoardDataWriter>(
           l1t::demo::parseFileFormat(conf.getParameter<std::string>("format")),
           conf.getParameter<std::string>("outputFilename"),
-          nFramesPerBX, conf.getParameter<uint32_t>("TMUX"),
-          conf.getParameter<uint32_t>("maxLinesPerFile"), channelSpecs);
-
+          nFramesPerBX,
+          conf.getParameter<uint32_t>("TMUX"),
+          conf.getParameter<uint32_t>("maxLinesPerFile"),
+          channelSpecs);
     }
 
-    void addEvent(const l1t::demo::EventData &eventData) {
-      dataWriter_->addEvent(eventData);
-    }
+    void addEvent(const l1t::demo::EventData &eventData) { dataWriter_->addEvent(eventData); }
 
     void flush() { dataWriter_->flush(); }
 
@@ -135,54 +109,50 @@ private:
   };
 
   template <class TT, class T>
-  void merge(const InstanceMerger<T> &instance, edm::Event &iEvent,
-             RefRemapper &refRemapper, std::unique_ptr<TT> &out) const {
+  void merge(const PFInstanceInputs<T> &instance,
+             edm::Event &iEvent,
+             RefRemapper &refRemapper,
+             std::unique_ptr<TT> &out) const {
     edm::Handle<T> handle;
-    for (const auto &token : instance.tokens()) {
-      iEvent.getByToken(token, handle);
-      populate(out, handle, refRemapper);
+    for (const auto &tokenAndChannel : instance.tokensAndChannels()) {
+      iEvent.getByToken(tokenAndChannel.first, handle);
+      populate(out, handle, tokenAndChannel.second, refRemapper);
     }
     remapRefs(iEvent, out, refRemapper);
   }
 
   template <class TT>
-  void remapRefs(edm::Event &iEvent, std::unique_ptr<TT> &out,
-                 RefRemapper &refRemapper) const {}
+  void remapRefs(edm::Event &iEvent, std::unique_ptr<TT> &out, RefRemapper &refRemapper) const {}
 
-  void remapRefs(edm::Event &iEvent,
-                 std::unique_ptr<BXVector<l1t::EGamma>> &out,
-                 RefRemapper &refRemapper) const {
-    edm::RefProd<BXVector<l1t::EGamma>> ref_egs =
-        iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(tkEGInstanceLabel_);
+  void remapRefs(edm::Event &iEvent, std::unique_ptr<BXVector<l1t::EGamma>> &out, RefRemapper &refRemapper) const {
+    edm::RefProd<BXVector<l1t::EGamma>> ref_egs = iEvent.getRefBeforePut<BXVector<l1t::EGamma>>(tkEGInstanceLabel_);
     edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
     for (std::size_t ix = 0; ix < out->size(); ix++) {
-      refRemapper.old2newRefMap[refRemapper.oldRefs[ix]] =
-          edm::Ref<BXVector<l1t::EGamma>>(ref_egs, idx++);
+      refRemapper.old2newRefMap[refRemapper.oldRefs[ix]] = edm::Ref<BXVector<l1t::EGamma>>(ref_egs, idx++);
     }
   }
 
   template <class TT, class T>
-  void populate(std::unique_ptr<T> &out, const edm::Handle<TT> &in,
+  void populate(std::unique_ptr<T> &out,
+                const edm::Handle<TT> &in,
+                const std::vector<int> &links,
                 RefRemapper &refRemapper) const {
-
-    for (unsigned int iBoard = 0, nBoard = in->nRegions(); iBoard < nBoard;
-         ++iBoard) {
+    assert(links.size() == in->nRegions());
+    for (unsigned int iBoard = 0, nBoard = in->nRegions(); iBoard < nBoard; ++iBoard) {
       auto region = in->region(iBoard);
-      float eta = in->eta(iBoard);
-      float phi = in->phi(iBoard);
-      int mappedBoardId = mapBoardId(eta, phi);
-      if (mappedBoardId < 0)
+      int linkID = links[iBoard];
+      if (linkID < 0)
         continue;
-      // std::cout << "Board eta: " << eta << " phi: " << phi << " index: " <<
-      // mappedBoardId << std::endl;
+      std::cout << "Board eta: " << in->eta(iBoard) << " phi: " << in->phi(iBoard) << " link: " << linkID << std::endl;
       for (const auto &obj : region) {
-        convertToEmu(obj, refRemapper, out->at(mappedBoardId));
+        convertToEmu(obj, refRemapper, out->at(linkID));
       }
     }
   }
 
   void populate(std::unique_ptr<BXVector<l1t::EGamma>> &out,
                 const edm::Handle<BXVector<l1t::EGamma>> &in,
+                const std::vector<int> &links,
                 RefRemapper &refRemapper) const {
     edm::Ref<BXVector<l1t::EGamma>>::key_type idx = 0;
     for (int bx = in->getFirstBX(); bx <= in->getLastBX(); bx++) {
@@ -191,37 +161,36 @@ private:
         // this to ensure that the old ref and the new object have the same
         // index in the BXVector collection so that we can still match them no
         // matter which BX we will insert next
-        refRemapper.oldRefs.push_back(
-            bx, edm::Ref<BXVector<l1t::EGamma>>(in, idx++));
+        refRemapper.oldRefs.push_back(bx, edm::Ref<BXVector<l1t::EGamma>>(in, idx++));
       }
     }
   }
 
   template <class Tout, class Tin>
-  void putEgObjects(edm::Event &iEvent, const RefRemapper &refRemapper,
+  void putEgObjects(edm::Event &iEvent,
+                    const RefRemapper &refRemapper,
                     const std::string &label,
                     const std::vector<Tin> emulated) const {
     auto egobjs = std::make_unique<Tout>();
     for (const auto &emu : emulated) {
-      if(emu.hwPt == 0) continue;
+      if (emu.hwPt == 0)
+        continue;
       auto obj = convertFromEmu(emu, refRemapper);
       egobjs->push_back(obj);
     }
     iEvent.put(std::move(egobjs), label);
   }
 
-  l1t::TkEm convertFromEmu(const l1ct::EGIsoObjEmu &emu,
-                           const RefRemapper &refRemapper) const;
-  l1t::TkElectron convertFromEmu(const l1ct::EGIsoEleObjEmu &emu,
-                                 const RefRemapper &refRemapper) const;
+  l1t::TkEm convertFromEmu(const l1ct::EGIsoObjEmu &emu, const RefRemapper &refRemapper) const;
+  l1t::TkElectron convertFromEmu(const l1ct::EGIsoEleObjEmu &emu, const RefRemapper &refRemapper) const;
 
-  InstanceMerger<BXVector<l1t::EGamma>> tkEGMerger;
-  InstanceMerger<l1t::TkEmRegionalOutput> tkEmMerger;
-  InstanceMerger<l1t::TkElectronRegionalOutput> tkEleMerger;
+  PFInstanceInputs<BXVector<l1t::EGamma>> tkEGInputs_;
+  PFInstanceInputs<l1t::TkEmRegionalOutput> tkEmInputs_;
+  PFInstanceInputs<l1t::TkElectronRegionalOutput> tkEleInputs_;
+  unsigned int nChannels_;
   std::string tkEGInstanceLabel_;
   std::string tkEmInstanceLabel_;
   std::string tkEleInstanceLabel_;
-  std::map<std::pair<double, double>, unsigned int> board_map_;
   l1ct::L2EgSorterEmulator l2egsorter;
   l1ct::L2EgEncoderEmulator l2encoder;
   bool doInPtrn_;
@@ -231,9 +200,10 @@ private:
 };
 
 L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
-    : tkEGMerger(this, conf.getParameter<edm::ParameterSet>("tkEgs")),
-      tkEmMerger(this, conf.getParameter<edm::ParameterSet>("tkEms")),
-      tkEleMerger(this, conf.getParameter<edm::ParameterSet>("tkElectrons")),
+    : tkEGInputs_(this, conf.getParameter<std::vector<edm::ParameterSet>>("tkEgs")),
+      tkEmInputs_(this, conf.getParameter<std::vector<edm::ParameterSet>>("tkEms")),
+      tkEleInputs_(this, conf.getParameter<std::vector<edm::ParameterSet>>("tkElectrons")),
+      nChannels_(conf.getParameter<unsigned int>("nChannels")),
       tkEGInstanceLabel_(conf.getParameter<std::string>("egStaInstanceLabel")),
       tkEmInstanceLabel_(conf.getParameter<std::string>("tkEmInstanceLabel")),
       tkEleInstanceLabel_(conf.getParameter<std::string>("tkEleInstanceLabel")),
@@ -241,57 +211,45 @@ L1TCtL2EgProducer::L1TCtL2EgProducer(const edm::ParameterSet &conf)
       l2encoder(conf.getParameter<edm::ParameterSet>("encoder")),
       doInPtrn_(conf.getParameter<bool>("writeInPattern")),
       doOutPtrn_(conf.getParameter<bool>("writeOutPattern")),
-      inPtrnWrt_(nullptr), outPtrnWrt_(nullptr) {
-
+      inPtrnWrt_(nullptr),
+      outPtrnWrt_(nullptr) {
   produces<BXVector<l1t::EGamma>>(tkEGInstanceLabel_);
   produces<l1t::TkEmCollection>(tkEmInstanceLabel_);
   produces<l1t::TkElectronCollection>(tkEleInstanceLabel_);
 
-  for (const auto &pset :
-       conf.getParameter<std::vector<edm::ParameterSet>>("boards")) {
-    board_map_[std::make_pair(pset.getParameter<double>("eta"),
-                              pset.getParameter<double>("phi"))] =
-        pset.getParameter<uint32_t>("index");
-  }
-
   if (doInPtrn_) {
-    inPtrnWrt_ = std::make_unique<PatternWriter>(
-        conf.getParameter<edm::ParameterSet>("inPatternFile"));
+    inPtrnWrt_ = std::make_unique<PatternWriter>(conf.getParameter<edm::ParameterSet>("inPatternFile"));
   }
   if (doOutPtrn_) {
-    outPtrnWrt_ = std::make_unique<PatternWriter>(
-        conf.getParameter<edm::ParameterSet>("outPatternFile"));
+    outPtrnWrt_ = std::make_unique<PatternWriter>(conf.getParameter<edm::ParameterSet>("outPatternFile"));
   }
 }
 
 L1TCtL2EgProducer::~L1TCtL2EgProducer() {}
 
-
-  
-  
-ap_uint<64> L1TCtL2EgProducer::encodeLayer1(const EGIsoObjEmu& egiso) const {
+ap_uint<64> L1TCtL2EgProducer::encodeLayer1(const EGIsoObjEmu &egiso) const {
   ap_uint<64> ret = 0;
   ret(EGIsoObjEmu::BITWIDTH, 0) = egiso.pack();
   return ret;
 }
 
-ap_uint<128> L1TCtL2EgProducer::encodeLayer1(const EGIsoEleObjEmu& egiso) const {
+ap_uint<128> L1TCtL2EgProducer::encodeLayer1(const EGIsoEleObjEmu &egiso) const {
   ap_uint<128> ret = 0;
   ret(EGIsoEleObjEmu::BITWIDTH, 0) = egiso.pack();
   return ret;
 }
 
-std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoObjEmu>& photons) const {
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoObjEmu> &photons) const {
   std::vector<ap_uint<64>> ret;
-  for(const auto& phot: photons) {
+  for (const auto &phot : photons) {
     ret.push_back(encodeLayer1(phot));
   }
   return ret;
 }
 
-std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoEleObjEmu>& electrons) const {
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoEleObjEmu> &electrons) const {
   std::vector<ap_uint<64>> ret;
-  for(const auto& ele: electrons) {
+  for (const auto &ele : electrons) {
     auto eleword = encodeLayer1(ele);
     ret.push_back(eleword(127, 64));
     ret.push_back(eleword(63, 0));
@@ -299,76 +257,61 @@ std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIso
   return ret;
 }
 
-std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj, 
-  const std::vector<EGIsoObjEmu>& photons, 
-  const std::vector<EGIsoEleObjEmu>& electrons) const {
-    std::vector<ap_uint<64>> ret;
-    auto encoded_photons = encodeLayer1(photons);
-    encoded_photons.resize(nObj, {0});
-    auto encoded_eles = encodeLayer1(electrons);
-    encoded_eles.resize(2*nObj, {0});
-    
-    std::copy(encoded_photons.begin(), encoded_photons.end(), std::back_inserter(ret));
-    std::copy(encoded_eles.begin(), encoded_eles.end(), std::back_inserter(ret));
-    
-    return ret;
+std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1EgObjs(unsigned int nObj,
+                                                               const std::vector<EGIsoObjEmu> &photons,
+                                                               const std::vector<EGIsoEleObjEmu> &electrons) const {
+  std::vector<ap_uint<64>> ret;
+  auto encoded_photons = encodeLayer1(photons);
+  encoded_photons.resize(nObj, {0});
+  auto encoded_eles = encodeLayer1(electrons);
+  encoded_eles.resize(2 * nObj, {0});
+
+  std::copy(encoded_photons.begin(), encoded_photons.end(), std::back_inserter(ret));
+  std::copy(encoded_eles.begin(), encoded_eles.end(), std::back_inserter(ret));
+
+  return ret;
 }
 
-void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent,
-                                const edm::EventSetup &) const {
+void L1TCtL2EgProducer::produce(edm::StreamID, edm::Event &iEvent, const edm::EventSetup &) const {
   RefRemapper refmapper;
 
   auto outEgs = std::make_unique<BXVector<l1t::EGamma>>();
-  merge(tkEGMerger, iEvent, refmapper, outEgs);
+  merge(tkEGInputs_, iEvent, refmapper, outEgs);
   iEvent.put(std::move(outEgs), tkEGInstanceLabel_);
 
-  auto boards =
-      std::make_unique<std::vector<l1ct::OutputBoard>>(board_map_.size());
+  auto boards = std::make_unique<std::vector<l1ct::OutputBoard>>(nChannels_);
 
-  merge(tkEleMerger, iEvent, refmapper, boards);
-  merge(tkEmMerger, iEvent, refmapper, boards);
+  merge(tkEleInputs_, iEvent, refmapper, boards);
+  merge(tkEmInputs_, iEvent, refmapper, boards);
 
-  if(doInPtrn_) {
+  if (doInPtrn_) {
     l1t::demo::EventData inData;
-    for(unsigned int ibrd = 0; ibrd < boards->size(); ibrd++) {
+    for (unsigned int ibrd = 0; ibrd < boards->size(); ibrd++) {
       inData.add({"eglayer1", ibrd}, encodeLayer1EgObjs(16, (*boards)[ibrd].egphoton, (*boards)[ibrd].egelectron));
     }
     inPtrnWrt_->addEvent(inData);
   }
 
-
   std::vector<EGIsoObjEmu> out_photons_emu;
   std::vector<EGIsoEleObjEmu> out_eles_emu;
   l2egsorter.run(*boards, out_photons_emu, out_eles_emu);
 
-  if(doOutPtrn_) {
+  if (doOutPtrn_) {
     l1t::demo::EventData outData;
     outData.add({"eglayer2", 0}, l2encoder.encodeLayer2EgObjs(12, out_photons_emu, out_eles_emu));
     outPtrnWrt_->addEvent(outData);
   }
 
-
-  putEgObjects<l1t::TkEmCollection>(iEvent, refmapper, tkEmInstanceLabel_,
-                                    out_photons_emu);
-  putEgObjects<l1t::TkElectronCollection>(iEvent, refmapper, tkEleInstanceLabel_,
-                                          out_eles_emu);
-
+  putEgObjects<l1t::TkEmCollection>(iEvent, refmapper, tkEmInstanceLabel_, out_photons_emu);
+  putEgObjects<l1t::TkElectronCollection>(iEvent, refmapper, tkEleInstanceLabel_, out_eles_emu);
 }
 
 void L1TCtL2EgProducer::endJob() {
   // Writing pending events to file before exiting
-  if(doOutPtrn_) outPtrnWrt_->flush();
-  if(doInPtrn_) inPtrnWrt_->flush();
-}
-
-
-
-
-int L1TCtL2EgProducer::mapBoardId(float eta, float phi) const {
-  const auto idxitr = board_map_.find(std::make_pair(eta, phi));
-  if (idxitr == board_map_.end())
-    return -1;
-  return idxitr->second;
+  if (doOutPtrn_)
+    outPtrnWrt_->flush();
+  if (doInPtrn_)
+    inPtrnWrt_->flush();
 }
 
 void L1TCtL2EgProducer::convertToEmu(const l1t::TkElectron &tkele,
@@ -385,10 +328,8 @@ void L1TCtL2EgProducer::convertToEmu(const l1t::TkElectron &tkele,
   }
   refRemapper.origRefAndPtr.push_back(std::make_pair(refEg, tkele.trkPtr()));
   emu.sta_idx = refRemapper.origRefAndPtr.size() - 1;
-  emu.setHwIso(EGIsoEleObjEmu::IsoType::TkIso,
-               l1ct::Scales::makeIso(tkele.trkIsol()));
-  emu.setHwIso(EGIsoEleObjEmu::IsoType::PfIso,
-               l1ct::Scales::makeIso(tkele.pfIsol()));
+  emu.setHwIso(EGIsoEleObjEmu::IsoType::TkIso, l1ct::Scales::makeIso(tkele.trkIsol()));
+  emu.setHwIso(EGIsoEleObjEmu::IsoType::PfIso, l1ct::Scales::makeIso(tkele.pfIsol()));
   // std::cout << "[convertToEmu] TkEle pt: " << emu.hwPt << " eta: " << emu.hwEta << " phi: " << emu.hwPhi << " staidx: " << emu.sta_idx << std::endl;
 
   boarOut.egelectron.push_back(emu);
@@ -405,28 +346,20 @@ void L1TCtL2EgProducer::convertToEmu(const l1t::TkEm &tkem,
   if (newref != refRemapper.old2newRefMap.end()) {
     refEg = newref->second;
   }
-  refRemapper.origRefAndPtr.push_back(
-      std::make_pair(refEg, edm::Ptr<RefRemapper::L1TTTrackType>(nullptr, 0)));
+  refRemapper.origRefAndPtr.push_back(std::make_pair(refEg, edm::Ptr<RefRemapper::L1TTTrackType>(nullptr, 0)));
   emu.sta_idx = refRemapper.origRefAndPtr.size() - 1;
-  emu.setHwIso(EGIsoObjEmu::IsoType::TkIso,
-               l1ct::Scales::makeIso(tkem.trkIsol()));
-  emu.setHwIso(EGIsoObjEmu::IsoType::PfIso,
-               l1ct::Scales::makeIso(tkem.pfIsol()));
-  emu.setHwIso(EGIsoObjEmu::IsoType::TkIsoPV,
-               l1ct::Scales::makeIso(tkem.trkIsolPV()));
-  emu.setHwIso(EGIsoObjEmu::IsoType::PfIsoPV,
-               l1ct::Scales::makeIso(tkem.pfIsolPV()));
+  emu.setHwIso(EGIsoObjEmu::IsoType::TkIso, l1ct::Scales::makeIso(tkem.trkIsol()));
+  emu.setHwIso(EGIsoObjEmu::IsoType::PfIso, l1ct::Scales::makeIso(tkem.pfIsol()));
+  emu.setHwIso(EGIsoObjEmu::IsoType::TkIsoPV, l1ct::Scales::makeIso(tkem.trkIsolPV()));
+  emu.setHwIso(EGIsoObjEmu::IsoType::PfIsoPV, l1ct::Scales::makeIso(tkem.pfIsolPV()));
   // std::cout << "[convertToEmu] TkEM pt: " << emu.hwPt << " eta: " << emu.hwEta << " phi: " << emu.hwPhi << " staidx: " << emu.sta_idx << std::endl;
   boarOut.egphoton.push_back(emu);
 }
 
-l1t::TkEm
-L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso,
-                                  const RefRemapper &refRemapper) const {
+l1t::TkEm L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso, const RefRemapper &refRemapper) const {
   // std::cout << "[convertFromEmu] TkEm pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi << " staidx: " << egiso.sta_idx << std::endl;
 
-  reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.floatEta(),
-                                          egiso.floatPhi(), 0.);
+  reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.floatEta(), egiso.floatPhi(), 0.);
   l1t::TkEm tkem(reco::Candidate::LorentzVector(mom),
                  refRemapper.origRefAndPtr[egiso.sta_idx].first,
                  egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIso),
@@ -440,19 +373,16 @@ L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso,
   return tkem;
 }
 
-l1t::TkElectron
-L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoEleObjEmu &egele,
-                                  const RefRemapper &refRemapper) const {
+l1t::TkElectron L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoEleObjEmu &egele,
+                                                  const RefRemapper &refRemapper) const {
   // std::cout << "[convertFromEmu] TkEle pt: " << egele.hwPt << " eta: " << egele.hwEta << " phi: " << egele.hwPhi << " staidx: " << egele.sta_idx << std::endl;
 
-  reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta,
-                                          egele.hwPhi, 0.);
+  reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta, egele.hwPhi, 0.);
 
-  l1t::TkElectron tkele(
-      reco::Candidate::LorentzVector(mom),
-      refRemapper.origRefAndPtr[egele.sta_idx].first,
-      refRemapper.origRefAndPtr[egele.sta_idx].second,
-      egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::TkIso));
+  l1t::TkElectron tkele(reco::Candidate::LorentzVector(mom),
+                        refRemapper.origRefAndPtr[egele.sta_idx].first,
+                        refRemapper.origRefAndPtr[egele.sta_idx].second,
+                        egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::TkIso));
   // FIXME: need to define a global quality (barrel+endcap)?
   tkele.setHwQual(egele.hwQual);
   tkele.setPFIsol(egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::PfIso));
