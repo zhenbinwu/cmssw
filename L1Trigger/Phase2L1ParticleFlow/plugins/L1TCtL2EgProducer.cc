@@ -143,7 +143,7 @@ private:
       int linkID = links[iBoard];
       if (linkID < 0)
         continue;
-      std::cout << "Board eta: " << in->eta(iBoard) << " phi: " << in->phi(iBoard) << " link: " << linkID << std::endl;
+      // std::cout << "Board eta: " << in->eta(iBoard) << " phi: " << in->phi(iBoard) << " link: " << linkID << std::endl;
       for (const auto &obj : region) {
         convertToEmu(obj, refRemapper, out->at(linkID));
       }
