@@ -120,6 +120,5 @@ std::vector<L1SCJetEmu::Jet> L1SCJetEmu::emulateEvent(std::vector<Particle>& par
     work.erase(std::remove_if(work.begin(), work.end(), [&](const Particle& part) { return inCone(seed, part); }),
                work.end());
   }
-  std::stable_sort(jets.begin(), jets.end(), [](Jet i, Jet j) { return (i.hwPt > j.hwPt); });
   return jets;
 }

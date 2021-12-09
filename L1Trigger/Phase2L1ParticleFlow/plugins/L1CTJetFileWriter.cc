@@ -39,7 +39,7 @@ private:
   // ----------member functions ----------------------
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
-  std::vector<ap_uint<64>> encodeJets(const edm::View<l1t::PFJet>& jets);
+  std::vector<ap_uint<64>> encodeJets(const std::vector<l1t::PFJet> jets);
 
   edm::EDGetTokenT<edm::View<l1t::PFJet>> jetsToken_;
   l1t::demo::BoardDataWriter fileWriterOutputToGT_;
@@ -64,7 +64,14 @@ void L1CTJetFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup&
   using namespace edm;
 
   // 1) Encode jet information onto vectors containing link data
-  const auto outputJets(encodeJets(iEvent.get(jetsToken_)));
+  // TODO remove the sort here and sort the input collection where it's created
+  edm::View<l1t::PFJet> jets = iEvent.get(jetsToken_);
+  std::vector<l1t::PFJet> sortedJets;
+  sortedJets.reserve(jets.size());
+  std::copy(jets.begin(), jets.end(), std::back_inserter(sortedJets));
+
+  std::stable_sort(sortedJets.begin(), sortedJets.end(), [](l1t::PFJet i, l1t::PFJet j) { return (i.hwPt() > j.hwPt()); });
+  const auto outputJets(encodeJets(sortedJets));
 
   // 2) Pack jet information into 'event data' object, and pass that to file writer
   l1t::demo::EventData eventDataJets;
@@ -78,7 +85,7 @@ void L1CTJetFileWriter::endJob() {
   fileWriterOutputToGT_.flush();
 }
 
-std::vector<ap_uint<64>> L1CTJetFileWriter::encodeJets(const edm::View<l1t::PFJet>& jets) {
+std::vector<ap_uint<64>> L1CTJetFileWriter::encodeJets(const std::vector<l1t::PFJet> jets) {
   std::vector<ap_uint<64>> jet_words;
   for (unsigned i = 0; i < nJets_; i++) {
     l1t::PFJet j;
