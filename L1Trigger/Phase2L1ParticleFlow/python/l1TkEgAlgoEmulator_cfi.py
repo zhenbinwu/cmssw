@@ -54,5 +54,5 @@ tkEgAlgoParameters = cms.PSet(
 
 tkEgSorterParameters = cms.PSet(
     nObjToSort=cms.uint32(6),
-    nObjSorted=cms.uint32(54),
+    nObjSorted=cms.uint32(16),
 )
