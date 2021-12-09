@@ -15,9 +15,10 @@ ak4PFL1PF      = _ak4PFJets.clone(src = 'l1pfCandidates:PF')
 ak4PFL1Puppi   = _ak4PFJets.clone(src = 'l1pfCandidates:Puppi')
 
 from L1Trigger.Phase2L1ParticleFlow.L1SeedConePFJetProducer_cfi import L1SeedConePFJetProducer, L1SeedConePFJetEmulatorProducer
+from L1Trigger.Phase2L1ParticleFlow.DeregionizerProducer_cfi import DeregionizerProducer as l1ctLayer2Deregionizer
 scPFL1PF            = L1SeedConePFJetProducer.clone(L1PFObjects = 'l1ctLayer1:PF')
 scPFL1Puppi         = L1SeedConePFJetProducer.clone()
-scPFL1PuppiEmulator = L1SeedConePFJetEmulatorProducer.clone()
+scPFL1PuppiEmulator = L1SeedConePFJetEmulatorProducer.clone(L1PFObject = cms.InputTag('l1ctLayer2Deregionizer', 'Puppi'))
 
 _correctedJets = cms.EDProducer("L1TCorrectedPFJetProducer", 
     jets = cms.InputTag("_tag_"),
@@ -38,7 +39,7 @@ ak4PFL1PuppiCorrected = _correctedJets.clone(jets = 'ak4PFL1Puppi', correctorDir
 l1PFJetsTask = cms.Task(
     ak4PFL1Calo, ak4PFL1PF, ak4PFL1Puppi,
     ak4PFL1CaloCorrected, ak4PFL1PFCorrected, ak4PFL1PuppiCorrected,
-    scPFL1PF, scPFL1Puppi, scPFL1PuppiEmulator
+    l1ctLayer2Deregionizer, scPFL1PF, scPFL1Puppi, scPFL1PuppiEmulator
 )
 
 
