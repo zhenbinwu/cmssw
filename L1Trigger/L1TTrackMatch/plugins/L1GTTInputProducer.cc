@@ -202,7 +202,7 @@ double L1GTTInputProducer::unpackSignedValue(unsigned int bits, unsigned int nBi
   // Convert from twos compliment to C++ signed integer (normal digitized value)
   int digitizedValue = bits;
   if (bits & (1 << (nBits - 1))) {  // check if the 'bits' is negative
-     digitizedValue -= (1 << nBits);
+    digitizedValue -= (1 << nBits);
   }
 
   // Convert to floating point value
@@ -272,7 +272,8 @@ bool L1GTTInputProducer::getEtaBits(
       indexTanLambda >>
       (kEtaInputSize -
        kEtaOutputSize);  // Don't subtract 1 because we now want to take into account the sign bit of the output
-  indexTanLambda = (indexTanLambda < (1 << (kEtaOutputSize - 1))) ? indexTanLambda : in_eta_t((1 << (kEtaOutputSize - 1)) - 1);
+  indexTanLambda =
+      (indexTanLambda < (1 << (kEtaOutputSize - 1))) ? indexTanLambda : in_eta_t((1 << (kEtaOutputSize - 1)) - 1);
   etaBits = eta_lut_[indexTanLambda];
 
   // Reinacting the sign
