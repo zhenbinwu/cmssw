@@ -56,7 +56,7 @@ process.runPF = cms.Path(
         process.pfTracksFromL1Tracks +
         process.l1ParticleFlow_calo +
         process.l1ctLayer1Barrel +
-        # process.l1ctLayer1Barrel9 +
+        process.l1ctLayer1Barrel9 +
         process.l1ctLayer1HGCal +
         process.l1ctLayer1HGCalNoTK +
         process.l1ctLayer1HF +
