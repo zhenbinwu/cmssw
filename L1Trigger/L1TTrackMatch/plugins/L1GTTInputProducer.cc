@@ -76,7 +76,7 @@ private:
   static constexpr double kPTErrThresh = 5;                    // error threshold in percent
   static constexpr double kSynchrotron = (1.0 / (0.3 * 3.8));  // 1/(0.3*B) for 1/R to 1/pT conversion
   static constexpr unsigned int kPtLutSize = (1 << ConversionBitWidths::kPTOutputSize);
-  static constexpr unsigned int kEtaLutSize = (1 << ConversionBitWidths::kEtaOutputSize);
+  static constexpr unsigned int kEtaLutSize = (1 << ConversionBitWidths::kEtaOutputSize - 1);
 
   typedef TTTrack<Ref_Phase2TrackerDigi_> L1Track;
   typedef std::vector<L1Track> TTTrackCollection;
@@ -202,7 +202,7 @@ double L1GTTInputProducer::unpackSignedValue(unsigned int bits, unsigned int nBi
   // Convert from twos compliment to C++ signed integer (normal digitized value)
   int digitizedValue = bits;
   if (bits & (1 << (nBits - 1))) {  // check if the 'bits' is negative
-     digitizedValue -= (1 << nBits);
+    digitizedValue -= (1 << nBits);
   }
 
   // Convert to floating point value
@@ -272,6 +272,8 @@ bool L1GTTInputProducer::getEtaBits(
       indexTanLambda >>
       (kEtaInputSize -
        kEtaOutputSize);  // Don't subtract 1 because we now want to take into account the sign bit of the output
+  indexTanLambda =
+      (indexTanLambda < (1 << (kEtaOutputSize - 1))) ? indexTanLambda : in_eta_t((1 << (kEtaOutputSize - 1)) - 1);
   etaBits = eta_lut_[indexTanLambda];
 
   // Reinacting the sign
