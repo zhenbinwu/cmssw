@@ -69,7 +69,6 @@ private:
   std::vector<global_phi_t> phiShift;
 
   bool GTTinput_ = false;
-
 };
 
 // Template to allow vertex word or vertex from vertex finder depending on simulation vs emulation
@@ -102,18 +101,18 @@ InternalEtWord L1TkEtMissEmuTrackTransform::transformTrack(track& track_ref, ver
     track_ref.setTrackWordBits();
     // Change track word digitization to digitization expected by track MET
     Outword.pt = digitizeSignedValue<TTTrack_TrackWord::rinv_t>(
-       track_ref.momentum().perp(), kInternalPtWidth, l1tmetemu::kStepPt);
+        track_ref.momentum().perp(), kInternalPtWidth, l1tmetemu::kStepPt);
 
     Outword.eta = digitizeSignedValue<TTTrack_TrackWord::tanl_t>(
         abs(track_ref.momentum().eta()), kInternalEtaWidth, l1tmetemu::kStepEta);
   }
-    
+
   Outword.chi2rphidof = track_ref.getChi2RPhiWord();
   Outword.chi2rzdof = track_ref.getChi2RZWord();
   Outword.bendChi2 = track_ref.getBendChi2Word();
   Outword.nstubs = countNStub(track_ref.getHitPatternWord());
   Outword.Hitpattern = track_ref.getHitPatternWord();
-  Outword.Sector =  track_ref.phiSector();
+  Outword.Sector = track_ref.phiSector();
   Outword.EtaSector = (track_ref.getTanlWord() & (1 << (TTTrack_TrackWord::TrackBitWidths::kTanlSize - 1)));
   Outword.phi = track_ref.phi();
   Outword.globalPhi = localToGlobalPhi(track_ref.getPhiWord(), phiShift[track_ref.phiSector()]);
@@ -123,8 +122,9 @@ InternalEtWord L1TkEtMissEmuTrackTransform::transformTrack(track& track_ref, ver
       TTTrack_TrackWord::TrackBitWidths::kZ0Size,
       TTTrack_TrackWord::stepZ0);  // Convert vertex to integer representation
   //Rescale to internal representations
-  Outword.z0 = transformSignedValue(track_ref.getZ0Word(), TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
-  Outword.pV = transformSignedValue( temp_pv, TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
+  Outword.z0 =
+      transformSignedValue(track_ref.getZ0Word(), TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
+  Outword.pV = transformSignedValue(temp_pv, TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
 
   return Outword;
 }

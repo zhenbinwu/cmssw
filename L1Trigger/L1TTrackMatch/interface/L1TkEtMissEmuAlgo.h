@@ -19,8 +19,8 @@ using namespace std;
 // Includes functions for writing LUTs and converting to integer representations
 namespace l1tmetemu {
 
-  const unsigned int kInternalVTXWidth{12};   //default 8   max 12
-  const unsigned int kInternalEtaWidth{8};  //default 8 max 16
+  const unsigned int kInternalVTXWidth{12};  //default 8   max 12
+  const unsigned int kInternalEtaWidth{8};   //default 8 max 16
   const unsigned int kInternalPtWidth{15};   // default 15  max 15
   const unsigned int kInternalPhiWidth{8};   //default 8  max  12
 
@@ -85,8 +85,8 @@ namespace l1tmetemu {
   };
 
   std::vector<global_phi_t> generateCosLUT(unsigned int size);
-  std::vector<eta_t> generateEtaRegionLUT( vector<double> EtaRegions);
-  std::vector<z_t> generateDeltaZLUT( vector<double> DeltaZBins );
+  std::vector<eta_t> generateEtaRegionLUT(vector<double> EtaRegions);
+  std::vector<z_t> generateDeltaZLUT(vector<double> DeltaZBins);
 
   template <typename T>
   T digitizeSignedValue(double value, unsigned int nBits, double lsb) {
@@ -117,7 +117,6 @@ namespace l1tmetemu {
 
   int unpackSignedValue(unsigned int bits, unsigned int nBits);
 
-  
   unsigned int transformSignedValue(unsigned int bits, unsigned int oldnBits, unsigned int newnBits);
 
 }  // namespace l1tmetemu

@@ -120,10 +120,9 @@ L1TrackerEtMissEmulatorProducer::L1TrackerEtMissEmulatorProducer(const edm::Para
   maxEta_ = l1tmetemu::digitizeSignedValue<l1tmetemu::eta_t>(
       (double)iConfig.getParameter<double>("maxEta"), l1tmetemu::kInternalEtaWidth, l1tmetemu::kStepEta);
 
-  chi2rphiMax_ = l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rphidofMax"),
-                                           TTTrack_TrackWord::chi2RPhiBins);
-  chi2rzMax_ =
-      l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rzdofMax"), TTTrack_TrackWord::chi2RZBins);
+  chi2rphiMax_ =
+      l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rphidofMax"), TTTrack_TrackWord::chi2RPhiBins);
+  chi2rzMax_ = l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rzdofMax"), TTTrack_TrackWord::chi2RZBins);
   bendChi2Max_ =
       l1tmetemu::getBin((double)iConfig.getParameter<double>("bendChi2Max"), TTTrack_TrackWord::bendChi2Bins);
 
@@ -165,8 +164,7 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
   iEvent.getByToken(trackToken_, L1TTTrackHandle);
 
   // Initialize cordic class
-  Cordic cordicSqrt(
-      l1tmetemu::kMETPhiBins, l1tmetemu::kMETSize, cordicSteps_, cordicDebug_ );
+  Cordic cordicSqrt(l1tmetemu::kMETPhiBins, l1tmetemu::kMETSize, cordicSteps_, cordicDebug_);
 
   if (!L1VertexHandle.isValid()) {
     LogError("L1TrackerEtMissEmulatorProducer") << "\nWarning: VertexCollection not found in the event. Exit\n";
@@ -180,8 +178,8 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
 
   // Initialize sector sums, need 0 initialization in case a sector has no
   // tracks
-  l1tmetemu::Et_t sumPx[l1tmetemu::kNSector * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  l1tmetemu::Et_t sumPy[l1tmetemu::kNSector * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  l1tmetemu::Et_t sumPx[l1tmetemu::kNSector * 2] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  l1tmetemu::Et_t sumPy[l1tmetemu::kNSector * 2] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int sector_totals[l1tmetemu::kNSector] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   // Track counters
@@ -297,8 +295,8 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
 
               << "Float Phi: " << (float)EtTrack.globalPhi / l1tmetemu::kGlobalPhiBins << " Float Cos(Phi): -"
               << (float)cosLUT_[phiQuadrants_[2] - 1 - EtTrack.globalPhi] / l1tmetemu::kGlobalPhiBins
-              << " Float Sin(Phi): "
-              << (float)cosLUT_[EtTrack.globalPhi - phiQuadrants_[1]] / l1tmetemu::kGlobalPhiBins << "\n";
+              << " Float Sin(Phi): " << (float)cosLUT_[EtTrack.globalPhi - phiQuadrants_[1]] / l1tmetemu::kGlobalPhiBins
+              << "\n";
         }
       } else if (EtTrack.globalPhi >= phiQuadrants_[2] && EtTrack.globalPhi < phiQuadrants_[3]) {
         temppx = -(EtTrack.pt * cosLUT_[EtTrack.globalPhi - phiQuadrants_[2]]);

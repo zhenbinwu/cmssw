@@ -74,10 +74,9 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
     // This has less to do with the algorithms than the constraints of what will be sent to the vertexing algorithm
     if (l1track.pt() >= settings_.vx_TrackMinPt()) {
       l1Tracks.push_back(l1track);
-    }
-    else {
+    } else {
       if (settings_.debug() > 2) {
-        edm::LogInfo("VertexProducer") << "produce::Removing track with too low of a pt (" << l1track.pt() <<")\n"
+        edm::LogInfo("VertexProducer") << "produce::Removing track with too low of a pt (" << l1track.pt() << ")\n"
                                        << "         word = " << l1track.getTTTrackPtr()->getTrackWord().to_string(2);
       }
     }
