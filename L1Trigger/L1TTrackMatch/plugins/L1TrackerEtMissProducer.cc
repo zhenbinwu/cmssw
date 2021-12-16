@@ -59,8 +59,8 @@ private:
   int highPtTracks_;  // saturate or truncate
   bool displaced_;    // prompt/displaced tracks
 
-  vector<double> z0Thresholds_; // Threshold for track to vertex association
-  vector<double> etaRegions_; // Eta bins for choosing deltaZ threshold
+  vector<double> z0Thresholds_;  // Threshold for track to vertex association
+  vector<double> etaRegions_;    // Eta bins for choosing deltaZ threshold
 
   bool debug_;
 
@@ -152,7 +152,7 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     float bendChi2 = trackIter->stubPtConsistency();
     float z0 = trackIter->z0();
     unsigned int Sector = trackIter->phiSector();
-    std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > >
+    std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
         theStubs = trackIter->getStubRefs();
     int nstubs = (int)theStubs.size();
 

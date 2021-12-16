@@ -5,7 +5,7 @@
 #include <ap_int.h>
 #include <cassert>
 #include <cmath>
-#include <bitset> 
+#include <bitset>
 #include <string>
 
 namespace l1t {
@@ -51,41 +51,35 @@ namespace l1t {
     typedef ap_ufixed<kPtSize, kPtMagSize, AP_TRN, AP_SAT> pt_t;
     typedef ap_int<kGlbEtaSize> glbeta_t;
     typedef ap_int<kGlbPhiSize> glbphi_t;
-    typedef ap_int<kZ0Size> z0_t;         // 40cm / 0.1
-    typedef ap_uint<kNtSize> nt_t; //number of tracks
-    typedef ap_uint<kXtSize> nx_t; //number of tracks with xbit = 1
+    typedef ap_int<kZ0Size> z0_t;                                        // 40cm / 0.1
+    typedef ap_uint<kNtSize> nt_t;                                       //number of tracks
+    typedef ap_uint<kXtSize> nx_t;                                       //number of tracks with xbit = 1
     typedef ap_uint<TkJetBitWidths::kUnassignedSize> tkjetunassigned_t;  // Unassigned bits
     typedef std::bitset<TkJetBitWidths::kTkJetWordSize> tkjetword_bs_t;
     typedef ap_uint<TkJetBitWidths::kTkJetWordSize> tkjetword_t;
-    
+
   public:
     // ----------Constructors --------------------------
     TkJetWord() {}
-    TkJetWord(pt_t pt,
-              glbeta_t eta,
-              glbphi_t phi,
-              z0_t z0,
-              nt_t nt,
-              nx_t nx,
-              tkjetunassigned_t unassigned) {
+    TkJetWord(pt_t pt, glbeta_t eta, glbphi_t phi, z0_t z0, nt_t nt, nx_t nx, tkjetunassigned_t unassigned) {
       std::string word = "";
-      word.append(TkJetBitWidths::kUnassignedSize - (unassigned.to_string().length()-2),'0');
-      word = word + (unassigned.to_string().substr(2,unassigned.to_string().length()-2));
-      word.append(TkJetBitWidths::kXtSize - (nx.to_string().length()-2),'0');
-      word = word + (nx.to_string().substr(2,nx.to_string().length()-2));
-      word.append(TkJetBitWidths::kNtSize - (nt.to_string().length()-2),'0');
-      word = word + (nt.to_string().substr(2,nt.to_string().length()-2));
-      word.append(TkJetBitWidths::kZ0Size - (z0.to_string().length()-2),'0');
-      word = word + (z0.to_string().substr(2,z0.to_string().length()-2));
-      word.append(TkJetBitWidths::kGlbPhiSize - (phi.to_string().length()-2),'0');
-      word = word + (phi.to_string().substr(2,phi.to_string().length()-2));
-      word.append(TkJetBitWidths::kGlbEtaSize - (eta.to_string().length()-2),'0');
-      word = word + (eta.to_string().substr(2,eta.to_string().length()-2));
+      word.append(TkJetBitWidths::kUnassignedSize - (unassigned.to_string().length() - 2), '0');
+      word = word + (unassigned.to_string().substr(2, unassigned.to_string().length() - 2));
+      word.append(TkJetBitWidths::kXtSize - (nx.to_string().length() - 2), '0');
+      word = word + (nx.to_string().substr(2, nx.to_string().length() - 2));
+      word.append(TkJetBitWidths::kNtSize - (nt.to_string().length() - 2), '0');
+      word = word + (nt.to_string().substr(2, nt.to_string().length() - 2));
+      word.append(TkJetBitWidths::kZ0Size - (z0.to_string().length() - 2), '0');
+      word = word + (z0.to_string().substr(2, z0.to_string().length() - 2));
+      word.append(TkJetBitWidths::kGlbPhiSize - (phi.to_string().length() - 2), '0');
+      word = word + (phi.to_string().substr(2, phi.to_string().length() - 2));
+      word.append(TkJetBitWidths::kGlbEtaSize - (eta.to_string().length() - 2), '0');
+      word = word + (eta.to_string().substr(2, eta.to_string().length() - 2));
       ap_uint<kPtSize> pt_temp = pt << 2;
-      word.append(TkJetBitWidths::kPtSize - (pt_temp.to_string().length()-2),'0');
-      word = word + (pt_temp.to_string().substr(2,pt_temp.to_string().length()-2));
+      word.append(TkJetBitWidths::kPtSize - (pt_temp.to_string().length() - 2), '0');
+      word = word + (pt_temp.to_string().substr(2, pt_temp.to_string().length() - 2));
 
-      tkjetword_bs_t tmp (word);
+      tkjetword_bs_t tmp(word);
       tkJetWord_ = tmp;
     }
 
@@ -153,18 +147,12 @@ namespace l1t {
     float glbeta() const { return glbEtaWord().to_float() * ETAPHI_LSB; }
     float glbphi() const { return glbPhiWord().to_float() * ETAPHI_LSB; }
     float z0() const { return z0Word().to_float() * Z0_LSB; }
-    int nt() const { return (ap_ufixed<kNtSize+2, kNtSize>(ntWord())).to_int(); }
-    int xt() const { return (ap_ufixed<kXtSize+2, kXtSize>(xtWord())).to_int(); }
+    int nt() const { return (ap_ufixed<kNtSize + 2, kNtSize>(ntWord())).to_int(); }
+    int xt() const { return (ap_ufixed<kXtSize + 2, kXtSize>(xtWord())).to_int(); }
     unsigned int unassigned() const { return unassignedWord().to_uint(); }
 
     // ----------member functions (setters) ------------
-    void setTkJetWord(pt_t pt,
-                      glbeta_t eta,
-              	      glbphi_t phi,
-               	      z0_t z0,
-                      nt_t nt,
-                      nx_t nx,
-                      tkjetunassigned_t unassigned);
+    void setTkJetWord(pt_t pt, glbeta_t eta, glbphi_t phi, z0_t z0, nt_t nt, nx_t nx, tkjetunassigned_t unassigned);
 
   private:
     // ----------private member functions --------------
@@ -181,10 +169,9 @@ namespace l1t {
     // ----------member data ---------------------------
     tkjetword_bs_t tkJetWord_;
   };
- 
 
   typedef std::vector<l1t::TkJetWord> TkJetWordCollection;
-  
+
 }  // namespace l1t
 
 #endif
