@@ -106,12 +106,12 @@ namespace Phase2L1GMT {
 
   // Ideal the object should carry its own ap types once we finalize
   int TopoAlgo::deltaPhi(int phi1, int phi2) {
-    static const int maxbits = (1 << BITSPHI) - 1;
-    static const int pibits = (1 << (BITSPHI - 1));
-    int dphi = abs(phi1 - phi2);
-    if (dphi >= pibits)
-      dphi = maxbits - dphi;
-    return dphi;
+    ap_int<BITSPHI> temp = phi1 - phi2;
+    if (temp >=0)
+      return temp.to_int();
+    else
+      return (-temp).to_int();
+
   }
 }  // namespace Phase2L1GMT
 

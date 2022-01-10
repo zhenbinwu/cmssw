@@ -33,8 +33,7 @@ namespace Phase2L1GMT {
   private:
     bool Find3MuComb(std::vector<l1t::TrackerMuon> &trkMus);
 
-    bool FindCloset3Mu(std::vector<std::pair<int, unsigned int> > &mu_phis,
-                       std::vector<std::pair<unsigned, unsigned> > &nearby3mu);
+    bool FindCloset3Mu(std::vector<std::vector<unsigned> > &nearby3mu);
 
     int Get3MuDphi(unsigned target, unsigned obj1, unsigned obj2);
 
@@ -42,10 +41,13 @@ namespace Phase2L1GMT {
 
     float GetDiMass(const l1t::TrackerMuon &mu1, const l1t::TrackerMuon &mu2);
     float DumpInputs(unsigned target, unsigned obj1, unsigned obj2 );
-    void DumpOutputs(float expMass, float emuMass);
+
+    void DumpOutputs(int Nevt, unsigned obj0, unsigned obj1, unsigned obj2, float expMass, float emuMass);
+    void DumpOutputs(unsigned obj0, unsigned obj1, unsigned obj2, float expMass, float emuMass);
 
     const int PT_MINV_LSB_RED = 2;
     const int pihalf = (1 << (BITSPHI -2));
+    int Nevt=-1;
     bool verbose_;
     bool dumpForHLS_;
     std::ofstream dumpOutput;
@@ -100,8 +102,17 @@ namespace Phase2L1GMT {
 
   }
 
-  void Tauto3Mu::DumpOutputs(float expMass, float emuMass) {
-        dumpOutput <<  emuMass<<" 0 "<< expMass <<" 0 "<< endl;
+  void Tauto3Mu::DumpOutputs(unsigned obj0, unsigned obj1, unsigned obj2, float expMass, float emuMass) {
+    dumpOutput <<  
+      trkMus->at(obj0).hwPt() << " "<< trkMus->at(obj0).hwPhi() << " "<< trkMus->at(obj0).hwEta() << " "<<
+      trkMus->at(obj1).hwPt() << " "<< trkMus->at(obj1).hwPhi() << " "<< trkMus->at(obj1).hwEta() << " "<<
+      trkMus->at(obj2).hwPt() << " "<< trkMus->at(obj2).hwPhi() << " "<< trkMus->at(obj2).hwEta() << " "<<
+      emuMass<<"  "<< expMass << endl;
+  }
+
+  void Tauto3Mu::DumpOutputs(int Nevt, unsigned obj0, unsigned obj1, unsigned obj2, float expMass, float emuMass) {
+    dumpOutput << Nevt <<" : ";
+    DumpOutputs(obj0, obj1, obj2, expMass, emuMass);
   }
 
   // ===  FUNCTION  ============================================================
@@ -110,6 +121,8 @@ namespace Phase2L1GMT {
   // ===========================================================================
   std::vector<l1t::Tau23Mu> Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks) {
     outtau.clear();
+    Nevt++;
+
     if (trkMus.size() < 3)
       return outtau;
 
@@ -123,30 +136,25 @@ namespace Phase2L1GMT {
   //  Description:
   // ===========================================================================
   bool Tauto3Mu::Find3MuComb(std::vector<l1t::TrackerMuon> &trkMus) {
-    // vector< phi, index of trackerMuon >
-    std::vector<std::pair<int, unsigned int> > mu_phis;
-    for (unsigned i = 0; i < trkMus.size(); ++i) {
-      mu_phis.push_back(std::make_pair(trkMus.at(i).hwPhi(), i));
-    }
-
-    std::sort(mu_phis.begin(), mu_phis.end());
-
-    std::vector<std::pair<unsigned, unsigned> > nearby3mu;
-    std::vector<int> mu3mass;
-    FindCloset3Mu(mu_phis, nearby3mu);
+    std::vector<std::vector<unsigned> > nearby3mu;
+    FindCloset3Mu(nearby3mu);
 
     for (unsigned i = 0; i < trkMus.size(); ++i) {
-      float trimass = Get3MuMass(i, nearby3mu.at(i).first, nearby3mu.at(i).second);
-      mu3mass.push_back(trimass);
 
-      l1t::Tau23Mu temp(0, 0, 0, trimass, 0, i, nearby3mu.at(i).first, nearby3mu.at(i).second);
+      l1t::TrackerMuon &seedmu = trkMus[nearby3mu[i][0]];
+      float trimass = Get3MuMass(nearby3mu[i][0], nearby3mu[i][1], nearby3mu[i][2]);
+      int outmass(int(trimass) >> 3);
+
+      l1t::Tau23Mu temp(seedmu.hwPt(), seedmu.hwEta(), seedmu.hwPhi(), trimass, 
+          0, nearby3mu[i][0], nearby3mu[i][1], nearby3mu[i][2]);
+
       outtau.push_back(temp);
 
       if (dumpForHLS_) {
-        float expMass = DumpInputs(i, nearby3mu.at(i).first, nearby3mu.at(i).second);
-        float cvtmass = sqrt(trimass) * LSBpt *(1<<PT_MINV_LSB_RED);
-        //float cvtmass = trimass;
-        DumpOutputs(expMass, cvtmass);
+        float expMass = DumpInputs(nearby3mu[i][0], nearby3mu[i][1], nearby3mu[i][2]);
+        float cvtmass = sqrt(2*trimass) * LSBpt *(1<<PT_MINV_LSB_RED);
+        //std::cout << " expMass " << expMass <<" cvtMass " << cvtmass << " outmass " << outmass <<" expIntMAss " << cvtmass*cvtmass/0.25 <<" diff " << cvtmass*cvtmass/outmass << std::endl;
+        DumpOutputs(Nevt, nearby3mu[i][0], nearby3mu[i][1], nearby3mu[i][2], expMass, cvtmass);
       }
     }
 
@@ -162,10 +170,18 @@ namespace Phase2L1GMT {
     float mass23 = GetDiMass(trkMus->at(obj1), trkMus->at(obj2));
     float mass31 = GetDiMass(trkMus->at(obj2), trkMus->at(target));
 
-    return mass12 + mass23 + mass31;
-    //typedef ap_ufixed<45, 26, AP_TRN, AP_SAT> hw_minv2over2_t; // m^2/2, LSB : 25 MeV^2 x (2^2)^2
-    //hw_minv2over2_t temp(mass12);
-    //return temp;
+    ap_ufixed<45, 26, AP_TRN, AP_SAT> temp(mass12 + mass23 + mass31);
+    if (verbose_)
+    {
+      std::cout <<  target <<" "<<obj1 <<" "<<obj2 << std::endl;
+      std::cout << "mass12 " <<  mass12 <<", "
+        << "mass23 " <<  mass23 <<", "
+        << "mass31 " <<  mass31 <<", "
+        <<" total " << temp <<", "
+        <<" float " << sqrt(2*temp.to_float()) * LSBpt *(1<<PT_MINV_LSB_RED)
+        << std::endl;
+    }
+    return temp;
   }  // -----  end of function Tauto3Mu::Get3MuMass  -----
 
   // ===  FUNCTION  ============================================================
@@ -176,17 +192,33 @@ namespace Phase2L1GMT {
     int ptprod = (mu1.hwPt() >> PT_MINV_LSB_RED) * (mu2.hwPt()  >> PT_MINV_LSB_RED);
 
     int deta = deltaEta(mu1.hwEta(), mu2.hwEta());
-    float coshdeta = cosh_deta_lut[deta>>3];
+    float coshdeta = cosh_deta_lut[deta>>3].to_float();
 
     int dphi = deltaPhi(mu1.hwPhi(), mu2.hwPhi());
     bool abovepihalf = dphi > pihalf;
     if (abovepihalf)
         dphi = dphi - pihalf;
-    float cosdphi = cos_dphi_lut[dphi];
+    float cosdphi = cos_dphi_lut[dphi].to_float();
     if (abovepihalf)
         cosdphi = -1 * cosdphi;
 
-    float mass = 2 * ptprod * ( coshdeta - cosdphi);
+    float mass = ptprod * ( coshdeta - cosdphi);
+    if (verbose_)
+    {
+         std::cout << " ..... "
+                   << " pt1 "        << mu1.hwPt()
+                   << " pt2 "        << mu2.hwPt()
+                   << " ptprod "     << ptprod
+                   << "; deta "      << deta
+                   << " coshdeta "   << coshdeta
+                   << "; phi1 "      << mu1.hwPhi()
+                   << " phi2 "       << mu2.hwPhi()
+                   << " dphi "       << dphi
+                   << " cosdphi "    << cosdphi
+                   << " ; ang_diff " << ( coshdeta - cosdphi)
+                   << " minv2o2 "    << mass
+                   << std::endl;
+    }
     return mass;
   }  // -----  end of function Tauto3Mu::GetDiMass  -----
 
@@ -194,47 +226,45 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::FindCloset3Mu
   //  Description:
   // ===========================================================================
-  bool Tauto3Mu::FindCloset3Mu(std::vector<std::pair<int, unsigned int> > &mu_phis,
-                               std::vector<std::pair<unsigned, unsigned> > &nearby3mu) {
+  bool Tauto3Mu::FindCloset3Mu(std::vector<std::vector<unsigned> > &nearby3mu) {
+
     nearby3mu.clear();
 
-    std::vector<std::pair<int, unsigned int> > temp(mu_phis);
 
-    // Round the last 2 to first element of vector
-    temp.insert(temp.begin(), mu_phis.back());
-    temp.insert(temp.begin(), *(mu_phis.rbegin() + 1));
-    // Append the first two element to vector
-    temp.push_back(mu_phis.front());
-    temp.push_back(*(mu_phis.begin() + 1));
+    for (unsigned i = 0; i < trkMus->size(); ++i)
+    {
+      std::pair<unsigned, unsigned > minComp;
+      int mindR = 99999;
 
-    for (unsigned i = 2; i < temp.size() - 2; ++i) {
-      int combleft = Get3MuDphi(temp[i].second, temp[i - 1].second, temp[i - 2].second);
-      std::pair<unsigned, unsigned> neighbors(temp[i - 1].second, temp[i - 2].second);
-      int mincomb(combleft);
-
-      int combcenter = Get3MuDphi(temp[i].second, temp[i - 1].second, temp[i + 1].second);
-      if (combcenter < mincomb) {
-        neighbors = std::make_pair(temp[i - 1].second, temp[i + 1].second);
-        mincomb = combcenter;
+      for (unsigned j = 0; j < trkMus->size(); ++j)
+      {
+        if (i == j) continue;
+        for (unsigned k = 0; k < trkMus->size(); ++k)
+        {
+          if (i == k) continue;
+          if (j == k) continue;
+          int comp = Get3MuDphi(i, j, k);
+          if (comp < mindR)
+          {
+            mindR = comp;
+            minComp=std::make_pair(j, k);
+          }
+        }
       }
-
-      int combright = Get3MuDphi(temp[i].second, temp[i + 1].second, temp[i + 2].second);
-      if (combright < mincomb) {
-        neighbors = std::make_pair(temp[i + 1].second, temp[i + 2].second);
-      }
-
-      nearby3mu.push_back(neighbors);
+      std::vector<unsigned> tempv={i, minComp.first, minComp.second};
+      nearby3mu.push_back(tempv);
     }
-
     return true;
   }  // -----  end of function Tauto3Mu::FindCloset3Mu  -----
 
   int Tauto3Mu::Get3MuDphi(unsigned target, unsigned obj1, unsigned obj2) {
+    if (target == obj1 || obj1 == obj2 || target == obj2)
+      return 99999;
     int dPhi1 = deltaPhi(trkMus->at(target).hwPhi(), trkMus->at(obj1).hwPhi());
     int dPhi2 = deltaPhi(trkMus->at(target).hwPhi(), trkMus->at(obj2).hwPhi());
     int dEta1 = deltaEta(trkMus->at(target).hwEta(), trkMus->at(obj1).hwEta());
     int dEta2 = deltaEta(trkMus->at(target).hwEta(), trkMus->at(obj2).hwEta());
-    return dPhi1 + dPhi2 + dEta1 + dEta2;
+    return abs(dPhi1) + abs(dPhi2) + abs(dEta1) + abs(dEta2);
   }
 }  // namespace Phase2L1GMT
 
