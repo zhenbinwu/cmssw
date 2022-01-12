@@ -120,6 +120,7 @@ namespace Phase2L1GMT {
         wordtype word2 = 0;
 
         int bstart = 0;
+        bstart = wordconcat<wordtype>(word1, bstart, mu.hwPt()>0, 1);
         bstart = wordconcat<wordtype>(word1, bstart, mu.hwPt(), BITSGTPT);
         bstart = wordconcat<wordtype>(word1, bstart, mu.hwPhi(), BITSGTPHI);
         bstart = wordconcat<wordtype>(word1, bstart, mu.hwEta(), BITSGTETA);
