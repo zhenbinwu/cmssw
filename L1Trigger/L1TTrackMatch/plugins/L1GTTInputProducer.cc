@@ -76,7 +76,7 @@ private:
   static constexpr double kPTErrThresh = 5;                    // error threshold in percent
   static constexpr double kSynchrotron = (1.0 / (0.3 * 3.8));  // 1/(0.3*B) for 1/R to 1/pT conversion
   static constexpr unsigned int kPtLutSize = (1 << ConversionBitWidths::kPTOutputSize);
-  static constexpr unsigned int kEtaLutSize = (1 << ConversionBitWidths::kEtaOutputSize);
+  static constexpr unsigned int kEtaLutSize = (1 << ConversionBitWidths::kEtaOutputSize - 1);
 
   typedef TTTrack<Ref_Phase2TrackerDigi_> L1Track;
   typedef std::vector<L1Track> TTTrackCollection;
@@ -194,13 +194,19 @@ void L1GTTInputProducer::generate_pt_lut() {
 }
 
 double L1GTTInputProducer::unpackSignedValue(unsigned int bits, unsigned int nBits, double lsb) const {
-  int isign = 1;
-  unsigned int digitized_maximum = (1 << nBits) - 1;
-  if (bits & (1 << (nBits - 1))) {  // check the sign
-    isign = -1;
-    bits = (1 << (nBits + 1)) - bits;  // if negative, flip everything for two's complement encoding
+  // Check that none of the bits above the nBits-1 bit, in a range of [0, nBits-1], are set.
+  // This makes sure that it isn't possible for the value represented by 'bits' to be
+  //  any bigger than ((1 << nBits) - 1).
+  assert((bits >> nBits) == 0);
+
+  // Convert from twos compliment to C++ signed integer (normal digitized value)
+  int digitizedValue = bits;
+  if (bits & (1 << (nBits - 1))) {  // check if the 'bits' is negative
+    digitizedValue -= (1 << nBits);
   }
-  return (double(bits & digitized_maximum) + 0.5) * lsb * isign;
+
+  // Convert to floating point value
+  return (double(digitizedValue) + 0.5) * lsb;
 }
 
 /**
@@ -266,6 +272,8 @@ bool L1GTTInputProducer::getEtaBits(
       indexTanLambda >>
       (kEtaInputSize -
        kEtaOutputSize);  // Don't subtract 1 because we now want to take into account the sign bit of the output
+  indexTanLambda =
+      (indexTanLambda < (1 << (kEtaOutputSize - 1))) ? indexTanLambda : in_eta_t((1 << (kEtaOutputSize - 1)) - 1);
   etaBits = eta_lut_[indexTanLambda];
 
   // Reinacting the sign

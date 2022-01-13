@@ -7,11 +7,14 @@ from L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi import pfClu
 
 from l1TkEgAlgoEmulator_cfi import tkEgAlgoParameters
 
+muonInputConversionParameters = cms.PSet(
+    z0Scale = cms.double(1.875),
+    dxyScale = cms.double(3.85)
+)
+
 l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag('pfTracksFromL1Tracks'),
-    muons = cms.InputTag('simGmtStage2Digis',),
-    useStandaloneMuons = cms.bool(True),
-    useTrackerMuons = cms.bool(False),
+    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromL1EGClusters')),
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromCombinedCaloHCal:calibrated')),
     vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
@@ -19,6 +22,9 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
+    trackInputConversionAlgo = cms.string("Ideal"),
+    muonInputConversionAlgo = cms.string("Ideal"),
+    muonInputConversionParameters = muonInputConversionParameters.clone(),
     regionizerAlgo = cms.string("Ideal"),
     pfAlgo = cms.string("PFAlgo3"),
     puAlgo = cms.string("LinearizedPuppi"),
@@ -106,9 +112,7 @@ _hgcalSectors = cms.VPSet(
 
 l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag('pfTracksFromL1Tracks'),
-    muons = cms.InputTag('simGmtStage2Digis',),
-    useStandaloneMuons = cms.bool(True),
-    useTrackerMuons = cms.bool(False),
+    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
     vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
@@ -116,12 +120,51 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
-    regionizerAlgo = cms.string("Ideal"),
-    pfAlgo = cms.string("PFAlgo2HGC"),
-    puAlgo = cms.string("LinearizedPuppi"),
+    trackInputConversionAlgo = cms.string("Emulator"),
+    trackInputConversionParameters = cms.PSet(
+        region = cms.string("endcap"),
+        trackWordEncoding = cms.string("biased"),
+        bitwiseAccurate = cms.bool(True),
+        ptLUTBits = cms.uint32(11),
+        etaLUTBits = cms.uint32(11),
+        etaPreOffs = cms.int32(0),
+        etaShift = cms.uint32(15-11),
+        etaPostOffs = cms.int32(150),
+        phiBits = cms.uint32(10),
+        z0Bits = cms.uint32(12),
+        dEtaHGCalBits = cms.uint32(10),
+        dEtaHGCalZ0PreShift = cms.uint32(2),
+        dEtaHGCalRInvPreShift = cms.uint32(6),
+        dEtaHGCalLUTBits = cms.uint32(10),
+        dEtaHGCalLUTShift = cms.uint32(2),
+        dEtaHGCalFloatOffs = cms.double(0.0),
+        dPhiHGCalBits = cms.uint32(4),
+        dPhiHGCalZ0PreShift = cms.uint32(4),
+        dPhiHGCalZ0PostShift = cms.uint32(6),
+        dPhiHGCalRInvShift = cms.uint32(4),
+        dPhiHGCalTanlInvShift = cms.uint32(22),
+        dPhiHGCalTanlLUTBits = cms.uint32(10),
+        dPhiHGCalFloatOffs = cms.double(0.0)
+        ),
+    muonInputConversionAlgo = cms.string("Emulator"),
+    muonInputConversionParameters = muonInputConversionParameters.clone(),
+    regionizerAlgo = cms.string("Multififo"),
     regionizerAlgoParameters = cms.PSet(
         useAlsoVtxCoords = cms.bool(True),
-    ),
+        nEndcaps = cms.uint32(2),
+        nClocks = cms.uint32(54),
+        nTrack = cms.uint32(30),
+        nCalo = cms.uint32(20),
+        nEmCalo = cms.uint32(10),
+        nMu = cms.uint32(4),
+        egInterceptMode = cms.PSet(
+            afterFifo = cms.bool(True),
+            emIDMask = cms.uint32(0x1E),
+            nHADCALO_IN = cms.uint32(20),
+            nEMCALO_OUT = cms.uint32(10),
+            )
+        ),
+    pfAlgo = cms.string("PFAlgo2HGC"),
     pfAlgoParameters = cms.PSet(
         nTrack = cms.uint32(30),
         nCalo = cms.uint32(20),
@@ -138,6 +181,7 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         ),
         debug = cms.untracked.bool(False)
     ),
+    puAlgo = cms.string("LinearizedPuppi"),
     puAlgoParameters = cms.PSet(
         nTrack = cms.uint32(30),
         nIn = cms.uint32(20),
@@ -184,14 +228,13 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         )
 
     ),
+    writeRawHgcalCluster = cms.untracked.bool(True)
 )
 
 
 l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag(''),
-    muons = cms.InputTag('simGmtStage2Digis',),
-    useStandaloneMuons = cms.bool(False),
-    useTrackerMuons = cms.bool(False),
+    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
     vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
@@ -199,6 +242,8 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
+    muonInputConversionAlgo = cms.string("Ideal"),
+    muonInputConversionParameters = muonInputConversionParameters.clone(),
     regionizerAlgo = cms.string("Ideal"),
     pfAlgo = cms.string("PFAlgoDummy"),
     puAlgo = cms.string("LinearizedPuppi"),
@@ -256,11 +301,12 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         )
 
     ),
+    writeRawHgcalCluster = cms.untracked.bool(True)
 )
 
 l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag(''),
-    muons = cms.InputTag('simGmtStage2Digis',),
+    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
     useStandaloneMuons = cms.bool(False),
     useTrackerMuons = cms.bool(False),
     emClusters = cms.VInputTag(),
@@ -270,6 +316,8 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(15.0),
     trkPtCut    = cms.double(2.0),
+    muonInputConversionAlgo = cms.string("Ideal"),
+    muonInputConversionParameters = muonInputConversionParameters.clone(),
     regionizerAlgo = cms.string("Ideal"),
     pfAlgo = cms.string("PFAlgoDummy"),
     puAlgo = cms.string("LinearizedPuppi"),

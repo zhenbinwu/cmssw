@@ -13,20 +13,20 @@ namespace l1tmetemu {
   }
 
   // Generate Eta LUT for track to vertex association
-  std::vector<eta_t> generateEtaRegionLUT() {
+  std::vector<eta_t> generateEtaRegionLUT(vector<double> EtaRegions) {
     std::vector<eta_t> LUT;
-    for (unsigned int q = 0; q < kNEtaRegion + 1; q++) {
-      LUT.push_back(digitizeSignedValue<eta_t>(
-          kEtaRegionBins[q], l1tmetemu::kInternalEtaWidth, l1tmetemu::kStepEta));
+    for (unsigned int q = 0; q < EtaRegions.size(); q++) {
+      LUT.push_back(digitizeSignedValue<eta_t>(EtaRegions[q], l1tmetemu::kInternalEtaWidth, l1tmetemu::kStepEta));
+      //std::cout << LUT[q] << "|" <<  EtaRegions[q] << std::endl;
     }
     return LUT;
   }
 
-  std::vector<z_t> generateDeltaZLUT() {
+  std::vector<z_t> generateDeltaZLUT(vector<double> DeltaZBins) {
     std::vector<z_t> LUT;
-    for (unsigned int q = 0; q < kNEtaRegion; q++) {
-      LUT.push_back(
-          digitizeSignedValue<z_t>(kDeltaZBins[q], l1tmetemu::kInternalVTXWidth, TTTrack_TrackWord::stepZ0));
+    for (unsigned int q = 0; q < DeltaZBins.size(); q++) {
+      LUT.push_back(digitizeSignedValue<z_t>(DeltaZBins[q], l1tmetemu::kInternalVTXWidth, l1tmetemu::kStepZ0));
+      //std::cout << LUT[q] << "|" <<  DeltaZBins[q] << std::endl;
     }
     return LUT;
   }

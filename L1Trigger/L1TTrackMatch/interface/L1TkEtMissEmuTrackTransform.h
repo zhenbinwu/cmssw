@@ -57,23 +57,18 @@ public:
   // Function to count stubs in hitpattern
   nstub_t countNStub(TTTrack_TrackWord::hit_t Hitpattern);
 
-  // Function to take float phi to local integer phi
-  TTTrack_TrackWord::phi_t floatGlobalPhiToSectorPhi(float phi, unsigned int sector);
-
   std::vector<global_phi_t> generatePhiSliceLUT(unsigned int N);
 
   std::vector<global_phi_t> getPhiQuad() const { return phiQuadrants; }
   std::vector<global_phi_t> getPhiShift() const { return phiShift; }
 
   void setGTTinput(bool input) { GTTinput_ = input; }
-  void setVtxEmulator(bool vtx) { VtxEmulator_ = vtx; }
 
 private:
   std::vector<global_phi_t> phiQuadrants;
   std::vector<global_phi_t> phiShift;
 
   bool GTTinput_ = false;
-  bool VtxEmulator_ = false;
 };
 
 // Template to allow vertex word or vertex from vertex finder depending on simulation vs emulation
@@ -106,33 +101,29 @@ InternalEtWord L1TkEtMissEmuTrackTransform::transformTrack(track& track_ref, ver
     track_ref.setTrackWordBits();
     // Change track word digitization to digitization expected by track MET
     Outword.pt = digitizeSignedValue<TTTrack_TrackWord::rinv_t>(
-       track_ref.momentum().perp(), kInternalPtWidth, l1tmetemu::kStepPt);
+        track_ref.momentum().perp(), kInternalPtWidth, l1tmetemu::kStepPt);
 
     Outword.eta = digitizeSignedValue<TTTrack_TrackWord::tanl_t>(
         abs(track_ref.momentum().eta()), kInternalEtaWidth, l1tmetemu::kStepEta);
   }
 
-  unsigned int temp_pv = digitizeSignedValue<TTTrack_TrackWord::z0_t>(
-      PV.z0(),
-      TTTrack_TrackWord::TrackBitWidths::kZ0Size,
-      TTTrack_TrackWord::stepZ0);  // Convert vertex to integer representation
   Outword.chi2rphidof = track_ref.getChi2RPhiWord();
   Outword.chi2rzdof = track_ref.getChi2RZWord();
   Outword.bendChi2 = track_ref.getBendChi2Word();
   Outword.nstubs = countNStub(track_ref.getHitPatternWord());
   Outword.Hitpattern = track_ref.getHitPatternWord();
-
-  unsigned int Sector = track_ref.phiSector();
-  Outword.Sector = Sector;
+  Outword.Sector = track_ref.phiSector();
   Outword.EtaSector = (track_ref.getTanlWord() & (1 << (TTTrack_TrackWord::TrackBitWidths::kTanlSize - 1)));
-  // convert to local phi
   Outword.phi = track_ref.phi();
-  TTTrack_TrackWord::phi_t localPhi = floatGlobalPhiToSectorPhi(track_ref.phi(), Sector);
-  // Convert to global phi
-  Outword.globalPhi = localToGlobalPhi(localPhi, phiShift[Sector]);
+  Outword.globalPhi = localToGlobalPhi(track_ref.getPhiWord(), phiShift[track_ref.phiSector()]);
 
+  unsigned int temp_pv = digitizeSignedValue<TTTrack_TrackWord::z0_t>(
+      PV.z0(),
+      TTTrack_TrackWord::TrackBitWidths::kZ0Size,
+      TTTrack_TrackWord::stepZ0);  // Convert vertex to integer representation
   //Rescale to internal representations
-  Outword.z0 = transformSignedValue(track_ref.getZ0Word(), TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
+  Outword.z0 =
+      transformSignedValue(track_ref.getZ0Word(), TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
   Outword.pV = transformSignedValue(temp_pv, TTTrack_TrackWord::TrackBitWidths::kZ0Size, kInternalVTXWidth);
 
   return Outword;

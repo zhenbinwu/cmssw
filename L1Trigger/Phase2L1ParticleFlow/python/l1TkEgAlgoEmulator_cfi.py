@@ -49,5 +49,5 @@ tkEgAlgoParameters = cms.PSet(
     doTkIso=cms.bool(True),
     doPfIso=cms.bool(True),
     hwIsoTypeTkEle=cms.uint32(0),
-    hwIsoTypeTkEm=cms.uint32(1)
+    hwIsoTypeTkEm=cms.uint32(2)
 )

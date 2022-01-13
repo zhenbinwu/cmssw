@@ -73,17 +73,16 @@ private:
   l1tmetemu::pt_t minPt_;
   l1tmetemu::nstub_t nStubsmin_;
 
-  int chi2Max_;
+  vector<double> z0Thresholds_;
+  vector<double> etaRegions_;
 
   l1tmetemu::z_t deltaZ0_ = 0;
 
   int cordicSteps_;
   int debug_;
   bool cordicDebug_ = false;
-  bool writeLUTs_ = false;
 
   bool GTTinput_ = false;
-  bool VtxEmulator_ = false;
 
   L1TkEtMissEmuTrackTransform TrackTransform;
 
@@ -105,13 +104,10 @@ L1TrackerEtMissEmulatorProducer::L1TrackerEtMissEmulatorProducer(const edm::Para
   // Get Emulator config parameters
   cordicSteps_ = (int)iConfig.getParameter<int>("nCordicSteps");
   debug_ = (int)iConfig.getParameter<int>("debug");
-  writeLUTs_ = (bool)iConfig.getParameter<bool>("writeLUTs");
 
   GTTinput_ = (bool)iConfig.getParameter<bool>("useGTTinput");
-  VtxEmulator_ = (bool)iConfig.getParameter<bool>("useVertexEmulator");
 
   TrackTransform.setGTTinput(GTTinput_);
-  TrackTransform.setVtxEmulator(VtxEmulator_);
 
   // Name of output ED Product
   L1MetCollectionName_ = (std::string)iConfig.getParameter<std::string>("L1MetCollectionName");
@@ -124,18 +120,19 @@ L1TrackerEtMissEmulatorProducer::L1TrackerEtMissEmulatorProducer(const edm::Para
   maxEta_ = l1tmetemu::digitizeSignedValue<l1tmetemu::eta_t>(
       (double)iConfig.getParameter<double>("maxEta"), l1tmetemu::kInternalEtaWidth, l1tmetemu::kStepEta);
 
-  chi2rphiMax_ = l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rphidofMax"),
-                                           TTTrack_TrackWord::chi2RPhiBins);
-  chi2rzMax_ =
-      l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rzdofMax"), TTTrack_TrackWord::chi2RZBins);
+  chi2rphiMax_ =
+      l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rphidofMax"), TTTrack_TrackWord::chi2RPhiBins);
+  chi2rzMax_ = l1tmetemu::getBin((double)iConfig.getParameter<double>("chi2rzdofMax"), TTTrack_TrackWord::chi2RZBins);
   bendChi2Max_ =
       l1tmetemu::getBin((double)iConfig.getParameter<double>("bendChi2Max"), TTTrack_TrackWord::bendChi2Bins);
-  chi2Max_ = (int)iConfig.getParameter<int>("chi2Max");
 
   minPt_ = l1tmetemu::digitizeSignedValue<l1tmetemu::pt_t>(
       (double)iConfig.getParameter<double>("minPt"), l1tmetemu::kInternalPtWidth, l1tmetemu::kStepPt);
 
   nStubsmin_ = (l1tmetemu::nstub_t)iConfig.getParameter<int>("nStubsmin");
+
+  z0Thresholds_ = iConfig.getParameter<std::vector<double>>("z0Thresholds");
+  etaRegions_ = iConfig.getParameter<std::vector<double>>("etaRegions");
 
   if (debug_ == 5) {
     cordicDebug_ = true;
@@ -147,26 +144,8 @@ L1TrackerEtMissEmulatorProducer::L1TrackerEtMissEmulatorProducer(const edm::Para
 
   // Compute LUTs
   cosLUT_ = l1tmetemu::generateCosLUT(cosLUTbins);
-  EtaRegionsLUT_ = l1tmetemu::generateEtaRegionLUT();
-  DeltaZLUT_ = l1tmetemu::generateDeltaZLUT();
-
-  // Write Out LUTs
-  if (writeLUTs_) {
-    l1tmetemu::writeLUTtoFile<l1tmetemu::global_phi_t>(cosLUT_, "cos", ",");
-    l1tmetemu::writeLUTtoFile<l1tmetemu::global_phi_t>(phiQuadrants_, "phiquadrants", ",");
-    l1tmetemu::writeLUTtoFile<l1tmetemu::global_phi_t>(phiShifts_, "phishift", ",");
-    l1tmetemu::writeLUTtoFile<l1tmetemu::eta_t>(EtaRegionsLUT_, "etaregions", ",");
-    l1tmetemu::writeLUTtoFile<l1tmetemu::z_t>(DeltaZLUT_, "dzbins", ",");
-    std::vector<unsigned int> cutlut = {(unsigned int)minPt_,
-                                        (unsigned int)minZ0_,
-                                        (unsigned int)maxZ0_,
-                                        (unsigned int)maxEta_,
-                                        (unsigned int)chi2rphiMax_,
-                                        (unsigned int)chi2rzMax_,
-                                        (unsigned int)bendChi2Max_,
-                                        (unsigned int)nStubsmin_};
-    l1tmetemu::writeLUTtoFile<unsigned int>(cutlut, "cuts", ",");
-  }
+  EtaRegionsLUT_ = l1tmetemu::generateEtaRegionLUT(etaRegions_);
+  DeltaZLUT_ = l1tmetemu::generateDeltaZLUT(z0Thresholds_);
 
   produces<std::vector<EtSum>>(L1MetCollectionName_);
 }
@@ -185,8 +164,7 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
   iEvent.getByToken(trackToken_, L1TTTrackHandle);
 
   // Initialize cordic class
-  Cordic cordicSqrt(
-      l1tmetemu::kMETPhiBins, l1tmetemu::kMETSize, cordicSteps_, cordicDebug_, writeLUTs_);
+  Cordic cordicSqrt(l1tmetemu::kMETPhiBins, l1tmetemu::kMETSize, cordicSteps_, cordicDebug_);
 
   if (!L1VertexHandle.isValid()) {
     LogError("L1TrackerEtMissEmulatorProducer") << "\nWarning: VertexCollection not found in the event. Exit\n";
@@ -200,8 +178,8 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
 
   // Initialize sector sums, need 0 initialization in case a sector has no
   // tracks
-  l1tmetemu::Et_t sumPx[l1tmetemu::kNSector * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  l1tmetemu::Et_t sumPy[l1tmetemu::kNSector * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  l1tmetemu::Et_t sumPx[l1tmetemu::kNSector * 2] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  l1tmetemu::Et_t sumPy[l1tmetemu::kNSector * 2] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int sector_totals[l1tmetemu::kNSector] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   // Track counters
@@ -242,9 +220,6 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
     if (EtTrack.chi2rzdof >= chi2rzMax_)
       continue;
 
-    if (EtTrack.chi2rzdof + EtTrack.chi2rphidof >= chi2Max_)
-      continue;
-
     if (EtTrack.bendChi2 >= bendChi2Max_)
       continue;
 
@@ -269,7 +244,6 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
 
     if (z_diff <= deltaZ0_) {
       num_assoc_tracks++;
-
       if (debug_ == 7) {
         edm::LogVerbatim("L1TrackerEtMissEmulatorProducer")
             << "Track to Vertex ID: " << num_tracks << "\n"
@@ -321,8 +295,8 @@ void L1TrackerEtMissEmulatorProducer::produce(edm::Event& iEvent, const edm::Eve
 
               << "Float Phi: " << (float)EtTrack.globalPhi / l1tmetemu::kGlobalPhiBins << " Float Cos(Phi): -"
               << (float)cosLUT_[phiQuadrants_[2] - 1 - EtTrack.globalPhi] / l1tmetemu::kGlobalPhiBins
-              << " Float Sin(Phi): "
-              << (float)cosLUT_[EtTrack.globalPhi - phiQuadrants_[1]] / l1tmetemu::kGlobalPhiBins << "\n";
+              << " Float Sin(Phi): " << (float)cosLUT_[EtTrack.globalPhi - phiQuadrants_[1]] / l1tmetemu::kGlobalPhiBins
+              << "\n";
         }
       } else if (EtTrack.globalPhi >= phiQuadrants_[2] && EtTrack.globalPhi < phiQuadrants_[3]) {
         temppx = -(EtTrack.pt * cosLUT_[EtTrack.globalPhi - phiQuadrants_[2]]);

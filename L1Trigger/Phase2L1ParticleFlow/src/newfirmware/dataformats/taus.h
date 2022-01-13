@@ -1,5 +1,5 @@
-#ifndef FIRMWARE_dataformats_jets_h
-#define FIRMWARE_dataformats_jets_h
+#ifndef FIRMWARE_dataformats_taus_h
+#define FIRMWARE_dataformats_taus_h
 
 #include "datatypes.h"
 #include "bit_encoding.h"

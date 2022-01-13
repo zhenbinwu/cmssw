@@ -13,17 +13,20 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(const edm::ParameterSet& iConfig)
-    : MultififoRegionizerEmulator(
-          /*nendcaps=*/2,
-          iConfig.getParameter<uint32_t>("nClocks"),
-          iConfig.getParameter<uint32_t>("nTrack"),
-          iConfig.getParameter<uint32_t>("nCalo"),
-          iConfig.getParameter<uint32_t>("nEmCalo"),
-          iConfig.getParameter<uint32_t>("nMu"),
-          /*streaming=*/false,
-          /*outii=*/1,
-          iConfig.getParameter<bool>("useAlsoVtxCoords")) {
+    : MultififoRegionizerEmulator(iConfig.getParameter<uint32_t>("nEndcaps"),
+                                  iConfig.getParameter<uint32_t>("nClocks"),
+                                  iConfig.getParameter<uint32_t>("nTrack"),
+                                  iConfig.getParameter<uint32_t>("nCalo"),
+                                  iConfig.getParameter<uint32_t>("nEmCalo"),
+                                  iConfig.getParameter<uint32_t>("nMu"),
+                                  /*streaming=*/false,
+                                  /*outii=*/1,
+                                  iConfig.getParameter<bool>("useAlsoVtxCoords")) {
   debug_ = iConfig.getUntrackedParameter<bool>("debug", false);
+  if (iConfig.existsAs<edm::ParameterSet>("egInterceptMode")) {
+    const auto& emSelCfg = iConfig.getParameter<edm::ParameterSet>("egInterceptMode");
+    setEgInterceptMode(emSelCfg.getParameter<bool>("afterFifo"), emSelCfg);
+  }
 }
 #endif
 
@@ -67,10 +70,13 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
   for (unsigned int ie = 0; ie < nendcaps; ++ie) {
     for (unsigned int is = 0; is < NCALO_SECTORS; ++is) {  // NCALO_SECTORS sectors
       for (unsigned int il = 0; il < NCALO_LINKS; ++il) {  // max clusters per sector per clock
-        for (unsigned int j = 0; j < 3; ++j) {
+        for (unsigned int j = 0; j < 3; ++j) {             // PF REGION
           caloRoutes_.emplace_back(is + 3 * ie, il, 3 * is + j + 9 * ie, il);
-          if (j) {
-            caloRoutes_.emplace_back((is + 1) % 3 + 3 * ie, il, 3 * is + j + 9 * ie, il + 4);
+          if (j == 0 || j == 2) {
+            int other = (j == 0) ? 2 : 1;  // pf region 0, takes from prev. pf region 2 takes from next
+            //                       from sector      , from link, to region, to fifo
+            caloRoutes_.emplace_back(
+                (is + other) % 3 + 3 * ie, il, 3 * is + j + 9 * ie, il + 2);  //last 2 = NCALOFIBERS
           }
         }
       }
@@ -264,16 +270,12 @@ void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
                                                   std::vector<l1ct::MuObjEmu>& links) {
   if (nmu_ == 0)
     return;
+  assert(NMU_LINKS == 1);
   links.resize(NMU_LINKS);
-  // we have 2 muons on odd clock cycles, and 1 muon on even clock cycles.
-  assert(NMU_LINKS == 2);
-  for (unsigned int il = 0, idx = 0; il < NMU_LINKS; ++il, ++idx) {
-    unsigned int ioffs = (iclock * 3) / 2 + il;
-    if (ioffs < in.muon.size() && (il == 0 || iclock % 2 == 1) && iclock < nclocks_ - 1) {
-      links[idx] = in.muon[ioffs];
-    } else {
-      links[idx].clear();
-    }
+  if (iclock < in.muon.size() && iclock < nclocks_ - 1) {
+    links[0] = in.muon[iclock];
+  } else {
+    links[0].clear();
   }
 }
 

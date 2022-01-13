@@ -21,7 +21,7 @@ namespace l1ct {
 
     static const int BITS_PUPPIW_START = 0;
     static const int BITS_EMID_START = BITS_PUPPIW_START + puppiWgt_t::width;
-    static const int DATA_NEUTRAL_BITS_TOTAL = BITS_TKQUAL_START + emid_t::width;
+    static const int DATA_NEUTRAL_BITS_TOTAL = BITS_EMID_START + emid_t::width;
 
     static const int DATA_BITS_TOTAL =
         DATA_CHARGED_BITS_TOTAL >= DATA_NEUTRAL_BITS_TOTAL ? DATA_CHARGED_BITS_TOTAL : DATA_NEUTRAL_BITS_TOTAL;
