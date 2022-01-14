@@ -24,7 +24,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(18),
+    input = cms.untracked.int32(-1),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet),
 )
 
@@ -115,7 +115,8 @@ process.dtTriggerPhase2PrimitiveDigis.dump = False
 process.dtTriggerPhase2PrimitiveDigis.scenario = 0
 
 process.load("L1Trigger.Phase2L1GMT.gmt_cff")
-process.gmtMuons.trackMatching.verbose=1
+process.gmtMuons.tauto3mu.verbose=0
+process.gmtMuons.trackMatching.verbose=0
 process.gmtMuons.verbose=0
 process.gmtMuons.trackConverter.verbose=0
 
