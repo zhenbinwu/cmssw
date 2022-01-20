@@ -11,6 +11,7 @@
 #include "../../../dataformats/sums.h"
 #include "../../seededcone/ref/L1SeedConePFJetEmulator.h"
 #include "../../../utils/dbgPrintf.h"
+#include "hls_math.h"
 #endif
 
 #include <vector>
@@ -66,7 +67,11 @@ table_t sine_with_conversion(etaphi_t hwPhi){
 }
 
 etaphi_t phi_cordic(pxy_t y,pxy_t x){
-    ap_fixed<12,3> phi = atan2(y.to_double(), x.to_double()); // stand in for hls::atan2, but gives same result
+#ifdef CMSSW_GIT_HASH
+    ap_fixed<12,3> phi = atan2(y.to_double(), x.to_double()); // hls_math.h not available yet in CMSSW
+#else
+    ap_fixed<12,3> phi = hls::atan2(y, x);
+#endif
     ap_fixed<16,9> etaphiscale = (float) l1ct::Scales::INTPHI_PI / M_PI; // radians to hwPhi
     return phi*etaphiscale;
 }
@@ -118,7 +123,11 @@ l1ct::Sum htmht(std::vector<l1ct::Jet> jets){
     // Compute the MHT magnitude and direction
     l1ct::Sum ht;
     ht.hwSumPt = hthxhy.pt;
-    ht.hwPt = sqrt(((hthxhy.px * hthxhy.px) + (hthxhy.py * hthxhy.py)).to_double()); // stand in for hls::sqrt but gives same result
+#ifdef CMSSW_GIT_HASH
+    ht.hwPt = sqrt(((hthxhy.px * hthxhy.px) + (hthxhy.py * hthxhy.py)).to_double()); // hls_math.h not available yet in CMSSW
+#else
+    ht.hwPt = hls::sqrt(((hthxhy.px * hthxhy.px) + (hthxhy.py * hthxhy.py)));
+#endif
     ht.hwPhi = P2L1HTMHTEmu::phi_cordic(hthxhy.py, hthxhy.px);
     return ht;
 }
