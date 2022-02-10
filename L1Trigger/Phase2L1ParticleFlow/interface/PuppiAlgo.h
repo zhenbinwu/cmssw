@@ -13,6 +13,7 @@ namespace l1tpf_impl {
     const std::vector<std::string> &puGlobalNames() const override;
     void doPUGlobals(const std::vector<Region> &rs, float z0, float npu, std::vector<float> &globals) const override;
     void runNeutralsPU(Region &r, float z0, float npu, const std::vector<float> &globals) const override;
+    void runNeutralsPU(Region &r, std::vector<float> &z0, float npu, const std::vector<float> &globals) const override;
 
   protected:
     virtual void computePuppiMedRMS(

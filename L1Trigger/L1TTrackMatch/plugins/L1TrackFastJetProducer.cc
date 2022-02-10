@@ -28,6 +28,7 @@
 #include "DataFormats/L1TCorrelator/interface/TkJet.h"
 #include "DataFormats/L1TCorrelator/interface/TkJetFwd.h"
 #include "DataFormats/L1TCorrelator/interface/TkPrimaryVertex.h"
+#include "DataFormats/L1Trigger/interface/Vertex.h"
 
 // geometry
 #include "Geometry/Records/interface/TrackerTopologyRcd.h"
@@ -60,9 +61,9 @@ public:
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
-  //void beginJob() override;
+  virtual void beginJob();
   void produce(edm::Event&, const edm::EventSetup&) override;
-  //void endJob() override;
+  virtual void endJob();
 
   // track selection criteria
   float trkZMax_;          // in [cm]
@@ -124,13 +125,13 @@ void L1TrackFastJetProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   // Tracker Topology
   const TrackerTopology& tTopo = iSetup.getData(tTopoToken_);
 
-  edm::Handle<TkPrimaryVertexCollection> TkPrimaryVertexHandle;
+  edm::Handle<l1t::VertexCollection> TkPrimaryVertexHandle;
   iEvent.getByToken(pvToken_, TkPrimaryVertexHandle);
 
   fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, coneSize_);
   std::vector<fastjet::PseudoJet> JetInputs;
 
-  float recoVtx = TkPrimaryVertexHandle->begin()->zvertex();
+  float recoVtx = TkPrimaryVertexHandle->begin()->z0();
   unsigned int this_l1track = 0;
   for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
     this_l1track++;
@@ -214,9 +215,9 @@ void L1TrackFastJetProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     iEvent.put(std::move(L1TrackFastJets), "L1TrackFastJets");
 }
 
-//void L1TrackFastJetProducer::beginJob() {}
+void L1TrackFastJetProducer::beginJob() {}
 
-//void L1TrackFastJetProducer::endJob() {}
+void L1TrackFastJetProducer::endJob() {}
 
 void L1TrackFastJetProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation

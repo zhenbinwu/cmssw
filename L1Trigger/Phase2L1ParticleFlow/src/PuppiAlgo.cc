@@ -54,6 +54,11 @@ void PuppiAlgo::runNeutralsPU(Region &r, float z0, float npu, const std::vector<
   fillPuppi(r);
 }
 
+void PuppiAlgo::runNeutralsPU(Region &r, std::vector<float> &z0, float npu, const std::vector<float> &globals) const {
+  float z0tmp = 0;
+  runNeutralsPU(r, z0tmp, npu, globals);
+}
+
 void PuppiAlgo::computePuppiAlphas(const Region &r, std::vector<float> &alphaC, std::vector<float> &alphaF) const {
   alphaC.resize(r.pf.size());
   alphaF.resize(r.pf.size());
@@ -78,6 +83,8 @@ void PuppiAlgo::computePuppiAlphas(const Region &r, std::vector<float> &alphaC, 
       alphaC[ip] = 0;
       for (const PropagatedTrack &p2 : r.track) {
         if (!p2.fromPV)
+          continue;
+        if (!p2.quality(l1tpf_impl::InputTrack::PFLOOSE))
           continue;
         float dr2 = ::deltaR2(p.floatEta(), p.floatPhi(), p2.floatEta(), p2.floatPhi());
         if (dr2 > 0 && dr2 < puppiDr2) {
