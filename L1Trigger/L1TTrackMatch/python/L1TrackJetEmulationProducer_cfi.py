@@ -3,9 +3,9 @@ from L1Trigger.VertexFinder.VertexProducer_cff import VertexProducer
 
 L1TrackJetsEmulation = cms.EDProducer('L1TrackJetEmulationProducer',
 	L1TrackInputTag= cms.InputTag("L1GTTInputProducer", "Level1TTTracksConverted"),
-    VertexInputTag=cms.InputTag("L1VertexFinderEmulator", "l1verticesEmulation"),
+        VertexInputTag=cms.InputTag("L1VertexFinderEmulator", "l1verticesEmulation"),
 	MaxDzTrackPV = cms.double(0.5),
-    trk_zMax = cms.double (15.) ,    # maximum track z
+        trk_zMax = cms.double (15.) ,    # maximum track z
 	trk_ptMax = cms.double(200.),    # maximumum track pT before saturation [GeV]
 	trk_ptMin = cms.double(2.0),     # minimum track pt [GeV]
    	trk_etaMax = cms.double(2.4),    # maximum track eta
@@ -19,9 +19,9 @@ L1TrackJetsEmulation = cms.EDProducer('L1TrackJetEmulationProducer',
 	d0_cutNStubs4=cms.double(0.15),
 	d0_cutNStubs5=cms.double(0.5),
 	lowpTJetMinTrackMultiplicity=cms.int32(2),
-    lowpTJetMinpT=cms.double(50.),
+        lowpTJetMinpT=cms.double(50.),
 	highpTJetMinTrackMultiplicity=cms.int32(3),
-    highpTJetMinpT=cms.double(100.),
+        highpTJetMinpT=cms.double(100.),
 	displaced=cms.bool(False), #Flag for displaced tracks
 	nStubs4DisplacedChi2=cms.double(5.0), #Displaced track quality flags for loose/tight
 	nStubs4Displacedbend=cms.double(1.7),
@@ -32,9 +32,9 @@ L1TrackJetsEmulation = cms.EDProducer('L1TrackJetEmulationProducer',
 
 L1TrackJetsExtendedEmulation = cms.EDProducer('L1TrackJetEmulationProducer',
 	L1TrackInputTag= cms.InputTag("L1GTTInputProducerExtended", "Level1TTTracksExtendedConverted"),
-    VertexInputTag=cms.InputTag("L1VertexFinderEmulator", "l1verticesEmulation"),
+        VertexInputTag=cms.InputTag("L1VertexFinderEmulator", "l1verticesEmulation"),
 	MaxDzTrackPV = cms.double(4.0),
-    trk_zMax = cms.double (15.) ,    # maximum track z
+        trk_zMax = cms.double (15.) ,    # maximum track z
 	trk_ptMax = cms.double(200.),    # maximumum track pT before saturation [GeV]
 	trk_ptMin = cms.double(3.0),     # minimum track pt [GeV]
    	trk_etaMax = cms.double(2.4),    # maximum track eta
