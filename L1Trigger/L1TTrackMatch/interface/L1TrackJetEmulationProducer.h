@@ -16,28 +16,28 @@ const int PHI_EXTRABITS = 0;
 const int Z0_EXTRABITS = 0;
 
 typedef ap_ufixed<16 + PT_EXTRABITS, 11, AP_TRN, AP_SAT> pt_intern;
-typedef ap_int<14+ETA_EXTRABITS> glbeta_intern;
-typedef ap_int<14+PHI_EXTRABITS> glbphi_intern;
-typedef ap_int<10+Z0_EXTRABITS> z0_intern;  // 40cm / 0.1
+typedef ap_int<14 + ETA_EXTRABITS> glbeta_intern;
+typedef ap_int<14 + PHI_EXTRABITS> glbphi_intern;
+typedef ap_int<10 + Z0_EXTRABITS> z0_intern;  // 40cm / 0.1
 
 namespace convert {
   const int INTPHI_PI = 720;
   const int INTPHI_TWOPI = 2 * INTPHI_PI;
-  constexpr float INTPT_LSB_POW = pow(2.0,-5 - PT_EXTRABITS);
-  constexpr float INTPT_LSB = INTPT_LSB_POW;
-  constexpr float ETA_LSB_POW = pow(2.0,-1 * ETA_EXTRABITS);
-  constexpr float ETA_LSB = M_PI / pow(2.0,12) * ETA_LSB_POW;
-  constexpr float PHI_LSB_POW = pow(2.0,-1 * PHI_EXTRABITS);
-  constexpr float PHI_LSB = M_PI / pow(2.0,12) * PHI_LSB_POW;
-  constexpr float Z0_LSB_POW = pow(2.0,-1 * Z0_EXTRABITS);
-  constexpr float Z0_LSB = 0.05 * Z0_LSB_POW;
+  static const float INTPT_LSB_POW = pow(2.0, -5 - PT_EXTRABITS);
+  static const float INTPT_LSB = INTPT_LSB_POW;
+  static const float ETA_LSB_POW = pow(2.0, -1 * ETA_EXTRABITS);
+  static const float ETA_LSB = M_PI / pow(2.0, 12) * ETA_LSB_POW;
+  static const float PHI_LSB_POW = pow(2.0, -1 * PHI_EXTRABITS);
+  static const float PHI_LSB = M_PI / pow(2.0, 12) * PHI_LSB_POW;
+  static const float Z0_LSB_POW = pow(2.0, -1 * Z0_EXTRABITS);
+  static const float Z0_LSB = 0.05 * Z0_LSB_POW;
   inline float floatPt(pt_intern pt) { return pt.to_float(); }
-  inline int intPt(pt_intern pt) { return (ap_ufixed<18+PT_EXTRABITS, 13+PT_EXTRABITS>(pt)).to_int(); }
+  inline int intPt(pt_intern pt) { return (ap_ufixed<18 + PT_EXTRABITS, 13 + PT_EXTRABITS>(pt)).to_int(); }
   inline float floatEta(glbeta_intern eta) { return eta.to_float() * ETA_LSB; }
   inline float floatPhi(glbphi_intern phi) { return phi.to_float() * PHI_LSB; }
   inline float floatZ0(z0_intern z0) { return z0.to_float() * Z0_LSB; }
 
-  inline pt_intern makePt(int pt) { return ap_ufixed<18+PT_EXTRABITS, 13+PT_EXTRABITS>(pt); }
+  inline pt_intern makePt(int pt) { return ap_ufixed<18 + PT_EXTRABITS, 13 + PT_EXTRABITS>(pt); }
   inline pt_intern makePtFromFloat(float pt) { return pt_intern(INTPT_LSB_POW * round(pt / INTPT_LSB_POW)); }
   inline z0_intern makeZ0(float z0) { return z0_intern(round(z0 / Z0_LSB)); }
 

@@ -8,9 +8,8 @@
 // FRAMEWORK HEADERS
 #include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/stream/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/InputTag.h"
@@ -100,7 +99,7 @@ using namespace edm;
 //                          //
 //////////////////////////////
 
-class L1TrackObjectNtupleMaker : public edm::EDAnalyzer {
+class L1TrackObjectNtupleMaker : public edm::stream::EDAnalyzer<> {
 private:
   // ----------constants, enums and typedefs ---------
   typedef TTTrack<Ref_Phase2TrackerDigi_> L1Track;
@@ -116,8 +115,8 @@ public:
   ~L1TrackObjectNtupleMaker() override;
 
   // Mandatory methods
-  void beginJob() override;
-  void endJob() override;
+  void beginJob();
+  void endJob();
   void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
 
   // Other member functions
@@ -1245,7 +1244,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
   // -----------------------------------------------------------------------------------------------
 
   // L1 stubs
-  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > TTStubHandle;
+  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> TTStubHandle;
   if (SaveStubs)
     iEvent.getByToken(ttStubToken_, TTStubHandle);
 
@@ -1267,7 +1266,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
   const TrackerGeometry& tGeom = iSetup.getData(tGeomToken_);
 
   //Gen particles
-  edm::Handle<std::vector<reco::GenParticle> > GenParticleHandle;
+  edm::Handle<std::vector<reco::GenParticle>> GenParticleHandle;
   iEvent.getByToken(GenParticleToken_, GenParticleHandle);
 
   //Vertex
@@ -1389,14 +1388,14 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         continue;
 
       // Get the DetSets of the Clusters
-      edmNew::DetSet<TTStub<Ref_Phase2TrackerDigi_> > stubs = (*TTStubHandle)[stackDetid];
+      edmNew::DetSet<TTStub<Ref_Phase2TrackerDigi_>> stubs = (*TTStubHandle)[stackDetid];
       const GeomDetUnit* det0 = tGeom.idToDetUnit(detid);
       const auto* theGeomDet = dynamic_cast<const PixelGeomDetUnit*>(det0);
       const PixelTopology* topol = dynamic_cast<const PixelTopology*>(&(theGeomDet->specificTopology()));
 
       // loop over stubs
       for (auto stubIter = stubs.begin(); stubIter != stubs.end(); ++stubIter) {
-        edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > tempStubPtr =
+        edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>> tempStubPtr =
             edmNew::makeRefTo(TTStubHandle, stubIter);
 
         int isBarrel = 0;
@@ -1502,11 +1501,10 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       float tmp_trk_chi2 = iterL1Track->chi2();
       float tmp_trk_chi2dof = iterL1Track->chi2Red();
-      float tmp_trk_chi2rphi = iterL1Track->chi2XY();
-      float tmp_trk_chi2rz = iterL1Track->chi2Z();
+      float tmp_trk_chi2rphi = iterL1Track->chi2XYRed();
+      float tmp_trk_chi2rz = iterL1Track->chi2ZRed();
       float tmp_trk_bendchi2 = iterL1Track->stubPtConsistency();
       float tmp_trk_MVA1 = -99.9;  //update with actual MVA when available
-
 
       std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
           stubRefs = iterL1Track->getStubRefs();
@@ -1696,8 +1694,8 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       float tmp_trk_chi2 = iterL1Track->chi2();
       float tmp_trk_chi2dof = iterL1Track->chi2Red();
-      float tmp_trk_chi2rphi = iterL1Track->chi2XY();
-      float tmp_trk_chi2rz = iterL1Track->chi2Z();
+      float tmp_trk_chi2rphi = iterL1Track->chi2XYRed();
+      float tmp_trk_chi2rz = iterL1Track->chi2ZRed();
       float tmp_trk_bendchi2 = iterL1Track->stubPtConsistency();
       float tmp_trk_MVA1 = -99.9;  //update when actual MVA is available
 
@@ -1916,7 +1914,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     float tmp_tp_rp = sqrt(tmp_tp_x0p * tmp_tp_x0p + tmp_tp_y0p * tmp_tp_y0p);
     float tmp_tp_d0 = tmp_tp_charge * tmp_tp_rp - (1. / (2. * K));
     tmp_tp_d0 = tmp_tp_d0 * (-1);  //fix d0 sign
-    static double pi = 4.0 * atan(1.0);
+    const double pi = 4.0 * atan(1.0);
     float delphi = tmp_tp_phi - atan2(-K * tmp_tp_x0p, K * tmp_tp_y0p);
     if (delphi < -pi)
       delphi += 2.0 * pi;
@@ -1951,7 +1949,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       continue;
     }
 
-    std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > >
+    std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
         theStubRefs = MCTruthTTStubHandle->findTTStubRefs(tp_ptr);
     int nStubTP = (int)theStubRefs.size();
 
@@ -2028,7 +2026,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     // ----------------------------------------------------------------------------------------------
     // look for L1 tracks (prompt) matched to the tracking particle
     if (Displaced == "Prompt" || Displaced == "Both") {
-      std::vector<edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > > matchedTracks =
+      std::vector<edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>>> matchedTracks =
           MCTruthTTTrackHandle->findTTTrackPtrs(tp_ptr);
 
       int nMatch = 0;
@@ -2077,7 +2075,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
               edm::LogVerbatim("Tracklet") << "    (loose genuine!) ";
           }
 
-          std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > >
+          std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
               stubRefs = matchedTracks.at(it)->getStubRefs();
           int tmp_trk_nstub = stubRefs.size();
 
@@ -2146,8 +2144,8 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
         tmp_matchtrk_chi2 = matchedTracks.at(i_track)->chi2();
         tmp_matchtrk_chi2dof = matchedTracks.at(i_track)->chi2Red();
-        tmp_matchtrk_chi2rphi = matchedTracks.at(i_track)->chi2XY();
-        tmp_matchtrk_chi2rz = matchedTracks.at(i_track)->chi2Z();
+        tmp_matchtrk_chi2rphi = matchedTracks.at(i_track)->chi2XYRed();
+        tmp_matchtrk_chi2rz = matchedTracks.at(i_track)->chi2ZRed();
         tmp_matchtrk_bendchi2 = matchedTracks.at(i_track)->stubPtConsistency();
         tmp_matchtrk_MVA1 = -99.9;  //update when MVA is available
         tmp_matchtrk_nstub = (int)matchedTracks.at(i_track)->getStubRefs().size();
@@ -2158,7 +2156,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         tmp_matchtrk_dhits = 0;
         tmp_matchtrk_lhits = 0;
 
-        std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > >
+        std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
             stubRefs = matchedTracks.at(i_track)->getStubRefs();
         int tmp_nstub = stubRefs.size();
 
@@ -2247,7 +2245,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
               edm::LogVerbatim("Tracklet") << "    (loose genuine!) ";
           }
 
-          std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > >
+          std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
               stubRefs = matchedTracks.at(it)->getStubRefs();
           int tmp_trk_nstub = stubRefs.size();
 
@@ -2318,8 +2316,8 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
         tmp_matchtrkExt_chi2 = matchedTracks.at(i_track)->chi2();
         tmp_matchtrkExt_chi2dof = matchedTracks.at(i_track)->chi2Red();
-        tmp_matchtrkExt_chi2rphi = matchedTracks.at(i_track)->chi2XY();
-        tmp_matchtrkExt_chi2rz = matchedTracks.at(i_track)->chi2Z();
+        tmp_matchtrkExt_chi2rphi = matchedTracks.at(i_track)->chi2XYRed();
+        tmp_matchtrkExt_chi2rz = matchedTracks.at(i_track)->chi2ZRed();
         tmp_matchtrkExt_bendchi2 = matchedTracks.at(i_track)->stubPtConsistency();
         tmp_matchtrkExt_MVA = -99.9;  //update when MVA is available
         tmp_matchtrkExt_nstub = (int)matchedTracks.at(i_track)->getStubRefs().size();
@@ -2330,7 +2328,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         tmp_matchtrkExt_dhits = 0;
         tmp_matchtrkExt_lhits = 0;
 
-        std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > >
+        std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
             stubRefs = matchedTracks.at(i_track)->getStubRefs();
         int tmp_nstub = stubRefs.size();
 
