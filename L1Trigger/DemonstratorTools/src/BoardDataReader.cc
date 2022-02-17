@@ -70,7 +70,8 @@ namespace l1t::demo {
           }
 
           for (size_t j = framesBeforeFirstPacket; j < chanData.size(); j++) {
-            if ((j + (framesPerBX_ * spec.tmux)) >= chanData.size()) continue;
+            if ((j + (framesPerBX_ * spec.tmux)) >= chanData.size())
+              continue;
 
             bool expectValid(((j - framesBeforeFirstPacket) % eventLength) < packetLength);
 

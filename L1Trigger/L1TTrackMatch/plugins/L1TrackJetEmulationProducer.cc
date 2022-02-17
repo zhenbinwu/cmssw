@@ -1,4 +1,4 @@
-/* Software to emulate the hardware 2-layer jet-finding algorithm (fixed-point). *Layers 1 and 2*           
+/* Software to emulate the hardware 2-layer jet-finding algorithm (fixed-point). *Layers 1 and 2*
  *
  * 2021
  *
@@ -60,7 +60,7 @@ public:
   typedef vector<L1TTTrackType> L1TTTrackCollectionType;
 
   static void fillDescriptions(ConfigurationDescriptions &descriptions);
-  bool trackQualityCuts(float trk_pt, int trk_nstub, float trk_chi2, float trk_bendchi2, float trk_d0);
+  bool trackQualityCuts(int trk_nstub, float trk_chi2, float trk_bendchi2);
   void L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtrs_, MaxZBin &mzb);
   virtual EtaPhiBin *L1_cluster(EtaPhiBin *phislice);
 
@@ -74,12 +74,10 @@ private:
   const EDGetTokenT<vector<TTTrack<Ref_Phase2TrackerDigi_>>> trackToken_;
   const EDGetTokenT<l1t::VertexWordCollection> PVtxToken_;
   ESGetToken<TrackerTopology, TrackerTopologyRcd> tTopoToken_;
-  ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> tGeomToken_;
+
   vector<Ptr<L1TTTrackType>> L1TrkPtrs_;
   vector<int> zBinCount_;
-  vector<int> ttrk_;
   vector<int> tdtrk_;
-  vector<int> ttdtrk_;
   float MaxDzTrackPV;
   float PVz;
   float trkZMax_;
@@ -103,21 +101,17 @@ private:
   bool displaced_;
   float d0CutNStubs4_;
   float d0CutNStubs5_;
-  float nStubs4DisplacedChi2Loose_;
-  float nStubs5DisplacedChi2Loose_;
-  float nStubs4DisplacedBendLoose_;
-  float nStubs5DisplacedBendLoose_;
-  float nStubs4DisplacedChi2Tight_;
-  float nStubs5DisplacedChi2Tight_;
-  float nStubs4DisplacedBendTight_;
-  float nStubs5DisplacedBendTight_;
+  float nStubs4DisplacedChi2_;
+  float nStubs5DisplacedChi2_;
+  float nStubs4DisplacedBend_;
+  float nStubs5DisplacedBend_;
+  int nDisplacedTracks_;
 };
 
 L1TrackJetEmulationProducer::L1TrackJetEmulationProducer(const ParameterSet &iConfig)
     : trackToken_(consumes<vector<TTTrack<Ref_Phase2TrackerDigi_>>>(iConfig.getParameter<InputTag>("L1TrackInputTag"))),
       PVtxToken_(consumes<l1t::VertexWordCollection>(iConfig.getParameter<InputTag>("VertexInputTag"))),
-      tTopoToken_(esConsumes<TrackerTopology, TrackerTopologyRcd>(edm::ESInputTag("", ""))),
-      tGeomToken_(esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>(edm::ESInputTag("", ""))) {
+      tTopoToken_(esConsumes<TrackerTopology, TrackerTopologyRcd>(edm::ESInputTag("", ""))) {
   MaxDzTrackPV = (float)iConfig.getParameter<double>("MaxDzTrackPV");
   trkZMax_ = (float)iConfig.getParameter<double>("trk_zMax");
   trkPtMax_ = (float)iConfig.getParameter<double>("trk_ptMax");
@@ -137,16 +131,12 @@ L1TrackJetEmulationProducer::L1TrackJetEmulationProducer(const ParameterSet &iCo
   highpTJetMinTrackMultiplicity_ = (int)iConfig.getParameter<int>("highpTJetMinTrackMultiplicity");
   highpTJetMinpT_ = (float)iConfig.getParameter<double>("highpTJetMinpT");
   displaced_ = iConfig.getParameter<bool>("displaced");
-  nStubs4DisplacedChi2Loose_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2_Loose");
-  nStubs5DisplacedChi2Loose_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2_Loose");
-  nStubs4DisplacedBendLoose_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend_Loose");
-  nStubs5DisplacedBendLoose_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend_Loose");
-  nStubs4DisplacedChi2Tight_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2_Tight");
-  nStubs5DisplacedChi2Tight_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2_Tight");
-  nStubs4DisplacedBendTight_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend_Tight");
-  nStubs5DisplacedBendTight_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend_Tight");
-
-  zStep_ = convert::makeZ0(2.0 * trkZMax_ / (zBins_+1));
+  nStubs4DisplacedChi2_ = (float)iConfig.getParameter<double>("nStubs4DisplacedChi2");
+  nStubs5DisplacedChi2_ = (float)iConfig.getParameter<double>("nStubs5DisplacedChi2");
+  nStubs4DisplacedBend_ = (float)iConfig.getParameter<double>("nStubs4Displacedbend");
+  nStubs5DisplacedBend_ = (float)iConfig.getParameter<double>("nStubs5Displacedbend");
+  nDisplacedTracks_ = (int)iConfig.getParameter<int>("nDisplacedTracks");
+  zStep_ = convert::makeZ0(2.0 * trkZMax_ / (zBins_ + 1));
   etaStep_ = convert::makeGlbEta(2.0 * trkEtaMax_ / etaBins_);  //etaStep is the width of an etabin
   phiStep_ = convert::makeGlbPhi(2.0 * M_PI / phiBins_);        ////phiStep is the width of a phibin
 
@@ -163,7 +153,6 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
 
   // For TTStubs
   const TrackerTopology &tTopo = iSetup.getData(tTopoToken_);
-  const TrackerGeometry &tGeom = iSetup.getData(tGeomToken_);
 
   edm::Handle<vector<TTTrack<Ref_Phase2TrackerDigi_>>> TTTrackHandle;
   iEvent.getByToken(trackToken_, TTTrackHandle);
@@ -175,10 +164,7 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
 
   L1TrkPtrs_.clear();
   zBinCount_.clear();
-  ttrk_.clear();
   tdtrk_.clear();
-  ttdtrk_.clear();
-
   unsigned int this_l1track = 0;
   for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
     edm::Ptr<L1TTTrackType> trkPtr(TTTrackHandle, this_l1track);
@@ -202,35 +188,24 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
 
     if (trk_nPS < trkNPSStubMin_)
       continue;
-    if (!trackQualityCuts(trk_pt, trk_nstubs, trk_chi2dof, trk_bendchi2, fabs(trk_d0)))
+    if (!trackQualityCuts(trk_nstubs, trk_chi2dof, trk_bendchi2))
       continue;
-    if (fabs(trk_z0-PVz) > MaxDzTrackPV)
+    if (fabs(trk_z0 - PVz) > MaxDzTrackPV)
       continue;
-    if (fabs(iterL1Track->z0()) > trkZMax_)
+    if (fabs(trk_z0) > trkZMax_)
       continue;
-    if (fabs(iterL1Track->momentum().eta()) > trkEtaMax_)
+    if (fabs(trkPtr->momentum().eta()) > trkEtaMax_)
       continue;
     if (trk_pt < trkPtMin_)
       continue;
     L1TrkPtrs_.push_back(trkPtr);
     zBinCount_.push_back(0);
 
-    if ((fabs(trk_d0) > d0CutNStubs5_ && trk_nstubs >= 5) || (trk_nstubs == 4 && fabs(trk_d0) > d0CutNStubs4_))
-      tdtrk_.push_back(1);
+    if ((fabs(trk_d0) > d0CutNStubs5_ && trk_nstubs >= 5 && d0CutNStubs5_ >= 0) ||
+        (trk_nstubs == 4 && fabs(trk_d0) > d0CutNStubs4_ && d0CutNStubs4_ >= 0))
+      tdtrk_.push_back(1);  //displaced track
     else
-      tdtrk_.push_back(0);  //displaced track
-    if ((trk_nstubs >= 5 && trk_chi2dof < nStubs5DisplacedChi2Tight_ && trk_bendchi2 < nStubs5DisplacedBendTight_) ||
-        (trk_nstubs == 4 && trk_chi2dof < nStubs4DisplacedChi2Tight_ && trk_bendchi2 < nStubs4DisplacedBendTight_))
-      ttrk_.push_back(1);
-    else
-      ttrk_.push_back(0);
-    if ((trk_nstubs >= 5 && trk_chi2dof < nStubs5DisplacedChi2Tight_ && trk_bendchi2 < nStubs5DisplacedBendTight_ &&
-         fabs(trk_d0) > d0CutNStubs5_) ||
-        (trk_nstubs == 4 && trk_chi2dof < nStubs4DisplacedChi2Tight_ && trk_bendchi2 < nStubs4DisplacedBendTight_ &&
-         fabs(trk_d0) > d0CutNStubs4_))
-      ttdtrk_.push_back(1);
-    else
-      ttdtrk_.push_back(0);
+      tdtrk_.push_back(0);  // not displaced track
   }
 
   if (!L1TrkPtrs_.empty()) {
@@ -255,13 +230,13 @@ void L1TrackJetEmulationProducer::produce(Event &iEvent, const EventSetup &iSetu
         l1t::TkJetWord::tkjetunassigned_t unassigned_ = 0;
 
         l1t::TkJetWord trkJet(jetPt, jetEta, jetPhi, jetZ0, totalntracks_, totalxtracks_, unassigned_);
-        //trkJet.setDispCounters(DispCounters);       
-	L1L1TrackJetProducer->push_back(trkJet);
+        //trkJet.setDispCounters(DispCounters);
+        L1L1TrackJetProducer->push_back(trkJet);
       }
     } else if (mzb.clusters == nullptr) {
       edm::LogWarning("L1TrackJetEmulationProducer") << "mzb.clusters Not Assigned!\n";
     }
-    //free(mzb.clusters);
+
     if (displaced_)
       iEvent.put(std::move(L1L1TrackJetProducer), "L1TrackJetsExtended");
     else
@@ -282,9 +257,9 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
     kPhiMagSize = 1,
   };
 
-  const int nz = zBins_+1;
+  const int nz = zBins_ + 1;
   MaxZBin all_zBins[nz];
-  MaxZBin mzbtemp;
+  static MaxZBin mzbtemp;
   for (int z = 0; z < nz; ++z)
     all_zBins[z] = mzbtemp;
 
@@ -342,24 +317,25 @@ void L1TrackJetEmulationProducer::L2_cluster(vector<Ptr<L1TTTrackType>> L1TrkPtr
       ap_ufixed<64 + ETA_EXTRABITS, 32 + ETA_EXTRABITS> eta_conv =
           1.0 / convert::ETA_LSB;  //conversion factor from input eta format to internal format
       glbeta_intern trketa = eta_conv * trketainput;
-      
+
       int Sector = L1TrkPtrs_[k]->phiSector();
       glbphi_intern trkphiSector = 0;
       if (Sector < 5) {
-	trkphiSector = Sector * convert::makeGlbPhi(2.0*M_PI / 9.0);
-      }
-      else {
-        trkphiSector = convert::makeGlbPhi(-1.0*M_PI + M_PI/9.0) + (Sector-5) * convert::makeGlbPhi(2.0*M_PI / 9.0);
+        trkphiSector = Sector * convert::makeGlbPhi(2.0 * M_PI / 9.0);
+      } else {
+        trkphiSector =
+            convert::makeGlbPhi(-1.0 * M_PI + M_PI / 9.0) + (Sector - 5) * convert::makeGlbPhi(2.0 * M_PI / 9.0);
       }
 
       ap_fixed<TrackBitWidths::kPhiSize, TrackBitWidths::kPhiMagSize, AP_RND_CONV, AP_SAT> trkphiinput = 0;
       trkphiinput.V = L1TrkPtrs_[k]->getTrackWord()(TTTrack_TrackWord::TrackBitLocations::kPhiMSB,
                                                     TTTrack_TrackWord::TrackBitLocations::kPhiLSB);
-      ap_ufixed<64 + PHI_EXTRABITS, 32 + PHI_EXTRABITS> phi_conv = 
-          TTTrack_TrackWord::stepPhi0 / convert::PHI_LSB * (1<< (TrackBitWidths::kPhiSize-TrackBitWidths::kPhiMagSize));
-	  //phi_conv is a conversion factor from input phi format to the internal format
+      ap_ufixed<64 + PHI_EXTRABITS, 32 + PHI_EXTRABITS> phi_conv =
+          TTTrack_TrackWord::stepPhi0 / convert::PHI_LSB *
+          (1 << (TrackBitWidths::kPhiSize - TrackBitWidths::kPhiMagSize));
+      //phi_conv is a conversion factor from input phi format to the internal format
       glbeta_intern localphi = phi_conv * trkphiinput;
-      glbeta_intern trkphi = localphi+trkphiSector;
+      glbeta_intern trkphi = localphi + trkphiSector;
 
       ap_int<TTTrack_TrackWord::TrackBitWidths::kZ0Size> inputTrkZ0 = L1TrkPtrs_[k]->getTrackWord()(
           TTTrack_TrackWord::TrackBitLocations::kZ0MSB, TTTrack_TrackWord::TrackBitLocations::kZ0LSB);
@@ -679,18 +655,13 @@ void L1TrackJetEmulationProducer::beginStream(StreamID) {}
 
 void L1TrackJetEmulationProducer::endStream() {}
 
-bool L1TrackJetEmulationProducer::trackQualityCuts(
-    float trk_pt, int trk_nstub, float trk_chi2, float trk_bendchi2, float trk_d0) {
+bool L1TrackJetEmulationProducer::trackQualityCuts(int trk_nstub, float trk_chi2, float trk_bendchi2) {
   bool PassQuality = false;
   if (trk_bendchi2 < trkBendChi2Max_ && trk_chi2 < trkChi2dofMax_ && trk_nstub >= 4 && !displaced_)
     PassQuality = true;
-  if (displaced_ && trk_bendchi2 < nStubs4DisplacedBendTight_ && trk_chi2 < nStubs4DisplacedChi2Tight_ &&
-      trk_nstub == 4 && trk_d0 <= d0CutNStubs4_)
+  if (displaced_ && trk_bendchi2 < nStubs4DisplacedBend_ && trk_chi2 < nStubs4DisplacedChi2_ && trk_nstub == 4)
     PassQuality = true;
-  if (displaced_ && trk_bendchi2 < nStubs4DisplacedBendLoose_ && trk_chi2 < nStubs4DisplacedChi2Loose_ &&
-      trk_nstub == 4 && trk_d0 > d0CutNStubs4_)
-    PassQuality = true;
-  if (displaced_ && trk_bendchi2 < nStubs5DisplacedBendLoose_ && trk_chi2 < nStubs5DisplacedChi2Loose_ && trk_nstub > 4)
+  if (displaced_ && trk_bendchi2 < nStubs5DisplacedBend_ && trk_chi2 < nStubs5DisplacedChi2_ && trk_nstub > 4)
     PassQuality = true;
   return PassQuality;
 }

@@ -445,11 +445,11 @@ namespace l1tVertexFinder {
   void VertexFinder::findPrimaryVertex() {
     if (settings_->vx_precision() == Precision::Emulation) {
       pv_index_ = std::distance(verticesEmulation_.begin(),
-                               std::max_element(verticesEmulation_.begin(),
-                                                verticesEmulation_.end(),
-                                                [](const l1t::VertexWord& vertex0, const l1t::VertexWord& vertex1) {
-                                                  return (vertex0.pt() < vertex1.pt());
-                                                }));
+                                std::max_element(verticesEmulation_.begin(),
+                                                 verticesEmulation_.end(),
+                                                 [](const l1t::VertexWord& vertex0, const l1t::VertexWord& vertex1) {
+                                                   return (vertex0.pt() < vertex1.pt());
+                                                 }));
     } else {
       pv_index_ = std::distance(
           vertices_.begin(),

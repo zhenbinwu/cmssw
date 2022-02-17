@@ -9,10 +9,10 @@ import os
 ############################################################
 # edit options here
 ############################################################
-L1TRK_INST ="L1TrackJets" ### if not in input DIGRAW then we make them in the above step
+L1TRK_INST ="MyL1TrackJets" ### if not in input DIGRAW then we make them in the above step
 process = cms.Process(L1TRK_INST)
 
-# L1TRKALGO = 'HYBRID'  #baseline, 4par fit
+#L1TRKALGO = 'HYBRID'  #baseline, 4par fit
 # L1TRKALGO = 'HYBRID_DISPLACED'  #extended, 5par fit
 L1TRKALGO = 'HYBRID_PROMPTANDDISP'
 
@@ -44,7 +44,17 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 readFiles = cms.untracked.vstring(
     # 'file:F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root'
-    '/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root'
+    '/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/075DCEC8-A2E9-7E48-A630-E1CBF89370A9.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/07EEAB60-C58E-6146-804B-6BA1B8E14875.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/09C2F689-B97E-6C44-94D2-C76445A4D703.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/01816581-F04F-B849-83AA-38A348F9320B.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/11564303-DE2D-474D-99ED-F4CB2793C5FB.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/176B2AC1-57AA-DE46-85FC-D375D25C4C2A.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/1818154D-11CB-9841-932A-A48845A430B6.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/19678708-B88E-A547-884E-CD1D924B2D3C.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/1D2905A5-5CB9-BB41-8C59-64427CEE7082.root',
+'/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/1F59B52D-BD93-CA4A-BB59-64E00A436EEF.root'
 )
 secFiles = cms.untracked.vstring()
 
@@ -55,22 +65,28 @@ process.source = cms.Source ("PoolSource",
                             )
 
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('CheckingJets_CMSSW11_CMS.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('GTTObjects_ttbar200PU.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
 # L1 tracking: remake stubs?
 ############################################################
 
-#process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
-#from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
-#process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
+process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
+from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
+process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
 
-#from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
-#TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
+TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
 
-#process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
-#process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
+process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
+process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
+
+
+# DTC emulation
+process.load('L1Trigger.TrackerDTC.ProducerES_cff')
+process.load('L1Trigger.TrackerDTC.ProducerED_cff')
+process.dtc = cms.Path(process.TrackerDTCProducer)#*process.TrackerDTCAnalyzer)
 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 process.load("L1Trigger.L1TTrackMatch.L1TrackSelectionProducer_cfi")
@@ -152,11 +168,6 @@ elif (L1TRKALGO == 'HYBRID_PROMPTANDDISP'):
     DISPLACED = 'Both'
 
 
-############################################################
-# Primary vertex
-############################################################
-process.load('L1Trigger.VertexFinder.VertexProducer_cff')
-process.pPV = cms.Path(process.VertexProducer)
 
 
 ############################################################
@@ -172,7 +183,7 @@ process.pPV = cms.Path(process.VertexProducer)
 process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         MyProcess = cms.int32(1),
         DebugMode = cms.bool(False),      # printout lots of debug statements
-        SaveAllTracks = cms.bool(False),  # save *all* L1 tracks, not just truth matched to primary particle
+        SaveAllTracks = cms.bool(True),  # save *all* L1 tracks, not just truth matched to primary particle
         SaveStubs = cms.bool(False),      # save some info for *all* stubs
         Displaced = cms.string(DISPLACED),# "Prompt", "Displaced", "Both"
         L1Tk_minNStub = cms.int32(4),     # L1 tracks with >= 4 stubs
@@ -206,15 +217,14 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         TrackJetsExtendedInputTag=cms.InputTag("L1TrackJetsExtended", "L1TrackJetsExtended"),
         TrackJetsEmuInputTag = cms.InputTag("L1TrackJetsEmulation","L1TrackJets"),
         TrackJetsExtendedEmuInputTag = cms.InputTag("L1TrackJetsExtendedEmulation","L1TrackJetsExtended"),
-        TrackMETInputTag = cms.InputTag("L1TrackerEtMiss","L1TrackerEtMiss","L1TrackJets"),
+        TrackMETInputTag = cms.InputTag("L1TrackerEtMiss","L1TrackerEtMiss"),
         TrackMETExtendedInputTag = cms.InputTag("L1TrackerEtMissExtended","L1TrackerExtendedEtMiss"),
-        TrackMETEmuInputTag = cms.InputTag("L1TrackerEmuEtMiss","L1TrackerEmuEtMiss","L1TrackJets"),
-        TrackMHTInputTag = cms.InputTag("L1TrackerHTMiss","L1TrackerHTMiss","L1TrackJets"), #includes HT
+        TrackMETEmuInputTag = cms.InputTag("L1TrackerEmuEtMiss","L1TrackerEmuEtMiss"),
+        TrackMHTInputTag = cms.InputTag("L1TrackerHTMiss","L1TrackerHTMiss"), #includes HT
         TrackMHTExtendedInputTag = cms.InputTag("L1TrackerHTMissExtended","L1TrackerHTMissExtended"),
         TrackMHTEmuInputTag = cms.InputTag("L1TrackerEmuHTMiss",process.L1TrackerEmuHTMiss.L1MHTCollectionName.value()),
         TrackMHTEmuExtendedInputTag = cms.InputTag("L1TrackerEmuHTMissExtended",process.L1TrackerEmuHTMissExtended.L1MHTCollectionName.value()),
         GenParticleInputTag = cms.InputTag("genParticles",""),
-        # RecoVertexInputTag=cms.InputTag("VertexProducer", process.VertexProducer.l1VertexCollectionName.value()),
         RecoVertexInputTag=cms.InputTag("L1VertexFinder", "l1vertices"),
         RecoVertexEmuInputTag=cms.InputTag("L1VertexFinderEmulator", "l1verticesEmulation"),
 )
@@ -234,5 +244,5 @@ process.pOut = cms.EndPath(process.out)
 # use this if cluster/stub associators not available
 # process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmuWithTruth,process.ntuple)
 
-process.schedule = cms.Schedule(process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pPV, process.pPVemu, process.pL1TrackSelection, process.pL1TrackJets, process.pL1TrackJetsEmu,
+process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.dtc, process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pPV, process.pPVemu, process.pL1TrackSelection, process.pL1TrackJets, process.pL1TrackJetsEmu,
 process.pL1TrackFastJets, process.pTkMET, process.pTkMETEmu, process.pTkMHT, process.pTkMHTEmulator, process.ntuple)

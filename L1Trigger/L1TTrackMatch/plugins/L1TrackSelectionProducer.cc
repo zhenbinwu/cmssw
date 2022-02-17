@@ -180,24 +180,17 @@ private:
     double nStubsMin_;
   };
   struct TTTrackNPSStubsMinSelector {
-    TTTrackNPSStubsMinSelector(double nStubsMin, const edm::EventSetup& iSetup) : nPSStubsMin_(nStubsMin) {
-      edm::ESHandle<TrackerTopology> tTopoHandle_;
-      iSetup.get<TrackerTopologyRcd>().get(tTopoHandle_);
-      tTopo = tTopoHandle_.product();
-    }
-    TTTrackNPSStubsMinSelector(const edm::ParameterSet& cfg, const edm::EventSetup& iSetup)
-        : nPSStubsMin_(cfg.template getParameter<double>("nPSStubsMin")) {
-      edm::ESHandle<TrackerTopology> tTopoHandle_;
-      iSetup.get<TrackerTopologyRcd>().get(tTopoHandle_);
-      tTopo = tTopoHandle_.product();
-    }
+    TTTrackNPSStubsMinSelector(double nStubsMin, const TrackerTopology& tTopo)
+        : nPSStubsMin_(nStubsMin), tTopo_(tTopo) {}
+    TTTrackNPSStubsMinSelector(const edm::ParameterSet& cfg, const TrackerTopology& tTopo)
+        : nPSStubsMin_(cfg.template getParameter<double>("nPSStubsMin")), tTopo_(tTopo) {}
     bool operator()(const L1Track& t) const {
       int nPSStubs = 0;
       for (const auto& stub : t.getStubRefs()) {
         DetId detId(stub->getDetId());
         if (detId.det() == DetId::Detector::Tracker) {
-          if ((detId.subdetId() == StripSubdetector::TOB && tTopo->tobLayer(detId) <= 3) ||
-              (detId.subdetId() == StripSubdetector::TID && tTopo->tidRing(detId) <= 9))
+          if ((detId.subdetId() == StripSubdetector::TOB && tTopo_.tobLayer(detId) <= 3) ||
+              (detId.subdetId() == StripSubdetector::TID && tTopo_.tidRing(detId) <= 9))
             nPSStubs++;
         }
       }
@@ -206,7 +199,7 @@ private:
 
   private:
     double nPSStubsMin_;
-    const TrackerTopology* tTopo;
+    const TrackerTopology& tTopo_;
   };
   struct TTTrackBendChi2MaxSelector {
     TTTrackBendChi2MaxSelector(double bendChi2Max) : bendChi2Max_(bendChi2Max) {}
@@ -317,6 +310,7 @@ private:
   const edm::EDGetTokenT<TTTrackCollection> l1TracksToken_;
   edm::EDGetTokenT<l1t::VertexCollection> l1VerticesToken_;
   edm::EDGetTokenT<l1t::VertexWordCollection> l1VerticesEmulationToken_;
+  edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> tTopoToken_;
   const std::string outputCollectionName_;
   const edm::ParameterSet cutSet_;
   const double ptMin_, absEtaMax_, absZ0Max_, bendChi2Max_, reducedChi2RZMax_, reducedChi2RPhiMax_;
@@ -332,6 +326,7 @@ private:
 //
 L1TrackSelectionProducer::L1TrackSelectionProducer(const edm::ParameterSet& iConfig)
     : l1TracksToken_(consumes<TTTrackCollection>(iConfig.getParameter<edm::InputTag>("l1TracksInputTag"))),
+      tTopoToken_(esConsumes<TrackerTopology, TrackerTopologyRcd>(edm::ESInputTag("", ""))),
       outputCollectionName_(iConfig.getParameter<std::string>("outputCollectionName")),
       cutSet_(iConfig.getParameter<edm::ParameterSet>("cutSet")),
 
@@ -514,6 +509,9 @@ void L1TrackSelectionProducer::produce(edm::StreamID, edm::Event& iEvent, const 
   auto vTTTrackEmulationOutput = std::make_unique<TTTrackRefCollection>();
   auto vTTTrackAssociatedEmulationOutput = std::make_unique<TTTrackRefCollection>();
 
+  // Tracker Topology
+  const TrackerTopology& tTopo = iSetup.getData(tTopoToken_);
+
   TTTrackCollectionHandle l1TracksHandle;
   edm::Handle<l1t::VertexCollection> l1VerticesHandle;
   edm::Handle<l1t::VertexWordCollection> l1VerticesEmulationHandle;
@@ -552,7 +550,7 @@ void L1TrackSelectionProducer::produce(edm::StreamID, edm::Event& iEvent, const 
   TTTrackWordBendChi2Chi2RZChi2RPhiMaxSelector chi2SelEmu(bendChi2Max_, reducedChi2RZMax_, reducedChi2RPhiMax_);
   TTTrackDeltaZMaxSelector deltaZSel(deltaZMaxEtaBounds_, deltaZMax_);
   TTTrackWordDeltaZMaxSelector deltaZSelEmu(deltaZMaxEtaBounds_, deltaZMax_);
-  TTTrackNPSStubsMinSelector nPSStubsSel(nPSStubsMin_, iSetup);
+  TTTrackNPSStubsMinSelector nPSStubsSel(nPSStubsMin_, tTopo);
 
   for (size_t i = 0; i < nOutputApproximate; i++) {
     const auto& track = l1TracksHandle->at(i);
