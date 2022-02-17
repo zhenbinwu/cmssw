@@ -402,7 +402,7 @@ void L1HPSPFTauBuilder::buildL1PFTau() {
 
     double sumChargedIso = 0.;
     double sumNeutralIso = 0.;
-    for (auto l1PFCand : isoAllL1PFCandidates_) {
+    for (const auto& l1PFCand : isoAllL1PFCandidates_) {
       if (l1PFCand->charge() != 0) {
 	sumChargedIso += l1PFCand->pt();
       } else if (l1PFCand->id() == l1t::PFCandidate::Photon) {

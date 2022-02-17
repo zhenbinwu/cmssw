@@ -43,22 +43,22 @@ namespace Phase2L1GMT {
 
   };
 
-  TopoAlgo::TopoAlgo() {}
+  inline TopoAlgo::TopoAlgo() {}
 
-  TopoAlgo::~TopoAlgo() {}
+  inline TopoAlgo::~TopoAlgo() {}
 
-  TopoAlgo::TopoAlgo(const TopoAlgo &cpy) {}
+  inline TopoAlgo::TopoAlgo(const TopoAlgo &cpy) {}
 
   // ===  FUNCTION  ============================================================
   //         Name:  TopoAlgo::load
   //  Description:
   // ===========================================================================
-  void TopoAlgo::load(std::vector<l1t::TrackerMuon> &trkMus_, std::vector<ConvertedTTTrack> &convertedTracks_) {
+  inline void TopoAlgo::load(std::vector<l1t::TrackerMuon> &trkMus_, std::vector<ConvertedTTTrack> &convertedTracks_) {
     trkMus = &trkMus_;
     convertedTracks = &convertedTracks_;
   }  // -----  end of function TopoAlgo::load  -----
 
-  void TopoAlgo::DumpInputs() {
+  inline void TopoAlgo::DumpInputs() {
     static int nevti = 0;
     int totalsize = 0;
     // Current setting
@@ -90,14 +90,14 @@ namespace Phase2L1GMT {
     nevti++;
   }
 
-  int TopoAlgo::deltaEta(const int eta1, const int eta2) {
+  inline int TopoAlgo::deltaEta(const int eta1, const int eta2) {
     static const int maxbits = (1 << BITSETA) - 1;
     int deta = abs(eta1 - eta2);
     deta &= maxbits;
     return deta;
   }
 
-  int TopoAlgo::deltaZ0(const int Z01, const int Z02) {
+  inline int TopoAlgo::deltaZ0(const int Z01, const int Z02) {
     static const int maxbits = (1 << BITSZ0) - 1;
     int dZ0 = abs(Z01 - Z02);
     dZ0 &= maxbits;
@@ -105,7 +105,7 @@ namespace Phase2L1GMT {
   }
 
   // Ideal the object should carry its own ap types once we finalize
-  int TopoAlgo::deltaPhi(int phi1, int phi2) {
+  inline int TopoAlgo::deltaPhi(int phi1, int phi2) {
     static const int maxbits = (1 << BITSPHI) - 1;
     static const int pibits = (1 << (BITSPHI - 1));
     int dphi = abs(phi1 - phi2);

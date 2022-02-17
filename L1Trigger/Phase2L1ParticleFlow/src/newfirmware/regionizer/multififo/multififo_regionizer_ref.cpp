@@ -8,7 +8,9 @@
 #endif
 
 #include <iostream>
+#include <memory>
 
+        
 #include "multififo_regionizer_elements_ref.icc"
 
 #ifdef CMSSW_GIT_HASH
@@ -97,7 +99,7 @@ l1ct::MultififoRegionizerEmulator::~MultififoRegionizerEmulator() {}
 void l1ct::MultififoRegionizerEmulator::setEgInterceptMode(bool afterFifo,
                                                            const l1ct::EGInputSelectorEmuConfig& interceptorConfig) {
   emInterceptMode_ = afterFifo ? interceptPostFifo : interceptPreFifo;
-  interceptor_.reset(new EGInputSelectorEmulator(interceptorConfig));
+  interceptor_ = std::make_unique<EGInputSelectorEmulator>(interceptorConfig);
 }
 
 void l1ct::MultififoRegionizerEmulator::initSectorsAndRegions(const RegionizerDecodedInputs& in,

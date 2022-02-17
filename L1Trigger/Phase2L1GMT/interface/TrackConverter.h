@@ -13,7 +13,8 @@ namespace Phase2L1GMT {
 
     std::vector<ConvertedTTTrack> convertTracks(const std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> >& tracks) {
       std::vector<ConvertedTTTrack> out;
-      for (const auto& t : tracks)
+      out.reserve(tracks.size());
+ for (const auto& t : tracks)
         out.push_back(convert(t));
       return out;
     }

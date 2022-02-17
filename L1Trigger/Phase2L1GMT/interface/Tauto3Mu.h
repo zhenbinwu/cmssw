@@ -40,17 +40,17 @@ namespace Phase2L1GMT {
     int GetDiMass(const l1t::TrackerMuon &mu1, const l1t::TrackerMuon &mu2);
   };
 
-  Tauto3Mu::Tauto3Mu(const edm::ParameterSet &iConfig) {}
+  inline Tauto3Mu::Tauto3Mu(const edm::ParameterSet &iConfig) {}
 
-  Tauto3Mu::~Tauto3Mu() {}
+  inline Tauto3Mu::~Tauto3Mu() {}
 
-  Tauto3Mu::Tauto3Mu(const Tauto3Mu &cpy) {}
+  inline Tauto3Mu::Tauto3Mu(const Tauto3Mu &cpy) {}
 
   // ===  FUNCTION  ============================================================
   //         Name:  Tauto3Mu::GetTau3Mu
   //  Description:
   // ===========================================================================
-  bool Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks) {
+  inline bool Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks) {
     Find3MuComb(trkMus);
     return true;
   }  // -----  end of function Tauto3Mu::GetTau3Mu  -----
@@ -59,7 +59,7 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::Find3MuComb
   //  Description:
   // ===========================================================================
-  bool Tauto3Mu::Find3MuComb(std::vector<l1t::TrackerMuon> &trkMus) {
+  inline bool Tauto3Mu::Find3MuComb(std::vector<l1t::TrackerMuon> &trkMus) {
     // vector< phi, index of trackerMuon >
     std::vector<std::pair<int, unsigned int> > mu_phis;
     for (unsigned i = 0; i < trkMus.size(); ++i) {
@@ -84,7 +84,7 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::Get3MuMass
   //  Description:
   // ===========================================================================
-  int Tauto3Mu::Get3MuMass(unsigned target, unsigned obj1, unsigned obj2) {
+  inline int Tauto3Mu::Get3MuMass(unsigned target, unsigned obj1, unsigned obj2) {
     int mass12 = GetDiMass(trkMus->at(target), trkMus->at(obj1));
     int mass23 = GetDiMass(trkMus->at(obj1), trkMus->at(obj2));
     int mass31 = GetDiMass(trkMus->at(obj2), trkMus->at(target));
@@ -96,7 +96,7 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::GetDiMass
   //  Description:
   // ===========================================================================
-  int Tauto3Mu::GetDiMass(const l1t::TrackerMuon &mu1, const l1t::TrackerMuon &mu2) {
+  inline int Tauto3Mu::GetDiMass(const l1t::TrackerMuon &mu1, const l1t::TrackerMuon &mu2) {
     int deta = deltaEta(mu1.hwEta(), mu2.hwEta());
     int dphi = deltaPhi(mu1.hwPhi(), mu2.hwPhi());
     int mass = 2 * mu1.hwPt() * mu2.hwPt() * (cosh(deta) - cos(dphi));
@@ -107,7 +107,7 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::FindCloset3Mu
   //  Description:
   // ===========================================================================
-  bool Tauto3Mu::FindCloset3Mu(std::vector<std::pair<int, unsigned int> > &mu_phis,
+  inline bool Tauto3Mu::FindCloset3Mu(std::vector<std::pair<int, unsigned int> > &mu_phis,
                                std::vector<std::pair<unsigned, unsigned> > &nearby3mu) {
     nearby3mu.clear();
 
@@ -142,7 +142,7 @@ namespace Phase2L1GMT {
     return true;
   }  // -----  end of function Tauto3Mu::FindCloset3Mu  -----
 
-  int Tauto3Mu::Get3MuDphi(unsigned target, unsigned obj1, unsigned obj2) {
+  inline int Tauto3Mu::Get3MuDphi(unsigned target, unsigned obj1, unsigned obj2) {
     int dPhi1 = deltaPhi(trkMus->at(target).hwPhi(), trkMus->at(obj1).hwPhi());
     int dPhi2 = deltaPhi(trkMus->at(target).hwPhi(), trkMus->at(obj2).hwPhi());
     return dPhi1 + dPhi2;

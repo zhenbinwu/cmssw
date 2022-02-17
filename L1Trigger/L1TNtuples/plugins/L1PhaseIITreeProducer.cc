@@ -101,13 +101,13 @@ Implementation:
 class L1PhaseIITreeProducer : public edm::EDAnalyzer {
         public:
                 explicit L1PhaseIITreeProducer(const edm::ParameterSet&);
-                ~L1PhaseIITreeProducer();
+                ~L1PhaseIITreeProducer() override;
 
 
         private:
-                virtual void beginJob(void) ;
-                virtual void analyze(const edm::Event&, const edm::EventSetup&);
-                virtual void endJob();
+                void beginJob(void) override ;
+                void analyze(const edm::Event&, const edm::EventSetup&) override;
+                void endJob() override;
 
         public:
 

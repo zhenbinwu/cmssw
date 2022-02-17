@@ -54,7 +54,7 @@ namespace Phase2L1GMT {
     typedef ap_ufixed<9, 0> reliso_thresh_t;
   };
 
-  Isolation::Isolation(const edm::ParameterSet &iConfig)
+  inline Isolation::Isolation(const edm::ParameterSet &iConfig)
       : absiso_thrL(iConfig.getParameter<int>("AbsIsoThresholdL")),
         absiso_thrM(iConfig.getParameter<int>("AbsIsoThresholdM")),
         absiso_thrT(iConfig.getParameter<int>("AbsIsoThresholdT")),
@@ -70,16 +70,16 @@ namespace Phase2L1GMT {
     }
   }
 
-  Isolation::~Isolation() {
+  inline Isolation::~Isolation() {
     if (dumpForHLS_) {
       dumpInput.close();
       dumpOutput.close();
     }
   }
 
-  Isolation::Isolation(const Isolation &cpy) {}
+  inline Isolation::Isolation(const Isolation &cpy) {}
 
-  void Isolation::DumpOutputs(std::vector<l1t::TrackerMuon> &trkMus) {
+  inline void Isolation::DumpOutputs(std::vector<l1t::TrackerMuon> &trkMus) {
     static int nevto = 0;
     for (unsigned int i = 0; i < trkMus.size(); ++i) {
       auto mu = trkMus.at(i);
@@ -95,7 +95,7 @@ namespace Phase2L1GMT {
     nevto++;
   }
 
-  int Isolation::SetAbsIsolationBits(int accum) {
+  inline int Isolation::SetAbsIsolationBits(int accum) {
     int iso = (accum <= absiso_thrT ? 3 : accum <= absiso_thrM ? 2 : accum <= absiso_thrL ? 1 : 0);
 
     if (verbose_) {
@@ -110,7 +110,7 @@ namespace Phase2L1GMT {
     return iso;
   }
 
-  int Isolation::SetRelIsolationBits(int accum, int mupt) {
+  inline int Isolation::SetRelIsolationBits(int accum, int mupt) {
     const static reliso_thresh_t relisoL(reliso_thrL);
     const static reliso_thresh_t relisoM(reliso_thrM);
     const static reliso_thresh_t relisoT(reliso_thrT);
@@ -134,7 +134,7 @@ namespace Phase2L1GMT {
     return iso << 2;
   }
 
-  void Isolation::isolation_allmu_alltrk(std::vector<l1t::TrackerMuon> &trkMus,
+  inline void Isolation::isolation_allmu_alltrk(std::vector<l1t::TrackerMuon> &trkMus,
                                          std::vector<ConvertedTTTrack> &convertedTracks) {
     load(trkMus, convertedTracks);
     if (dumpForHLS_) {
@@ -180,7 +180,7 @@ namespace Phase2L1GMT {
   //         Name:  Isolation::OverlapRemoval
   //  Description:
   // ===========================================================================
-  int Isolation::OverlapRemoval(unsigned &ovrl, std::vector<unsigned> &overlaps) {
+  inline int Isolation::OverlapRemoval(unsigned &ovrl, std::vector<unsigned> &overlaps) {
     for (auto i : overlaps) {
       // same tracks with Phi can be off by 1 LSB
       unsigned diff = ovrl - i;
@@ -193,7 +193,7 @@ namespace Phase2L1GMT {
     return 1;
   }  // -----  end of function Isolation::OverlapRemoval  -----
 
-  unsigned Isolation::compute_trk_iso(l1t::TrackerMuon &in_mu, ConvertedTTTrack &in_trk) {
+  inline unsigned Isolation::compute_trk_iso(l1t::TrackerMuon &in_mu, ConvertedTTTrack &in_trk) {
     int dphi = deltaPhi(in_mu.hwPhi(), in_trk.phi());
     int deta = deltaEta(in_mu.hwEta(), in_trk.eta());
     int dz0 = deltaZ0(in_mu.hwZ0(), in_trk.z0());

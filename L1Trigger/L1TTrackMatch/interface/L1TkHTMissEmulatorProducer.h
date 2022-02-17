@@ -67,7 +67,7 @@ namespace l1tmhtemu {
     return digitized_value;
   }
 
-  std::vector<phi_t> generateCosLUT(unsigned int size) {  // Fill cosine LUT with integer values
+  inline std::vector<phi_t> generateCosLUT(unsigned int size) {  // Fill cosine LUT with integer values
     float phi = 0;
     std::vector<phi_t> cosLUT;
     for (unsigned int LUT_idx = 0; LUT_idx < size; LUT_idx++) {
@@ -78,15 +78,16 @@ namespace l1tmhtemu {
     return cosLUT;
   }
 
-  std::vector<MHTphi_t> generateaTanLUT(int cordicSteps) {  // Fill atan LUT with integer values
+  inline std::vector<MHTphi_t> generateaTanLUT(int cordicSteps) {  // Fill atan LUT with integer values
     std::vector<MHTphi_t> atanLUT;
-    for (int cordicStep = 0; cordicStep < cordicSteps; cordicStep++) {
+    atanLUT.reserve(cordicSteps);
+ for (int cordicStep = 0; cordicStep < cordicSteps; cordicStep++) {
       atanLUT.push_back(MHTphi_t(round((kMHTPhiBins * atan(pow(2, -1 * cordicStep))) / (2 * M_PI))));
     }
     return atanLUT;
   }
 
-  std::vector<Et_t> generatemagNormalisationLUT(int cordicSteps) {
+  inline std::vector<Et_t> generatemagNormalisationLUT(int cordicSteps) {
     float val = 1.0;
     std::vector<Et_t> magNormalisationLUT;
     for (int cordicStep = 0; cordicStep < cordicSteps; cordicStep++) {
@@ -101,7 +102,7 @@ namespace l1tmhtemu {
     MHTphi_t Phi;
   };
 
-  EtMiss cordicSqrt(Et_t x,
+  inline EtMiss cordicSqrt(Et_t x,
                     Et_t y,
                     int cordicSteps,
                     std::vector<l1tmhtemu::MHTphi_t> atanLUT,
