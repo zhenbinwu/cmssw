@@ -441,7 +441,6 @@ namespace Phase2L1GMT {
         for (const auto& stub : roi.stubs()) {
           match_t m = propagateAndMatch(track, stub);
           if (m.valid == 1) {
-            
             if (roi.isGlobalMuon() && roi.muonRef().isNonnull()) {
               m.isGlobal = true;
               m.muRef = roi.muonRef();
@@ -457,7 +456,6 @@ namespace Phase2L1GMT {
               matchInfo3.push_back(m);
             else if (stub->tfLayer() == 4)
               matchInfo4.push_back(m);
-
           }
         }
       }

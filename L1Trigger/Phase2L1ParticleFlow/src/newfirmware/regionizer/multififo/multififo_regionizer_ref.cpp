@@ -10,7 +10,6 @@
 #include <iostream>
 #include <memory>
 
-        
 #include "multififo_regionizer_elements_ref.icc"
 
 #ifdef CMSSW_GIT_HASH

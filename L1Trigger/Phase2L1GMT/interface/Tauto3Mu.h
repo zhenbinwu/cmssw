@@ -50,7 +50,8 @@ namespace Phase2L1GMT {
   //         Name:  Tauto3Mu::GetTau3Mu
   //  Description:
   // ===========================================================================
-  inline bool Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus, std::vector<ConvertedTTTrack> &convertedTracks) {
+  inline bool Tauto3Mu::GetTau3Mu(std::vector<l1t::TrackerMuon> &trkMus,
+                                  std::vector<ConvertedTTTrack> &convertedTracks) {
     Find3MuComb(trkMus);
     return true;
   }  // -----  end of function Tauto3Mu::GetTau3Mu  -----
@@ -108,7 +109,7 @@ namespace Phase2L1GMT {
   //  Description:
   // ===========================================================================
   inline bool Tauto3Mu::FindCloset3Mu(std::vector<std::pair<int, unsigned int> > &mu_phis,
-                               std::vector<std::pair<unsigned, unsigned> > &nearby3mu) {
+                                      std::vector<std::pair<unsigned, unsigned> > &nearby3mu) {
     nearby3mu.clear();
 
     std::vector<std::pair<int, unsigned int> > temp(mu_phis);

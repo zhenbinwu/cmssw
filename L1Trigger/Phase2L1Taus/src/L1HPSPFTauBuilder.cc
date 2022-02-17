@@ -8,7 +8,8 @@
 #include <cmath>                                   // std::fabs
 
 L1HPSPFTauBuilder::L1HPSPFTauBuilder(const edm::ParameterSet& cfg)
-  : signalConeSizeFormula_(std::regex_replace(cfg.getParameter<std::string>("signalConeSize"), std::regex("pt"), "x")),
+    : signalConeSizeFormula_(
+          std::regex_replace(cfg.getParameter<std::string>("signalConeSize"), std::regex("pt"), "x")),
       minSignalConeSize_(cfg.getParameter<double>("minSignalConeSize")),
       maxSignalConeSize_(cfg.getParameter<double>("maxSignalConeSize")),
       useStrips_(cfg.getParameter<bool>("useStrips")),
@@ -347,7 +348,7 @@ void L1HPSPFTauBuilder::buildL1PFTau() {
       }
     }
   }
-  if(l1PFTau_.leadChargedPFCand().isNonnull() && l1PFTau_.leadChargedPFCand()->pfTrack().isNonnull()){
+  if (l1PFTau_.leadChargedPFCand().isNonnull() && l1PFTau_.leadChargedPFCand()->pfTrack().isNonnull()) {
     l1PFTau_.setZ(l1PFTau_.leadChargedPFCand()->pfTrack()->vertex().z());
 
     l1PFTau_.setP4(l1PFTau_p4);
@@ -384,18 +385,18 @@ void L1HPSPFTauBuilder::buildL1PFTau() {
 
     if (l1PFTau_.signalChargedHadrons().size() > 1) {
       if (stripP4_.pt() < 5.)
-	l1PFTau_.setTauType(l1t::HPSPFTau::kThreeProng0Pi0);
+        l1PFTau_.setTauType(l1t::HPSPFTau::kThreeProng0Pi0);
       else
-	l1PFTau_.setTauType(l1t::HPSPFTau::kThreeProng1Pi0);
+        l1PFTau_.setTauType(l1t::HPSPFTau::kThreeProng1Pi0);
     } else {
       if (stripP4_.pt() < 5.)
-	l1PFTau_.setTauType(l1t::HPSPFTau::kOneProng0Pi0);
+        l1PFTau_.setTauType(l1t::HPSPFTau::kOneProng0Pi0);
       else
-	l1PFTau_.setTauType(l1t::HPSPFTau::kOneProng1Pi0);
+        l1PFTau_.setTauType(l1t::HPSPFTau::kOneProng1Pi0);
     }
-    
+
     l1PFTau_.setStripP4(stripP4_);
-    
+
     l1PFTau_.setSumAllL1PFCandidatesPt(sumAllL1PFCandidatesPt_);
     l1PFTau_.setSignalConeSize(signalConeSize_);
     l1PFTau_.setisolationConeSize(isolationConeSize_);
@@ -404,9 +405,9 @@ void L1HPSPFTauBuilder::buildL1PFTau() {
     double sumNeutralIso = 0.;
     for (const auto& l1PFCand : isoAllL1PFCandidates_) {
       if (l1PFCand->charge() != 0) {
-	sumChargedIso += l1PFCand->pt();
+        sumChargedIso += l1PFCand->pt();
       } else if (l1PFCand->id() == l1t::PFCandidate::Photon) {
-	sumNeutralIso += l1PFCand->pt();
+        sumNeutralIso += l1PFCand->pt();
       }
     }
     l1PFTau_.setSumChargedIso(sumChargedIso);
@@ -428,18 +429,18 @@ void L1HPSPFTauBuilder::buildL1PFTau() {
     if (l1PFTau_.sumChargedIso() < 2.5) {
       l1PFTau_.setPassTightIso(true);
     }
-    
-    if(l1PFTau_p4.pt()!=0){
-      if (l1PFTau_.sumChargedIso()/l1PFTau_p4.pt() < 0.40) {
+
+    if (l1PFTau_p4.pt() != 0) {
+      if (l1PFTau_.sumChargedIso() / l1PFTau_p4.pt() < 0.40) {
         l1PFTau_.setPassVLooseRelIso(true);
       }
-      if (l1PFTau_.sumChargedIso()/l1PFTau_p4.pt() < 0.20) {
-	l1PFTau_.setPassLooseRelIso(true);
+      if (l1PFTau_.sumChargedIso() / l1PFTau_p4.pt() < 0.20) {
+        l1PFTau_.setPassLooseRelIso(true);
       }
-      if (l1PFTau_.sumChargedIso()/l1PFTau_p4.pt() < 0.10) {
+      if (l1PFTau_.sumChargedIso() / l1PFTau_p4.pt() < 0.10) {
         l1PFTau_.setPassMediumRelIso(true);
       }
-      if (l1PFTau_.sumChargedIso()/l1PFTau_p4.pt() < 0.05) {
+      if (l1PFTau_.sumChargedIso() / l1PFTau_p4.pt() < 0.05) {
         l1PFTau_.setPassTightRelIso(true);
       }
     }

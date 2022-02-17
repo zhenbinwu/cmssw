@@ -248,7 +248,7 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
     extTkVtx_ = consumes<std::vector<l1t::Vertex>>(iConfig.getParameter<edm::InputTag>("vtxCollection"));
   }
   NVtx_ = iConfig.getParameter<int>("nVtx");
-  
+
   const char *iprefix[4] = {"totNReg", "maxNReg", "totNSec", "maxNSec"};
   for (int i = 0; i <= l1muType; ++i) {
     for (int ip = 0; ip < 4; ++ip) {
@@ -745,7 +745,7 @@ void L1TCorrelatorLayer1Producer::setRefs_<l1ct::TkObjEmu>(l1t::PFCandidate &pf,
 
 std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchHadCalo() const {
   auto ret = std::make_unique<l1t::PFCandidateCollection>();
-  for (const auto& r : event_.pfinputs) {
+  for (const auto &r : event_.pfinputs) {
     const auto &reg = r.region;
     for (const auto &p : r.hadcalo) {
       if (p.hwPt == 0 || !reg.isFiducial(p))
@@ -761,7 +761,7 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchHa
 }
 std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchEmCalo() const {
   auto ret = std::make_unique<l1t::PFCandidateCollection>();
-  for (const auto& r : event_.pfinputs) {
+  for (const auto &r : event_.pfinputs) {
     const auto &reg = r.region;
     for (const auto &p : r.emcalo) {
       if (p.hwPt == 0 || !reg.isFiducial(p))
@@ -776,7 +776,7 @@ std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchEm
 }
 std::unique_ptr<l1t::PFCandidateCollection> L1TCorrelatorLayer1Producer::fetchTracks() const {
   auto ret = std::make_unique<l1t::PFCandidateCollection>();
-  for (const auto& r : event_.pfinputs) {
+  for (const auto &r : event_.pfinputs) {
     const auto &reg = r.region;
     for (const auto &p : r.track) {
       if (p.hwPt == 0 || !reg.isFiducial(p))

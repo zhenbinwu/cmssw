@@ -220,7 +220,7 @@ void HPSPFTauProducer::fillDescriptions(edm::ConfigurationDescriptions& descript
   desc.add<double>("minSeedJetPt", 30.0);
   desc.add<double>("maxChargedRelIso", 1.0);
   desc.add<double>("minSeedChargedPFCandPt", 5.0);
-  desc.add<edm::InputTag>("srcL1PFCands", edm::InputTag("l1ctLayer1","PF"));
+  desc.add<edm::InputTag>("srcL1PFCands", edm::InputTag("l1ctLayer1", "PF"));
   desc.add<double>("stripSizeEta", 0.05);
   desc.add<double>("maxLeadChargedPFCandEta", 2.4);
   desc.add<double>("deltaRCleaning", 0.4);
@@ -268,7 +268,8 @@ void HPSPFTauProducer::fillDescriptions(edm::ConfigurationDescriptions& descript
   desc.add<double>("maxLeadChargedPFCandDz", 1000.0);
   desc.add<double>("maxSeedJetEta", 2.4);
   desc.add<std::string>("signalConeSize", "2.8/max(1., pt)");
-  desc.add<edm::InputTag>("srcL1Jets", edm::InputTag("Phase1L1TJetProducer","UncalibratedPhase1L1TJetFromPfCandidates"));
+  desc.add<edm::InputTag>("srcL1Jets",
+                          edm::InputTag("Phase1L1TJetProducer", "UncalibratedPhase1L1TJetFromPfCandidates"));
   desc.addUntracked<bool>("debug", false);
   desc.add<double>("maxPFTauEta", 2.4);
   desc.add<double>("maxSignalConeSize", 0.1);

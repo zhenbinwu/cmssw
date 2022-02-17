@@ -40,7 +40,6 @@ namespace Phase2L1GMT {
     std::vector<l1t::TrackerMuon> *trkMus;
     std::vector<ConvertedTTTrack> *convertedTracks;
     std::ofstream dumpInput;
-
   };
 
   inline TopoAlgo::TopoAlgo() {}

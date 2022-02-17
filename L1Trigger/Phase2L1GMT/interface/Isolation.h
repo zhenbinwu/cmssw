@@ -135,7 +135,7 @@ namespace Phase2L1GMT {
   }
 
   inline void Isolation::isolation_allmu_alltrk(std::vector<l1t::TrackerMuon> &trkMus,
-                                         std::vector<ConvertedTTTrack> &convertedTracks) {
+                                                std::vector<ConvertedTTTrack> &convertedTracks) {
     load(trkMus, convertedTracks);
     if (dumpForHLS_) {
       DumpInputs();
@@ -198,7 +198,6 @@ namespace Phase2L1GMT {
     int deta = deltaEta(in_mu.hwEta(), in_trk.eta());
     int dz0 = deltaZ0(in_mu.hwZ0(), in_trk.z0());
 
-
     bool pass_deta = (deta < c_iso_dangle_max ? true : false);
     bool pass_dphi = (dphi < c_iso_dangle_max ? true : false);
     bool pass_dz0 = (dz0 < c_iso_dz_max ? true : false);
@@ -208,9 +207,11 @@ namespace Phase2L1GMT {
     if (verbose_) {
       cout << " [DEBUG compute_trk_iso] : Start of debug msg for compute_trk_iso" << endl;
       cout << " [DEBUG compute_trk_iso] : incoming muon (pt / eta / phi / z0 / isvalid)" << endl;
-      cout << " [DEBUG compute_trk_iso] : MU  =  " << in_mu.hwPt() << " / " << in_mu.hwEta() << " / " << in_mu.hwPhi() << " / " << in_mu.hwZ0() << " / " << 1 << endl;
+      cout << " [DEBUG compute_trk_iso] : MU  =  " << in_mu.hwPt() << " / " << in_mu.hwEta() << " / " << in_mu.hwPhi()
+           << " / " << in_mu.hwZ0() << " / " << 1 << endl;
       cout << " [DEBUG compute_trk_iso] : incoming track (pt / eta / phi / z0 / isvalid)" << endl;
-      cout << " [DEBUG compute_trk_iso] : TRK =  " << in_trk.pt() << " / " << in_trk.eta() << " / " << in_trk.phi() << " / " << in_trk.z0() << " / " << 1 << endl;
+      cout << " [DEBUG compute_trk_iso] : TRK =  " << in_trk.pt() << " / " << in_trk.eta() << " / " << in_trk.phi()
+           << " / " << in_trk.z0() << " / " << 1 << endl;
       cout << " [DEBUG compute_trk_iso] : Delta phi : " << dphi << endl;
       cout << " [DEBUG compute_trk_iso] : Delta eta : " << deta << endl;
       cout << " [DEBUG compute_trk_iso] : Delta z0  : " << dz0 << endl;

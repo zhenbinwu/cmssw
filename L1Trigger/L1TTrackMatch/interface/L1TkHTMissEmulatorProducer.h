@@ -81,7 +81,7 @@ namespace l1tmhtemu {
   inline std::vector<MHTphi_t> generateaTanLUT(int cordicSteps) {  // Fill atan LUT with integer values
     std::vector<MHTphi_t> atanLUT;
     atanLUT.reserve(cordicSteps);
- for (int cordicStep = 0; cordicStep < cordicSteps; cordicStep++) {
+    for (int cordicStep = 0; cordicStep < cordicSteps; cordicStep++) {
       atanLUT.push_back(MHTphi_t(round((kMHTPhiBins * atan(pow(2, -1 * cordicStep))) / (2 * M_PI))));
     }
     return atanLUT;
@@ -103,10 +103,10 @@ namespace l1tmhtemu {
   };
 
   inline EtMiss cordicSqrt(Et_t x,
-                    Et_t y,
-                    int cordicSteps,
-                    std::vector<l1tmhtemu::MHTphi_t> atanLUT,
-                    std::vector<Et_t> magNormalisationLUT) {
+                           Et_t y,
+                           int cordicSteps,
+                           std::vector<l1tmhtemu::MHTphi_t> atanLUT,
+                           std::vector<Et_t> magNormalisationLUT) {
     Et_t new_x = 0;
     Et_t new_y = 0;
 
