@@ -140,7 +140,7 @@ void L1TkHTMissEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSet
     // floats used for debugging
     float tmp_jet_px_ = jetIter->pt() * cos(jetIter->glbphi());
     float tmp_jet_py_ = jetIter->pt() * sin(jetIter->glbphi());
-    float tmp_jet_et_ = jetIter->pt();  // FIXME Get Et from the emulated jets
+    //float tmp_jet_et_ = jetIter->pt();  // FIXME Get Et from the emulated jets
     float tmp_jet_pt_ = jetIter->pt();
 
     l1tmhtemu::pt_t tmp_jet_pt =

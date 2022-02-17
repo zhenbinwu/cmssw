@@ -144,7 +144,7 @@ void L1FastTrackingJetProducer::produce(edm::Event& iEvent, const edm::EventSetu
 
   // Tracker Topology
   const TrackerTopology& tTopo = iSetup.getData(tTopoToken_);
-  const TrackerGeometry& tGeom = iSetup.getData(tGeomToken_);
+  //const TrackerGeometry& tGeom = iSetup.getData(tGeomToken_);
 
   edm::Handle<std::vector<l1t::Vertex>> L1VertexHandle;
   iEvent.getByToken(pvToken_, L1VertexHandle);

@@ -382,7 +382,7 @@ L1PhaseIITreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
         edm::Handle<float> z0Puppi;
         iEvent.getByToken(z0PuppiToken_,z0Puppi);
-        float Z0=*z0Puppi;
+        //float Z0=*z0Puppi;
 
        // edm::Handle<std::vector<l1t::Vertex> > l1vertextdr;
        // edm::Handle<std::vector<l1t::Vertex> > l1vertices;

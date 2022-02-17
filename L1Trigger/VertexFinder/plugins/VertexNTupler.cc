@@ -442,7 +442,7 @@ namespace l1tVertexFinder {
       }
     }
 
-    const Vertex& TruePrimaryVertex = inputData.getPrimaryVertex();
+    //const Vertex& TruePrimaryVertex = inputData.getPrimaryVertex();
 
     // create a map for associating fat reco tracks with their underlying
     // TTTrack pointers
