@@ -9,7 +9,7 @@
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2017.h"
 
 EMTFSetup::EMTFSetup(const edm::ParameterSet& iConfig, edm::ConsumesCollector iCollector)
-    : geometry_translator_(iCollector),
+    : geometry_translator_(),
       condition_helper_(iCollector),
       version_control_(iConfig),
       sector_processor_lut_(),
