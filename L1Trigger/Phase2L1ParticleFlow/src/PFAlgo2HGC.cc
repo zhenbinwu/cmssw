@@ -65,7 +65,7 @@ void PFAlgo2HGC::runPF(Region &r) const {
 
   if (debug_) {
     dbgPrintf(
-        "PFAlgo2HGC\nPFAlgo2HGC region eta [ %+5.2f , %+5.2f ], phi [ %+5.2f , %+5.2f ], fiducial eta [ %+5.2f , "
+        "%s","PFAlgo2HGC\nPFAlgo2HGC region eta [ %+5.2f , %+5.2f ], phi [ %+5.2f , %+5.2f ], fiducial eta [ %+5.2f , "
         "%+5.2f ], phi [ %+5.2f , %+5.2f ]\n",
         r.etaMin - r.etaExtra,
         r.etaMax + r.etaExtra,
@@ -76,11 +76,11 @@ void PFAlgo2HGC::runPF(Region &r) const {
         r.phiCenter - r.phiHalfWidth,
         r.phiCenter + r.phiHalfWidth);
     dbgPrintf(
-        "PFAlgo2HGC \t N(track) %3lu   N(calo) %3lu   N(mu) %3lu\n", r.track.size(), r.calo.size(), r.muon.size());
+        "%s","PFAlgo2HGC \t N(track) %3lu   N(calo) %3lu   N(mu) %3lu\n", r.track.size(), r.calo.size(), r.muon.size());
     for (int itk = 0, ntk = r.track.size(); itk < ntk; ++itk) {
       const auto &tk = r.track[itk];
       dbgPrintf(
-          "PFAlgo2HGC \t track %3d: pt %7.2f +- %5.2f  vtx eta %+5.2f  vtx phi %+5.2f  calo eta %+5.2f  calo phi "
+          "%s","PFAlgo2HGC \t track %3d: pt %7.2f +- %5.2f  vtx eta %+5.2f  vtx phi %+5.2f  calo eta %+5.2f  calo phi "
           "%+5.2f  fid %1d  calo ptErr %7.2f stubs %2d chi2 %7.1f quality %d\n",
           itk,
           tk.floatPt(),
@@ -98,7 +98,7 @@ void PFAlgo2HGC::runPF(Region &r) const {
     for (int ic = 0, nc = r.calo.size(); ic < nc; ++ic) {
       auto &calo = r.calo[ic];
       dbgPrintf(
-          "PFAlgo2HGC \t calo  %3d: pt %7.2f +- %5.2f  vtx eta %+5.2f  vtx phi %+5.2f  calo eta %+5.2f  calo phi "
+          "%s","PFAlgo2HGC \t calo  %3d: pt %7.2f +- %5.2f  vtx eta %+5.2f  vtx phi %+5.2f  calo eta %+5.2f  calo phi "
           "%+5.2f  fid %1d  calo ptErr %7.2f em pt %7.2f isEM %1d \n",
           ic,
           calo.floatPt(),
@@ -115,7 +115,7 @@ void PFAlgo2HGC::runPF(Region &r) const {
     for (int im = 0, nm = r.muon.size(); im < nm; ++im) {
       auto &mu = r.muon[im];
       dbgPrintf(
-          "PFAlgo2HGC \t muon  %3d: pt %7.2f           vtx eta %+5.2f  vtx phi %+5.2f  calo eta %+5.2f  calo phi "
+          "%s","PFAlgo2HGC \t muon  %3d: pt %7.2f           vtx eta %+5.2f  vtx phi %+5.2f  calo eta %+5.2f  calo phi "
           "%+5.2f  fid %1d\n",
           im,
           mu.floatPt(),
@@ -173,7 +173,7 @@ void PFAlgo2HGC::link_tk2mu(Region &r, std::vector<int> &tk2mu, std::vector<int>
   for (int imu = 0, nmu = r.muon.size(); imu < nmu; ++imu) {
     const auto &mu = r.muon[imu];
     if (debug_)
-      dbgPrintf("PFAlgo2HGC \t muon  %3d (pt %7.2f, eta %+5.2f, phi %+5.2f) \n",
+      dbgPrintf("%s","PFAlgo2HGC \t muon  %3d (pt %7.2f, eta %+5.2f, phi %+5.2f) \n",
                 imu,
                 mu.floatPt(),
                 mu.floatEta(),
@@ -218,7 +218,7 @@ void PFAlgo2HGC::link_tk2mu(Region &r, std::vector<int> &tk2mu, std::vector<int>
       }
       if (debug_ && dr < 0.4) {
         dbgPrintf(
-            "PFAlgo2HGC \t\t possible match with track %3d (pt %7.2f, caloeta %+5.2f, calophi %+5.2f, dr %.2f, eta "
+            "%s","PFAlgo2HGC \t\t possible match with track %3d (pt %7.2f, caloeta %+5.2f, calophi %+5.2f, dr %.2f, eta "
             "%+5.2f, phi %+5.2f, dr %.2f):  angular %1d, distance %.3f (vs %.3f)\n",
             itk,
             tk.floatPt(),
@@ -241,13 +241,13 @@ void PFAlgo2HGC::link_tk2mu(Region &r, std::vector<int> &tk2mu, std::vector<int>
       }
     }
     if (debug_ && imatch > -1)
-      dbgPrintf("PFAlgo2HGC \t muon  %3d (pt %7.2f) linked to track %3d (pt %7.2f)\n",
+      dbgPrintf("%s","PFAlgo2HGC \t muon  %3d (pt %7.2f) linked to track %3d (pt %7.2f)\n",
                 imu,
                 mu.floatPt(),
                 imatch,
                 r.track[imatch].floatPt());
     if (debug_ && imatch == -1)
-      dbgPrintf("PFAlgo2HGC \t muon  %3d (pt %7.2f) not linked to any track\n", imu, mu.floatPt());
+      dbgPrintf("%s","PFAlgo2HGC \t muon  %3d (pt %7.2f) not linked to any track\n", imu, mu.floatPt());
     mu2tk[imu] = imatch;
     if (imatch > -1) {
       tk2mu[imatch] = imu;
@@ -281,7 +281,7 @@ void PFAlgo2HGC::link_tk2calo(Region &r, std::vector<int> &tk2calo) const {
     float minCaloPt = tk.floatPt() - ptMatchLow_ * tk.floatCaloPtErr();
     if (debug_)
       dbgPrintf(
-          "PFAlgo2HGC \t track %3d (pt %7.2f) to be matched to calo, min pT %7.2f\n", itk, tk.floatPt(), minCaloPt);
+          "%s","PFAlgo2HGC \t track %3d (pt %7.2f) to be matched to calo, min pT %7.2f\n", itk, tk.floatPt(), minCaloPt);
     for (int ic = 0, nc = r.calo.size(); ic < nc; ++ic) {
       auto &calo = r.calo[ic];
       if (calo.used || calo.floatPt() <= minCaloPt)
@@ -297,7 +297,7 @@ void PFAlgo2HGC::link_tk2calo(Region &r, std::vector<int> &tk2calo) const {
         case TkCaloLinkMetric::BestByDRPt:
           dq = dr + std::max<float>(tk.floatPt() - calo.floatPt(), 0.) * dptscale;
           if (debug_ > 2 && dr < 0.3)
-            dbgPrintf("PFAlgo2HGC \t\t\t track %3d (pt %7.2f) vs calo %3d (pt %7.2f): dr %.3f, dq %.3f\n",
+            dbgPrintf("%s","PFAlgo2HGC \t\t\t track %3d (pt %7.2f) vs calo %3d (pt %7.2f): dr %.3f, dq %.3f\n",
                       itk,
                       tk.floatPt(),
                       ic,
@@ -312,7 +312,7 @@ void PFAlgo2HGC::link_tk2calo(Region &r, std::vector<int> &tk2calo) const {
         case TkCaloLinkMetric::BestByDR2Pt2:
           dq = hypot(dr, std::max<float>(tk.floatPt() - calo.floatPt(), 0.) * dptscale);
           if (debug_ > 2 && dr < 0.3)
-            dbgPrintf("PFAlgo2HGC \t\t\t track %3d (pt %7.2f) vs calo %3d (pt %7.2f): dr %.3f, dq %.3f\n",
+            dbgPrintf("%s","PFAlgo2HGC \t\t\t track %3d (pt %7.2f) vs calo %3d (pt %7.2f): dr %.3f, dq %.3f\n",
                       itk,
                       tk.floatPt(),
                       ic,
@@ -327,7 +327,7 @@ void PFAlgo2HGC::link_tk2calo(Region &r, std::vector<int> &tk2calo) const {
       }
     }
     if (debug_ && tk2calo[itk] != -1)
-      dbgPrintf("PFAlgo2HGC \t track %3d (pt %7.2f) matches to calo %3d (pt %7.2f) with dist %.3f (dr %.3f)\n",
+      dbgPrintf("%s","PFAlgo2HGC \t track %3d (pt %7.2f) matches to calo %3d (pt %7.2f) with dist %.3f (dr %.3f)\n",
                 itk,
                 tk.floatPt(),
                 tk2calo[itk],
@@ -350,7 +350,7 @@ void PFAlgo2HGC::link_tk2calo(Region &r, std::vector<int> &tk2calo) const {
       }
       if (ibest != -1)
         dbgPrintf(
-            "PFAlgo2HGC \t track %3d (pt %7.2f) would match to calo %3d (pt %7.2f) with dr %.3f if the pt min and dr "
+            "%s","PFAlgo2HGC \t track %3d (pt %7.2f) would match to calo %3d (pt %7.2f) with dr %.3f if the pt min and dr "
             "requirement had been relaxed\n",
             itk,
             tk.floatPt(),
@@ -396,13 +396,13 @@ void PFAlgo2HGC::unlinkedtk_algo(Region &r, const std::vector<int> &tk2calo) con
     if (tk.floatPt() < maxPt) {
       if (debug_)
         dbgPrintf(
-            "PFAlgo2HGC \t track %3d (pt %7.2f) not matched to calo, kept as charged hadron\n", itk, tk.floatPt());
+            "%s","PFAlgo2HGC \t track %3d (pt %7.2f) not matched to calo, kept as charged hadron\n", itk, tk.floatPt());
       auto &p = addTrackToPF(r, tk);
       p.hwStatus = GoodTK_NoCalo;
       tk.used = true;
     } else {
       if (debug_)
-        dbgPrintf("PFAlgo2HGC \t track %3d (pt %7.2f) not matched to calo, dropped\n", itk, tk.floatPt());
+        dbgPrintf("%s","PFAlgo2HGC \t track %3d (pt %7.2f) not matched to calo, dropped\n", itk, tk.floatPt());
     }
   }
 }
@@ -428,7 +428,7 @@ void PFAlgo2HGC::calo_relink(Region &r,
         continue;
       float dr = floatDR(calo, calo2);
       //// uncomment below for more verbose debugging
-      //if (debug_ && dr < 0.5) dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f) with no tracks is at dr %.3f from calo %3d with pt %7.2f (sum tk pt %7.2f), track excess %7.2f +- %7.2f\n", ic, calo.floatPt(), dr, ic2, calo2.floatPt(), calo2sumtkpt[ic2], calo2sumtkpt[ic2] - calo2.floatPt(), useTrackCaloSigma_ ? calo2sumtkpterr[ic2] : calo2.floatPtErr());
+      //if (debug_ && dr < 0.5) dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f) with no tracks is at dr %.3f from calo %3d with pt %7.2f (sum tk pt %7.2f), track excess %7.2f +- %7.2f\n", ic, calo.floatPt(), dr, ic2, calo2.floatPt(), calo2sumtkpt[ic2], calo2sumtkpt[ic2] - calo2.floatPt(), useTrackCaloSigma_ ? calo2sumtkpterr[ic2] : calo2.floatPtErr());
       if (dr < drbest) {
         float ptdiff =
             calo2sumtkpt[ic2] - calo2.floatPt() + (useTrackCaloSigma_ ? calo2sumtkpterr[ic2] : calo2.floatPtErr());
@@ -442,7 +442,7 @@ void PFAlgo2HGC::calo_relink(Region &r,
       const auto &calo2 = r.calo[i2best];
       if (debug_)
         dbgPrintf(
-            "PFAlgo2HGC \t calo  %3d (pt %7.2f) with no tracks matched within dr %.3f with calo %3d with pt %7.2f (sum "
+            "%s","PFAlgo2HGC \t calo  %3d (pt %7.2f) with no tracks matched within dr %.3f with calo %3d with pt %7.2f (sum "
             "tk pt %7.2f), track excess %7.2f +- %7.2f\n",
             ic,
             calo.floatPt(),
@@ -461,7 +461,7 @@ void PFAlgo2HGC::calo_relink(Region &r,
     if (addtopt[ic]) {
       auto &calo = r.calo[ic];
       if (debug_)
-        dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f, sum tk pt %7.2f) is increased to pt %7.2f after merging\n",
+        dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f, sum tk pt %7.2f) is increased to pt %7.2f after merging\n",
                   ic,
                   calo.floatPt(),
                   calo2sumtkpt[ic],
@@ -486,7 +486,7 @@ void PFAlgo2HGC::linkedcalo_algo(Region &r,
     float pterr = useTrackCaloSigma_ ? calo2sumtkpterr[ic] : calo.floatPtErr();
     if (debug_)
       dbgPrintf(
-          "PFAlgo2HGC \t calo  %3d (pt %7.2f +- %7.2f, empt %7.2f) has %2d tracks (sumpt %7.2f, sumpterr %7.2f), ptdif "
+          "%s","PFAlgo2HGC \t calo  %3d (pt %7.2f +- %7.2f, empt %7.2f) has %2d tracks (sumpt %7.2f, sumpterr %7.2f), ptdif "
           "%7.2f +- %7.2f\n",
           ic,
           calo.floatPt(),
@@ -503,7 +503,7 @@ void PFAlgo2HGC::linkedcalo_algo(Region &r,
           float emptdiff = std::min(ptdiff, calo.floatEmPt());
           if (debug_)
             dbgPrintf(
-                "PFAlgo2HGC \t calo  %3d (pt %7.2f, empt %7.2f)    ---> make photon with pt %7.2f, reduce ptdiff to "
+                "%s","PFAlgo2HGC \t calo  %3d (pt %7.2f, empt %7.2f)    ---> make photon with pt %7.2f, reduce ptdiff to "
                 "%7.2f +- %7.2f\n",
                 ic,
                 calo.floatPt(),
@@ -518,7 +518,7 @@ void PFAlgo2HGC::linkedcalo_algo(Region &r,
         }
         if (ptdiff > 2) {
           if (debug_)
-            dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f, empt %7.2f)    ---> make also neutral hadron with pt %7.2f\n",
+            dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f, empt %7.2f)    ---> make also neutral hadron with pt %7.2f\n",
                       ic,
                       calo.floatPt(),
                       calo.floatEmPt(),
@@ -529,7 +529,7 @@ void PFAlgo2HGC::linkedcalo_algo(Region &r,
         }
       } else {
         if (debug_)
-          dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> promoted to neutral with pt %7.2f\n",
+          dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> promoted to neutral with pt %7.2f\n",
                     ic,
                     calo.floatPt(),
                     ptdiff);
@@ -542,18 +542,18 @@ void PFAlgo2HGC::linkedcalo_algo(Region &r,
       calo.hwFlags = 1;
       if (debug_)
         dbgPrintf(
-            "PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> to be deleted, will use tracks instead\n", ic, calo.floatPt());
+            "%s","PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> to be deleted, will use tracks instead\n", ic, calo.floatPt());
     } else {
       // tracks overshoot, rescale to tracks to calo
       calo2alpha[ic] = rescaleTracks_ ? calo.floatPt() / calo2sumtkpt[ic] : 1.0;
       calo.hwFlags = 2;
       if (debug_ && rescaleTracks_)
-        dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> tracks overshoot and will be scaled down by %.4f\n",
+        dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> tracks overshoot and will be scaled down by %.4f\n",
                   ic,
                   calo.floatPt(),
                   calo2alpha[ic]);
       if (debug_ && !rescaleTracks_)
-        dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> tracks overshoot by %.4f\n",
+        dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f)    ---> tracks overshoot by %.4f\n",
                   ic,
                   calo.floatPt(),
                   calo2sumtkpt[ic] / calo.floatPt());
@@ -591,7 +591,7 @@ void PFAlgo2HGC::linkedtk_algo(Region &r,
         p.setFloatPt(ptavg);
         if (debug_)
           dbgPrintf(
-              "PFAlgo2HGC \t track %3d (pt %7.2f +- %7.2f) combined with calo %3d (pt %7.2f +- %7.2f (from tk) "
+              "%s","PFAlgo2HGC \t track %3d (pt %7.2f +- %7.2f) combined with calo %3d (pt %7.2f +- %7.2f (from tk) "
               "yielding candidate of pt %7.2f\n",
               itk,
               tk.floatPt(),
@@ -603,7 +603,7 @@ void PFAlgo2HGC::linkedtk_algo(Region &r,
       } else {
         p.hwStatus = GoodTK_Calo_TkPt;
         if (debug_)
-          dbgPrintf("PFAlgo2HGC \t track %3d (pt %7.2f) linked to calo %3d promoted to %s\n",
+          dbgPrintf("%s","PFAlgo2HGC \t track %3d (pt %7.2f) linked to calo %3d promoted to %s\n",
                     itk,
                     tk.floatPt(),
                     tk2calo[itk],
@@ -615,7 +615,7 @@ void PFAlgo2HGC::linkedtk_algo(Region &r,
       p.hwStatus = GoodTk_Calo_CaloPt;
       if (debug_)
         dbgPrintf(
-            "PFAlgo2HGC \t track %3d (pt %7.2f, stubs %2d chi2 %7.1f) linked to calo %3d promoted to %s with pt %7.2f "
+            "%s","PFAlgo2HGC \t track %3d (pt %7.2f, stubs %2d chi2 %7.1f) linked to calo %3d promoted to %s with pt %7.2f "
             "after maybe rescaling\n",
             itk,
             tk.floatPt(),
@@ -634,7 +634,7 @@ void PFAlgo2HGC::unlinkedcalo_algo(Region &r) const {
     if (!r.calo[ic].used) {
       addCaloToPF(r, r.calo[ic]);
       if (debug_)
-        dbgPrintf("PFAlgo2HGC \t calo  %3d (pt %7.2f) not linked, promoted to neutral\n", ic, r.calo[ic].floatPt());
+        dbgPrintf("%s","PFAlgo2HGC \t calo  %3d (pt %7.2f) not linked, promoted to neutral\n", ic, r.calo[ic].floatPt());
     }
   }
 }
@@ -646,7 +646,7 @@ void PFAlgo2HGC::save_muons(Region &r, const std::vector<int> &tk2mu) const {
       auto &p = addTrackToPF(r, r.track[itk]);
       p.muonsrc = r.muon[tk2mu[itk]].src;
       if (debug_)
-        dbgPrintf("PFAlgo2HGC \t track %3d (pt %7.2f) promoted to muon.\n", itk, r.track[itk].floatPt());
+        dbgPrintf("%s","PFAlgo2HGC \t track %3d (pt %7.2f) promoted to muon.\n", itk, r.track[itk].floatPt());
     }
   }
 }
