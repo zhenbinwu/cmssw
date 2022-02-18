@@ -56,7 +56,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
   unsigned int nMU = std::min<unsigned>(nMU_, in.muon.size());
 
   if (debug_) {
-    dbgPrintf("%s","FW\nFW  \t region eta %+5.2f [ %+5.2f , %+5.2f ], phi %+5.2f [ %+5.2f , %+5.2f ]   packed %s\n",
+    dbgPrintf("FW\nFW  \t region eta %+5.2f [ %+5.2f , %+5.2f ], phi %+5.2f [ %+5.2f , %+5.2f ]   packed %s\n",
               in.region.floatEtaCenter(),
               in.region.floatEtaMinExtra(),
               in.region.floatEtaMaxExtra(),
@@ -65,13 +65,13 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
               in.region.floatPhiCenter() + in.region.floatPhiHalfWidthExtra(),
               in.region.pack().to_string(16).c_str());
 
-    dbgPrintf("%s","FW  \t N(track) %3lu   N(calo) %3lu   N(mu) %3lu\n", in.track.size(), in.hadcalo.size(), in.muon.size());
+    dbgPrintf("FW  \t N(track) %3lu   N(calo) %3lu   N(mu) %3lu\n", in.track.size(), in.hadcalo.size(), in.muon.size());
 
     for (unsigned int i = 0; i < nTRACK; ++i) {
       if (in.track[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t track %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  vtx eta %+5.2f  "
+          "FW  \t track %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  vtx eta %+5.2f  "
           "vtx phi %+5.2f  charge %+2d  qual %d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s\n",
           i,
           in.track[i].floatPt(),
@@ -93,7 +93,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
       if (in.hadcalo[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt %8.2f [ "
+          "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt %8.2f [ "
           "%6d ]   emID %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s \n",
           i,
           in.hadcalo[i].floatPt(),
@@ -114,7 +114,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
       if (in.muon[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  "
+          "FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  "
           "vtx eta %+5.2f  vtx phi %+5.2f  charge %+2d  qual %2d  glb eta %+5.2f phi %+5.2f  packed %s \n",
           i,
           in.muon[i].floatPt(),
@@ -176,7 +176,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
       int ibest = best_match_with_pt_ref(dR2MAX_TK_CALO_, in.hadcalo, in.track[it], tkCaloPtErr);
       if (ibest != -1) {
         if (debug_)
-          dbgPrintf("%s","FW  \t track  %3d pt %8.2f caloPtErr %6.2f matched to calo %3d pt %8.2f\n",
+          dbgPrintf("FW  \t track  %3d pt %8.2f caloPtErr %6.2f matched to calo %3d pt %8.2f\n",
                     it,
                     in.track[it].floatPt(),
                     Scales::floatPt(tkCaloPtErr),
@@ -198,7 +198,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
           calo_sumtkErr2[ic];  //  + (calo_sumtkErr2[ic] >> 1)); // this multiplies by 1.5 = sqrt(1.5)^2 ~ (1.2)^2
       if (debug_ && (in.hadcalo[ic].hwPt > 0)) {
         dbgPrintf(
-            "%s","FW  \t calo  %3d pt %8.2f [ %7d ] eta %+5.2f [ %+5d ] has a sum track pt %8.2f, difference %7.2f +- %.2f "
+            "FW  \t calo  %3d pt %8.2f [ %7d ] eta %+5.2f [ %+5d ] has a sum track pt %8.2f, difference %7.2f +- %.2f "
             "\n",
             ic,
             in.hadcalo[ic].floatPt(),
@@ -219,7 +219,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
     }
     if (debug_ && (in.hadcalo[ic].hwPt > 0))
       dbgPrintf(
-          "%s","FW  \t calo'  %3d pt %8.2f ---> %8.2f \n", ic, in.hadcalo[ic].floatPt(), Scales::floatPt(calo_subpt[ic]));
+          "FW  \t calo'  %3d pt %8.2f ---> %8.2f \n", ic, in.hadcalo[ic].floatPt(), Scales::floatPt(calo_subpt[ic]));
   }
 
   // copy out charged hadrons
@@ -257,7 +257,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
       if (out.pfcharged[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t outch %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d  packed %s\n",
+          "FW  \t outch %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d  packed %s\n",
           i,
           out.pfcharged[i].floatPt(),
           out.pfcharged[i].intPt(),
@@ -272,7 +272,7 @@ void l1ct::PFAlgo2HGCEmulator::run(const PFInputRegion& in, OutputRegion& out) c
       if (out.pfneutral[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d  packed %s\n",
+          "FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d  packed %s\n",
           i,
           out.pfneutral[i].floatPt(),
           out.pfneutral[i].intPt(),

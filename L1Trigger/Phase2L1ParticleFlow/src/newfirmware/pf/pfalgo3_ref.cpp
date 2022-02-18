@@ -115,7 +115,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
       if (tk2em[it] != -1) {
         if (debug_)
           dbgPrintf(
-              "%s","FW  \t track  %3d pt %8.2f matched to em calo %3d pt %8.2f (int deltaR2 %d)\n",
+              "FW  \t track  %3d pt %8.2f matched to em calo %3d pt %8.2f (int deltaR2 %d)\n",
               it,
               in.track[it].floatPt(),
               tk2em[it],
@@ -131,7 +131,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
   if (debug_) {
     for (unsigned int ic = 0; ic < nEMCALO; ++ic) {
       if (in.emcalo[ic].hwPt > 0)
-        dbgPrintf("%s","FW  \t emcalo %3d pt %8.2f has sumtk %8.2f\n",
+        dbgPrintf("FW  \t emcalo %3d pt %8.2f has sumtk %8.2f\n",
                   ic,
                   in.emcalo[ic].floatPt(),
                   Scales::floatPt(calo_sumtk[ic]));
@@ -153,7 +153,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
         photonPt = 0;
         isEM[ic] = true;
         if (debug_)
-          dbgPrintf("%s","FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron\n",
+          dbgPrintf("FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron\n",
                     ic,
                     in.emcalo[ic].floatPt(),
                     Scales::floatPt(ptdiff),
@@ -165,7 +165,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
         isEM[ic] = true;
         if (debug_)
           dbgPrintf(
-              "%s","FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron + photon of "
+              "FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as electron + photon of "
               "pt %8.2f\n",
               ic,
               in.emcalo[ic].floatPt(),
@@ -178,7 +178,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
         photonPt = 0;
         isEM[ic] = false;
         if (debug_)
-          dbgPrintf("%s","FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as pion\n",
+          dbgPrintf("FW  \t emcalo %3d pt %8.2f ptdiff %8.2f [match window: -%.2f / +%.2f] flagged as pion\n",
                     ic,
                     in.emcalo[ic].floatPt(),
                     Scales::floatPt(ptdiff),
@@ -190,7 +190,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
       isEM[ic] = true;
       photonPt = in.emcalo[ic].hwPt;
       if (debug_ && in.emcalo[ic].hwPt > 0)
-        dbgPrintf("%s","FW  \t emcalo %3d pt %8.2f flagged as photon\n", ic, in.emcalo[ic].floatPt());
+        dbgPrintf("FW  \t emcalo %3d pt %8.2f flagged as photon\n", ic, in.emcalo[ic].floatPt());
     }
     if (photonPt) {
       fillPFCand(in.emcalo[ic], out.pfphoton[ic]);
@@ -206,14 +206,14 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
     iEle[it] = ((tk2em[it] != -1) && isEM[tk2em[it]]) ? tk2em[it] : -1;
     if (debug_ && (iEle[it] != -1))
       dbgPrintf(
-          "%s","FW  \t track  %3d pt %8.2f flagged as electron (emcluster %d).\n", it, in.track[it].floatPt(), iEle[it]);
+          "FW  \t track  %3d pt %8.2f flagged as electron (emcluster %d).\n", it, in.track[it].floatPt(), iEle[it]);
   }
 
   std::vector<int> em2calo(nEMCALO);
   for (unsigned int ic = 0; ic < nEMCALO; ++ic) {
     em2calo[ic] = em_best_match_ref(dR2MAX_EM_CALO_, in.hadcalo, in.emcalo[ic]);
     if (debug_ && (in.emcalo[ic].hwPt > 0)) {
-      dbgPrintf("%s","FW  \t emcalo %3d pt %8.2f isEM %d matched to hadcalo %3d pt %8.2f emPt %8.2f isEM %d\n",
+      dbgPrintf("FW  \t emcalo %3d pt %8.2f isEM %d matched to hadcalo %3d pt %8.2f emPt %8.2f isEM %d\n",
                 ic,
                 in.emcalo[ic].floatPt(),
                 int(isEM[ic]),
@@ -240,7 +240,7 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
     dpt_t emdiff = dpt_t(in.hadcalo[ih].hwEmPt) - sub;  // ok to saturate at zero here
     dpt_t alldiff = dpt_t(in.hadcalo[ih].hwPt) - sub;
     if (debug_ && (in.hadcalo[ih].hwPt > 0)) {
-      dbgPrintf("%s","FW  \t calo   %3d pt %8.2f has a subtracted pt of %8.2f, empt %8.2f -> %8.2f   isem %d mustkeep %d \n",
+      dbgPrintf("FW  \t calo   %3d pt %8.2f has a subtracted pt of %8.2f, empt %8.2f -> %8.2f   isem %d mustkeep %d \n",
                 ih,
                 in.hadcalo[ih].floatPt(),
                 Scales::floatPt(alldiff),
@@ -253,12 +253,12 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
       hadcalo_out[ih].hwPt = 0;    // kill
       hadcalo_out[ih].hwEmPt = 0;  // kill
       if (debug_ && (in.hadcalo[ih].hwPt > 0))
-        dbgPrintf("%s","FW  \t calo   %3d pt %8.2f --> discarded (zero pt)\n", ih, in.hadcalo[ih].floatPt());
+        dbgPrintf("FW  \t calo   %3d pt %8.2f --> discarded (zero pt)\n", ih, in.hadcalo[ih].floatPt());
     } else if ((in.hadcalo[ih].hwIsEM() && emdiff <= (in.hadcalo[ih].hwEmPt >> 3)) && !keep) {
       hadcalo_out[ih].hwPt = 0;    // kill
       hadcalo_out[ih].hwEmPt = 0;  // kill
       if (debug_ && (in.hadcalo[ih].hwPt > 0))
-        dbgPrintf("%s","FW  \t calo   %3d pt %8.2f --> discarded (zero em)\n", ih, in.hadcalo[ih].floatPt());
+        dbgPrintf("FW  \t calo   %3d pt %8.2f --> discarded (zero em)\n", ih, in.hadcalo[ih].floatPt());
     } else {
       hadcalo_out[ih].hwPt = alldiff;
       hadcalo_out[ih].hwEmPt = (emdiff > 0 ? pt_t(emdiff) : pt_t(0));
@@ -276,7 +276,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
   unsigned int nMU = std::min<unsigned>(nMU_, in.muon.size());
 
   if (debug_) {
-    dbgPrintf("%s","FW\nFW  \t region eta %+5.2f [ %+5.2f , %+5.2f ], phi %+5.2f [ %+5.2f , %+5.2f ]   packed %s\n",
+    dbgPrintf("FW\nFW  \t region eta %+5.2f [ %+5.2f , %+5.2f ], phi %+5.2f [ %+5.2f , %+5.2f ]   packed %s\n",
               in.region.floatEtaCenter(),
               in.region.floatEtaMinExtra(),
               in.region.floatEtaMaxExtra(),
@@ -285,7 +285,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
               in.region.floatPhiCenter() + in.region.floatPhiHalfWidthExtra(),
               in.region.pack().to_string(16).c_str());
 
-    dbgPrintf("%s","FW  \t N(track) %3lu   N(em) %3lu   N(calo) %3lu   N(mu) %3lu\n",
+    dbgPrintf("FW  \t N(track) %3lu   N(em) %3lu   N(calo) %3lu   N(mu) %3lu\n",
               in.track.size(),
               in.emcalo.size(),
               in.hadcalo.size(),
@@ -295,7 +295,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       if (in.track[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t track %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  vtx eta %+5.2f  "
+          "FW  \t track %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  vtx eta %+5.2f  "
           "vtx phi %+5.2f   charge %+2d  qual %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s\n",
           i,
           in.track[i].floatPt(),
@@ -317,7 +317,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       if (in.emcalo[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t EM    %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo ptErr %8.2f [ "
+          "FW  \t EM    %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo ptErr %8.2f [ "
           "%6d ]  emID %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s \n",
           i,
           in.emcalo[i].floatPt(),
@@ -338,7 +338,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       if (in.hadcalo[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt  %8.2f [ "
+          "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  calo emPt  %8.2f [ "
           "%6d ]   emID %2d  fid %d  glb eta %+5.2f phi %+5.2f  packed %s \n",
           i,
           in.hadcalo[i].floatPt(),
@@ -359,7 +359,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       if (in.muon[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  "
+          "FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  "
           "vtx eta %+5.2f  vtx phi %+5.2f  charge %+2d  qual %2d  glb eta %+5.2f phi %+5.2f  packed %s \n",
           i,
           in.muon[i].floatPt(),
@@ -376,7 +376,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.region.floatGlbPhi(in.muon[i].hwVtxPhi()),
           in.muon[i].pack().to_string(16).c_str());
     }
-    dbgPrintf("FW\n");
+    dbgPrintf("%s","FW\n");
   }
 
   ////////////////////////////////////////////////////
@@ -427,7 +427,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
       if (ibest != -1) {
         if (debug_)
           dbgPrintf(
-              "%s","FW  \t track  %3d pt %8.2f matched to calo %3d pt %8.2f (int deltaR2 %d)\n",
+              "FW  \t track  %3d pt %8.2f matched to calo %3d pt %8.2f (int deltaR2 %d)\n",
               it,
               in.track[it].floatPt(),
               ibest,
@@ -448,7 +448,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           [ic];  // before we did (calo_sumtkErr2[ic] + (calo_sumtkErr2[ic] >> 1)); to multiply by 1.5 = sqrt(1.5)^2 ~ (1.2)^2
       if (debug_ && (hadcalo_subem[ic].hwPt > 0)) {
         dbgPrintf(
-            "%s","FW  \t calo  %3d pt %8.2f [ %7d ] eta %+5.2f [ %+5d ] has a sum track pt %8.2f, difference %7.2f +- %.2f "
+            "FW  \t calo  %3d pt %8.2f [ %7d ] eta %+5.2f [ %+5d ] has a sum track pt %8.2f, difference %7.2f +- %.2f "
             "\n",
             ic,
             hadcalo_subem[ic].floatPt(),
@@ -469,7 +469,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
     }
     if (debug_ && (hadcalo_subem[ic].hwPt > 0))
       dbgPrintf(
-          "%s","FW  \t calo  %3d pt %8.2f ---> %8.2f \n", ic, hadcalo_subem[ic].floatPt(), Scales::floatPt(calo_subpt[ic]));
+          "FW  \t calo  %3d pt %8.2f ---> %8.2f \n", ic, hadcalo_subem[ic].floatPt(), Scales::floatPt(calo_subpt[ic]));
   }
 
   // copy out charged hadrons
@@ -503,11 +503,11 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
   }
 
   if (debug_) {
-    dbgPrintf("FW\n");
+    dbgPrintf("%s","FW\n");
     for (unsigned int i = 0; i < nTRACK; ++i) {
       if (out.pfcharged[i].hwPt == 0)
         continue;
-      dbgPrintf("%s","FW  \t outch %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
+      dbgPrintf("FW  \t outch %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
                 i,
                 out.pfcharged[i].floatPt(),
                 out.pfcharged[i].intPt(),
@@ -520,7 +520,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
     for (unsigned int i = 0; i < nPHOTON; ++i) {
       if (out.pfphoton[i].hwPt == 0)
         continue;
-      dbgPrintf("%s","FW  \t outph %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
+      dbgPrintf("FW  \t outph %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
                 i,
                 out.pfphoton[i].floatPt(),
                 out.pfphoton[i].intPt(),
@@ -533,7 +533,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
     for (unsigned int i = 0; i < nSELCALO; ++i) {
       if (out.pfneutral[i].hwPt == 0)
         continue;
-      dbgPrintf("%s","FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
+      dbgPrintf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+5d ]  calo phi %+5.2f [ %+5d ]  pid %d\n",
                 i,
                 out.pfneutral[i].floatPt(),
                 out.pfneutral[i].intPt(),
@@ -543,7 +543,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
                 out.pfneutral[i].intPhi(),
                 out.pfneutral[i].intId());
     }
-    dbgPrintf("FW\n");
+    dbgPrintf("%s","FW\n");
   }
 }
 

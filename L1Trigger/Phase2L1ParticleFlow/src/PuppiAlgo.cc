@@ -111,7 +111,7 @@ void PuppiAlgo::computePuppiWeights(Region &r,
       p.setPuppiW(p.chargedPV || p.hwId == l1t::PFCandidate::Muon ? 1.0 : 0);
       if (debug_)
         dbgPrintf(
-            "%s","PUPPI \t charged id %1d pt %7.2f eta %+5.2f phi %+5.2f  alpha %+7.2f x2 %+7.2f --> puppi weight %.3f   "
+            "PUPPI \t charged id %1d pt %7.2f eta %+5.2f phi %+5.2f  alpha %+7.2f x2 %+7.2f --> puppi weight %.3f   "
             "puppi pt %7.2f \n",
             p.hwId,
             p.floatPt(),
@@ -148,7 +148,7 @@ void PuppiAlgo::computePuppiWeights(Region &r,
     }
     if (debug_)
       dbgPrintf(
-          "%s","PUPPI \t neutral id %1d pt %7.2f eta %+5.2f phi %+5.2f  alpha %+7.2f x2 %+7.2f --> puppi weight %.3f   "
+          "PUPPI \t neutral id %1d pt %7.2f eta %+5.2f phi %+5.2f  alpha %+7.2f x2 %+7.2f --> puppi weight %.3f   "
           "puppi pt %7.2f \n",
           p.hwId,
           p.floatPt(),
@@ -231,7 +231,7 @@ void PuppiAlgo::computePuppiMedRMS(
     alphaFRms = 6.;
   }
   if (debug_)
-    dbgPrintf("%s","PUPPI \t alphaC = %+6.2f +- %6.2f (%4lu), alphaF = %+6.2f +- %6.2f (%4lu)\n",
+    dbgPrintf("PUPPI \t alphaC = %+6.2f +- %6.2f (%4lu), alphaF = %+6.2f +- %6.2f (%4lu)\n",
               alphaCMed,
               alphaCRms,
               alphaCs.size(),

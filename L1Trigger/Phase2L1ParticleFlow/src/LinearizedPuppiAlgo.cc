@@ -80,7 +80,7 @@ void LinearizedPuppiAlgo::computePuppiWeights(Region &r,
                                               const std::vector<float> &alphaC,
                                               const std::vector<float> &alphaF) const {
   if (debug_ && npu > 0)
-    dbgPrintf("%s","LinPup\t npu estimate %7.2f --> log(npu/200) = %+6.2f \n", npu, std::log(npu / 200.f));
+    dbgPrintf("LinPup\t npu estimate %7.2f --> log(npu/200) = %+6.2f \n", npu, std::log(npu / 200.f));
   for (unsigned int ip = 0, np = r.pf.size(); ip < np; ++ip) {
     PFParticle &p = r.pf[ip];
     // charged
@@ -89,7 +89,7 @@ void LinearizedPuppiAlgo::computePuppiWeights(Region &r,
       p.setPuppiW(p.chargedPV || p.hwId == l1t::PFCandidate::Muon ? 1.0 : 0);
       if (debug_ == 2)
         dbgPrintf(
-            "%s","LinPup\t charged id %1d pt %7.2f eta %+5.2f phi %+5.2f   fromPV %1d                                       "
+            "LinPup\t charged id %1d pt %7.2f eta %+5.2f phi %+5.2f   fromPV %1d                                       "
             "                        --> puppi weight %.3f   puppi pt %7.2f \n",
             p.hwId,
             p.floatPt(),
@@ -128,7 +128,7 @@ void LinearizedPuppiAlgo::computePuppiWeights(Region &r,
     p.setPuppiW(1.0 / (1.0 + std::exp(-x2)));
     if (debug_ == 1 || debug_ == 2 || debug_ == int(10 + ietaBin))
       dbgPrintf(
-          "%s","LinPup\t neutral id %1d pt %7.2f eta %+5.2f phi %+5.2f   alpha %+6.2f   x2a %+5.2f   x2pt %+6.2f   x2prior "
+          "LinPup\t neutral id %1d pt %7.2f eta %+5.2f phi %+5.2f   alpha %+6.2f   x2a %+5.2f   x2pt %+6.2f   x2prior "
           "%+6.2f -->  x2 %+6.2f --> puppi weight %.3f   puppi pt %7.2f \n",
           p.hwId,
           p.floatPt(),

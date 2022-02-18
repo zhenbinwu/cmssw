@@ -30,7 +30,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
       if (in.hadcalo[i].hwPt == 0)
         continue;
       dbgPrintf(
-          "%s","FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  calo emPt %8.2f [ "
+          "FW  \t calo  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  calo emPt %8.2f [ "
           "%6d ]   emID %2d \n",
           i,
           in.hadcalo[i].floatPt(),
@@ -46,7 +46,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nMU; ++i) {
       if (in.muon[i].hwPt == 0)
         continue;
-      dbgPrintf("%s","FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]   \n",
+      dbgPrintf("FW  \t muon  %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]   \n",
                 i,
                 in.muon[i].floatPt(),
                 in.muon[i].intPt(),
@@ -70,7 +70,7 @@ void l1ct::PFAlgoDummyEmulator::run(const PFInputRegion& in, OutputRegion& out) 
     for (unsigned int i = 0; i < nCALO; ++i) {
       if (out.pfneutral[i].hwPt == 0)
         continue;
-      dbgPrintf("%s","FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  pid %d\n",
+      dbgPrintf("FW  \t outne %3d: pt %8.2f [ %8d ]  calo eta %+5.2f [ %+7d ]  calo phi %+5.2f [ %+7d ]  pid %d\n",
                 i,
                 out.pfneutral[i].floatPt(),
                 out.pfneutral[i].intPt(),
