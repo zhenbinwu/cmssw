@@ -18,7 +18,7 @@ using namespace std;
 
 VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     : l1TracksToken_(consumes<TTTrackCollectionView>(iConfig.getParameter<edm::InputTag>("l1TracksInputTag"))),
-      trackerTopologyToken_(esConsumes<TrackerTopology, TrackerTopologyRcd>()),
+      tTopoToken(esConsumes<TrackerTopology, TrackerTopologyRcd>()),
       outputCollectionName_(iConfig.getParameter<std::string>("l1VertexCollectionName")),
       settings_(AlgoSettings(iConfig)) {
   // Get configuration parameters
@@ -99,8 +99,8 @@ void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::Event
 
   switch (settings_.vx_algo()) {
     case Algorithm::fastHisto: {
-      edm::ESHandle<TrackerTopology> tTopoHandle = iSetup.getHandle(trackerTopologyToken_);
-      vf.fastHisto(tTopoHandle.product());
+      const TrackerTopology& tTopo = iSetup.getData(tTopoToken);
+      vf.fastHisto(&tTopo);
       break;
     }
     case Algorithm::fastHistoEmulation:

@@ -5,7 +5,6 @@
 #include "DataFormats/L1Trigger/interface/VertexWord.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "L1Trigger/VertexFinder/interface/AlgoSettings.h"
 #include "L1Trigger/VertexFinder/interface/RecoVertex.h"

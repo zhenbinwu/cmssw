@@ -23,7 +23,6 @@ UserCode/L1Trigger/src/L1MuonRecoTreeProducer.cc
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include <FWCore/Framework/interface/LuminosityBlock.h>
 
@@ -150,15 +149,11 @@ private:
 
   enum { GL_MUON = 0, SA_MUON = 1, TR_MUON = 2, TRSA_MUON = 3 };
 
-  // GP start
-  edm::ESHandle<CSCGeometry> cscGeom;
-  // GP end
-
-  // DT Geometry
-  edm::ESHandle<DTGeometry> dtGeom;
+  // CSC Geometry
+  edm::ESGetToken<CSCGeometry, MuonGeometryRecord> cscGeomToken_;
 
   // RPC Geometry
-  edm::ESHandle<RPCGeometry> rpcGeom;
+  edm::ESGetToken<RPCGeometry, MuonGeometryRecord> rpcGeomToken_;
 
   // The Magnetic field
   edm::ESHandle<MagneticField> theBField;
@@ -185,7 +180,9 @@ private:
   edm::InputTag rpcHitTag_;
 };
 
-L1MuonRecoTreeProducer::L1MuonRecoTreeProducer(const edm::ParameterSet &iConfig) {
+L1MuonRecoTreeProducer::L1MuonRecoTreeProducer(const edm::ParameterSet &iConfig) :
+      cscGeomToken_(esConsumes<CSCGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))),
+      rpcGeomToken_(esConsumes<RPCGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))){
   maxMuon_ = iConfig.getParameter<unsigned int>("maxMuon");
   maxRpcHit_ = iConfig.getParameter<unsigned int>("maxMuon");
 
@@ -403,14 +400,10 @@ void L1MuonRecoTreeProducer::analyze(const edm::Event &iEvent, const edm::EventS
 
   //GP start
   // Get the CSC Geometry
-  iSetup.get<MuonGeometryRecord>().get(cscGeom);
-  //GP end
-
-  // Get the DT Geometry from the setup
-  iSetup.get<MuonGeometryRecord>().get(dtGeom);
+  const CSCGeometry& cscGeom = iSetup.getData(cscGeomToken_);
 
   // Get the RPC Geometry from the setup
-  iSetup.get<MuonGeometryRecord>().get(rpcGeom);
+  const RPCGeometry& rpcGeom = iSetup.getData(rpcGeomToken_);
 
   //Get the Magnetic field from the setup
   iSetup.get<IdealMagneticFieldRecord>().get(theBField);
@@ -447,7 +440,7 @@ void L1MuonRecoTreeProducer::analyze(const edm::Event &iEvent, const edm::EventS
       int ring = rpcId.ring();
 
       LocalPoint recHitPosLoc = recHitIt->localPosition();
-      const BoundPlane &RPCSurface = rpcGeom->roll(rpcId)->surface();
+      const BoundPlane &RPCSurface = rpcGeom.roll(rpcId)->surface();
       GlobalPoint recHitPosGlob = RPCSurface.toGlobal(recHitPosLoc);
 
       float xLoc = recHitPosLoc.x();
@@ -661,7 +654,7 @@ void L1MuonRecoTreeProducer::analyze(const edm::Event &iEvent, const edm::EventS
 
           GlobalPoint gp = GlobalPoint(0.0, 0.0, 0.0);
 
-          const CSCChamber *cscchamber = cscGeom->chamber(id);
+          const CSCChamber *cscchamber = cscGeom.chamber(id);
 
           if (!cscchamber)
             continue;
@@ -1270,7 +1263,7 @@ TrajectoryStateOnSurface L1MuonRecoTreeProducer::surfExtrapTrkSam(reco::TrackRef
   return recoProp;
 }
 
-FreeTrajectoryState L1MuonRecoTreeProducer::freeTrajStateMuon(reco::TrackRef track) {
+FreeTrajectoryState L1MuonRecoTreeProducer::freeTrajStateMuon(reco::TrackRef track){
   GlobalPoint innerPoint(track->innerPosition().x(), track->innerPosition().y(), track->innerPosition().z());
   GlobalVector innerVec(track->innerMomentum().x(), track->innerMomentum().y(), track->innerMomentum().z());
 
