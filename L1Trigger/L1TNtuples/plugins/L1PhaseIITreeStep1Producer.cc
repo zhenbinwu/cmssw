@@ -24,7 +24,7 @@ Implementation:
 
 // framework
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -108,7 +108,7 @@ Implementation:
 // class declaration
 //
 
-class L1PhaseIITreeStep1Producer : public edm::EDAnalyzer {
+class L1PhaseIITreeStep1Producer : public edm::one::EDAnalyzer<> {
 public:
   explicit L1PhaseIITreeStep1Producer(const edm::ParameterSet&);
   ~L1PhaseIITreeStep1Producer() override;

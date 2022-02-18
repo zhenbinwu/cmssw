@@ -15,7 +15,7 @@
 
 // framework
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -45,7 +45,7 @@
 // class declaration
 //
 
-class L1MetFilterRecoTreeProducer : public edm::EDAnalyzer {
+class L1MetFilterRecoTreeProducer : public edm::one::EDAnalyzer<> {
 public:
   explicit L1MetFilterRecoTreeProducer(const edm::ParameterSet&);
   ~L1MetFilterRecoTreeProducer() override;

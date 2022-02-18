@@ -17,7 +17,7 @@ UserCode/L1Trigger/src/L1MuonRecoTreeProducer.cc
 #include <memory>
 // framework
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -99,7 +99,7 @@ UserCode/L1Trigger/src/L1MuonRecoTreeProducer.cc
 // class declaration
 //
 
-class L1MuonRecoTreeProducer : public edm::EDAnalyzer {
+class L1MuonRecoTreeProducer : public edm::one::EDAnalyzer<> {
 public:
   explicit L1MuonRecoTreeProducer(const edm::ParameterSet &);
   ~L1MuonRecoTreeProducer() override;
@@ -119,8 +119,8 @@ private:
   void beginJob(void) override;
   void analyze(const edm::Event &, const edm::EventSetup &) override;
   void endJob() override;
-  void beginRun(const edm::Run &, const edm::EventSetup &) override;
-  void endRun(const edm::Run &, const edm::EventSetup &) override;
+  void beginRun(const edm::Run &, const edm::EventSetup &);
+  void endRun(const edm::Run &, const edm::EventSetup &);
 
 public:
   L1Analysis::L1AnalysisRecoMuon *muon;

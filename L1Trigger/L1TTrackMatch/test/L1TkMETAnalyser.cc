@@ -14,7 +14,7 @@
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "DataFormats/Phase2TrackerDigi/interface/Phase2TrackerDigi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -35,7 +35,7 @@
 
 using namespace std;
 
-class L1TkMETAnalyser : public edm::EDAnalyzer {
+class L1TkMETAnalyser : public edm::one::EDAnalyzer<> {
 public:
   explicit L1TkMETAnalyser(const edm::ParameterSet& iConfig);
   ~L1TkMETAnalyser() override;
