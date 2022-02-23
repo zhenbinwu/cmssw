@@ -180,9 +180,9 @@ private:
   edm::InputTag rpcHitTag_;
 };
 
-L1MuonRecoTreeProducer::L1MuonRecoTreeProducer(const edm::ParameterSet &iConfig) :
-      cscGeomToken_(esConsumes<CSCGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))),
-      rpcGeomToken_(esConsumes<RPCGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))){
+L1MuonRecoTreeProducer::L1MuonRecoTreeProducer(const edm::ParameterSet &iConfig)
+    : cscGeomToken_(esConsumes<CSCGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))),
+      rpcGeomToken_(esConsumes<RPCGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))) {
   maxMuon_ = iConfig.getParameter<unsigned int>("maxMuon");
   maxRpcHit_ = iConfig.getParameter<unsigned int>("maxMuon");
 
@@ -400,10 +400,10 @@ void L1MuonRecoTreeProducer::analyze(const edm::Event &iEvent, const edm::EventS
 
   //GP start
   // Get the CSC Geometry
-  const CSCGeometry& cscGeom = iSetup.getData(cscGeomToken_);
+  const CSCGeometry &cscGeom = iSetup.getData(cscGeomToken_);
 
   // Get the RPC Geometry from the setup
-  const RPCGeometry& rpcGeom = iSetup.getData(rpcGeomToken_);
+  const RPCGeometry &rpcGeom = iSetup.getData(rpcGeomToken_);
 
   //Get the Magnetic field from the setup
   iSetup.get<IdealMagneticFieldRecord>().get(theBField);
@@ -1263,7 +1263,7 @@ TrajectoryStateOnSurface L1MuonRecoTreeProducer::surfExtrapTrkSam(reco::TrackRef
   return recoProp;
 }
 
-FreeTrajectoryState L1MuonRecoTreeProducer::freeTrajStateMuon(reco::TrackRef track){
+FreeTrajectoryState L1MuonRecoTreeProducer::freeTrajStateMuon(reco::TrackRef track) {
   GlobalPoint innerPoint(track->innerPosition().x(), track->innerPosition().y(), track->innerPosition().z());
   GlobalVector innerVec(track->innerMomentum().x(), track->innerMomentum().y(), track->innerMomentum().z());
 

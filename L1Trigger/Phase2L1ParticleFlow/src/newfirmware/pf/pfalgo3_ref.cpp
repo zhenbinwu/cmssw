@@ -376,7 +376,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.region.floatGlbPhi(in.muon[i].hwVtxPhi()),
           in.muon[i].pack().to_string(16).c_str());
     }
-    dbgPrintf("%s","FW\n");
+    dbgPrintf("%s", "FW\n");
   }
 
   ////////////////////////////////////////////////////
@@ -503,7 +503,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
   }
 
   if (debug_) {
-    dbgPrintf("%s","FW\n");
+    dbgPrintf("%s", "FW\n");
     for (unsigned int i = 0; i < nTRACK; ++i) {
       if (out.pfcharged[i].hwPt == 0)
         continue;
@@ -543,7 +543,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
                 out.pfneutral[i].intPhi(),
                 out.pfneutral[i].intId());
     }
-    dbgPrintf("%s","FW\n");
+    dbgPrintf("%s", "FW\n");
   }
 }
 

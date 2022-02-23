@@ -44,7 +44,7 @@ namespace Phase2L1GMT {
 
   inline Tauto3Mu::~Tauto3Mu() {}
 
-  inline Tauto3Mu::Tauto3Mu(const Tauto3Mu &cpy):TopoAlgo(cpy) {}
+  inline Tauto3Mu::Tauto3Mu(const Tauto3Mu &cpy) : TopoAlgo(cpy) {}
 
   // ===  FUNCTION  ============================================================
   //         Name:  Tauto3Mu::GetTau3Mu
