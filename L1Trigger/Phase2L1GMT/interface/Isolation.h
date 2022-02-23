@@ -77,7 +77,7 @@ namespace Phase2L1GMT {
     }
   }
 
-  inline Isolation::Isolation(const Isolation &cpy) {}
+  inline Isolation::Isolation(const Isolation &cpy):TopoAlgo(cpy) {}
 
   inline void Isolation::DumpOutputs(std::vector<l1t::TrackerMuon> &trkMus) {
     static int nevto = 0;
