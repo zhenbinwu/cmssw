@@ -22,15 +22,7 @@
 
 using namespace L1TMuon;
 
-GeometryTranslator::GeometryTranslator(edm::ConsumesCollector iC)
-    : _geom_cache_id(0ULL),
-      geodtToken_(iC.esConsumes()),
-      geocscToken_(iC.esConsumes()),
-      georpcToken_(iC.esConsumes()),
-      geogemToken_(iC.esConsumes()),
-      geome0Token_(iC.esConsumes()),
-      _magfield_cache_id(0ULL),
-      magfieldToken_(iC.esConsumes()) {}
+GeometryTranslator::GeometryTranslator() : _geom_cache_id(0ULL), _magfield_cache_id(0ULL) {}
 
 GeometryTranslator::~GeometryTranslator() {}
 
