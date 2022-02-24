@@ -154,8 +154,8 @@ _phase2_siml1emulator.add(L1TkElectronsEllipticMatchHGC)
 _phase2_siml1emulator.add(L1TkIsoElectronsHGC)
 _phase2_siml1emulator.add(L1TkPhotonsHGC)
 
-_phase2_siml1emulator.add( L1TkMuons )
-_phase2_siml1emulator.add( L1TkGlbMuons )
+#_phase2_siml1emulator.add( L1TkMuons )
+#_phase2_siml1emulator.add( L1TkGlbMuons )
 
 # Emulated GMT Muons (Tk + Stub, Tk + MuonTFT, StandaloneMuon)
 # ########################################################################
@@ -186,8 +186,8 @@ _phase2_siml1emulator.add(L1TrackFastJets)
 
 _phase2_siml1emulator.add(L1TrackerEtMiss)
 _phase2_siml1emulator.add(L1TrackerHTMiss)
-_phase2_siml1emulator.add(L1TrackerEtMissExtended)
-_phase2_siml1emulator.add(L1TrackerHTMissExtended)
+#_phase2_siml1emulator.add(L1TrackerEtMissExtended)
+#_phase2_siml1emulator.add(L1TrackerHTMissExtended)
 
 #Emulated tracker objects
 from L1Trigger.L1TTrackMatch.L1TrackJetEmulationProducer_cfi import *
@@ -242,7 +242,7 @@ _phase2_siml1emulator.add(L1MetPfProducer)
 # NNTaus
 # ########################################################################
 from L1Trigger.Phase2L1ParticleFlow.L1NNTauProducer_cff import *
-l1NNTauProducer = L1NNTauProducer.clone(
+l1NNTauProducer = L1NNTauProducerPF.clone(
   L1PFObjects = cms.InputTag("l1pfCandidates","PF")
 )
 l1NNTauProducerPuppi = L1NNTauProducerPuppi.clone(
