@@ -564,7 +564,7 @@ namespace l1tVertexFinder {
     out.push_back(capstone);
     if (!color.empty())
       stream << color;
-    for (auto o : out) {
+    for (const auto& o : out) {
       stream << o << "\n";
     }
     if (!color.empty())

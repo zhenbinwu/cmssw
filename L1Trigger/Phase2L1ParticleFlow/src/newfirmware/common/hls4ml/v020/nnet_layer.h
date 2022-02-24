@@ -21,7 +21,7 @@
 #define NNET_LAYER_H_
 
 #include "nnet_common.h"
-#include <math.h>
+#include <cmath>
 
 namespace nnet {
 

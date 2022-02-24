@@ -9,9 +9,8 @@
 #include "DataFormats/JetReco/interface/GenJet.h"
 #include "DataFormats/Phase2TrackerDigi/interface/Phase2TrackerDigi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -41,7 +40,7 @@ using namespace std;
 
 namespace l1tVertexFinder {
 
-  class VertexNTupler : public edm::EDAnalyzer {
+  class VertexNTupler : public edm::one::EDAnalyzer<> {
   public:
     explicit VertexNTupler(const edm::ParameterSet&);
     ~VertexNTupler() override;
@@ -442,7 +441,7 @@ namespace l1tVertexFinder {
       }
     }
 
-    const Vertex& TruePrimaryVertex = inputData.getPrimaryVertex();
+    //const Vertex& TruePrimaryVertex = inputData.getPrimaryVertex();
 
     // create a map for associating fat reco tracks with their underlying
     // TTTrack pointers

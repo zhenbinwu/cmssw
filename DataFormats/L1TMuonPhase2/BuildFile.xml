@@ -10,4 +10,3 @@
 <use name="DataFormats/Candidate"/>
 <use name="DataFormats/L1Trigger"/>
 <use name="rootrflx"/>
-<flags ADD_SUBDIR="1"/>

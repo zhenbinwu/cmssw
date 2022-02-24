@@ -25,13 +25,13 @@ void l1ct::tdr_regionizer::Pipe<T>::addObj(
 }
 //explicit for tracker to handle clocking
 template <>
-void l1ct::tdr_regionizer::Pipe<l1ct::TkObjEmu>::addObj(l1ct::TkObjEmu obj,
-                                                        unsigned int phiindex,
-                                                        unsigned int etaindex,
-                                                        bool phioverlap,
-                                                        bool etaoverlap,
-                                                        int glbphi,
-                                                        int glbeta) {
+inline void l1ct::tdr_regionizer::Pipe<l1ct::TkObjEmu>::addObj(l1ct::TkObjEmu obj,
+                                                               unsigned int phiindex,
+                                                               unsigned int etaindex,
+                                                               bool phioverlap,
+                                                               bool etaoverlap,
+                                                               int glbphi,
+                                                               int glbeta) {
   data_.emplace_back(
       PipeObject<l1ct::TkObjEmu>(obj, phiindex, etaindex, phioverlap, etaoverlap, glbphi, glbeta, clkindex_++));
   if (clkindex_ % 3 == 2)

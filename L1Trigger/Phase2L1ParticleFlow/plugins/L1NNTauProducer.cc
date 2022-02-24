@@ -118,7 +118,7 @@ void L1NNTauProducer::process_SW(const l1t::PFCandidateCollection& parts,
         std::abs(l1PFCand.eta()) < track_trigger_eta_max)
       pfChargedHadrons_sort_v.push_back(std::make_unique<l1t::PFCandidate>(l1PFCand));
 
-  if (pfChargedHadrons_sort_v.size() == 0)
+  if (pfChargedHadrons_sort_v.empty())
     return;
   std::sort(
       pfChargedHadrons_sort_v.begin(),

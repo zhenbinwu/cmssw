@@ -27,7 +27,6 @@ typedef ap_fixed<16, 8> accum_default_t;
 typedef ap_fixed<16, 8> weight_default_t;
 typedef ap_fixed<16, 8> bias_default_t;
 
-
 //hls-fpga-machine-learning insert layer-config
 struct config1 : nnet::layer_config {
   static const unsigned n_in = N_INPUTS;

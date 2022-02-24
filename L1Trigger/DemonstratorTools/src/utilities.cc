@@ -347,7 +347,7 @@ namespace l1t::demo {
     for (size_t i = 0; i < firstChannel->second.size(); i++) {
       file << "0x" << std::setw(4) << i;
       for (const auto& channel : data) {
-        const auto j = channel.first;
+        //const auto j = channel.first;
         const auto channelData = channel.second;
         uint16_t sideband = channelData.at(i).valid;
         sideband |= channelData.at(i).start << 1;
@@ -386,7 +386,7 @@ namespace l1t::demo {
     for (size_t i = 0; i < firstChannel->second.size(); i++) {
       file << "Frame " << std::setw(4) << i << " :";
       for (const auto& channel : data) {
-        const auto j = channel.first;
+        //const auto j = channel.first;
         const auto channelData = channel.second;
         file << " ";
         //TODO: Add strobe if zero anywhere on channel

@@ -44,19 +44,18 @@ namespace l1t {
 
     void setZ0(float z0) { setVertex(reco::Particle::Point(0, 0, z0)); }
     void setDxy(float dxy) { dxy_ = dxy; }
-    
+
     float z0() const { return vz(); }
     float dxy() const { return dxy_; }
 
-    bool passMass() const { 
-      return (mass() < 2 + pt()/40);
-    }
+    bool passMass() const { return (mass() < 2 + pt() / 40); }
     bool passLooseNN() const {
       return iso_ * (PFTAU_NN_OFFSET + PFTAU_NN_SLOPE * (min(pt(), PFTAU_NN_PT_CUTOFF))) * PFTAU_NN_OVERALL_SCALE >
              PFTAU_NN_LOOSE_CUT;
     }
     bool passLooseNNMass() const {
-      if(!passMass()) return false;
+      if (!passMass())
+        return false;
       return passLooseNN();
     }
     bool passLoosePF() const { return fullIso_ < PFTAU_PF_LOOSE_CUT; }
@@ -65,7 +64,8 @@ namespace l1t {
              PFTAU_NN_TIGHT_CUT;
     }
     bool passTightNNMass() const {
-      if(!passMass()) return false;
+      if (!passMass())
+        return false;
       return passTightNN();
     }
     bool passTightPF() const { return fullIso_ < PFTAU_PF_TIGHT_CUT; }

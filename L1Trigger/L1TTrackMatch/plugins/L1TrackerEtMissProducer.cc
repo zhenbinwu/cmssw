@@ -8,8 +8,6 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "DataFormats/L1TCorrelator/interface/TkEtMiss.h"
@@ -155,7 +153,7 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     float chi2rzdof = trackIter->chi2ZRed();
     float bendChi2 = trackIter->stubPtConsistency();
     float z0 = trackIter->z0();
-    unsigned int Sector = trackIter->phiSector();
+    //unsigned int Sector = trackIter->phiSector();
     std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
         theStubs = trackIter->getStubRefs();
     int nstubs = (int)theStubs.size();
@@ -222,7 +220,7 @@ void L1TrackerEtMissProducer::produce(edm::Event& iEvent, const edm::EventSetup&
 
   float et = sqrt(sumPx * sumPx + sumPy * sumPy);
   double etphi = atan2(sumPy, sumPx);
-  double etmiss_PU = sqrt(sumPx_PU * sumPx_PU + sumPy_PU * sumPy_PU);
+  //double etmiss_PU = sqrt(sumPx_PU * sumPx_PU + sumPy_PU * sumPy_PU);
 
   math::XYZTLorentzVector missingEt(-sumPx, -sumPy, 0, et);
 

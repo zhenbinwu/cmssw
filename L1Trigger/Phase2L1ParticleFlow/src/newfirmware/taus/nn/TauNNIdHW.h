@@ -105,7 +105,7 @@ namespace L1TauEmu {
     return out;
   }
 
-  detaphi_t deltaPhi(l1t::PFCandidate a, l1t::PFCandidate b) {
+  inline detaphi_t deltaPhi(l1t::PFCandidate a, l1t::PFCandidate b) {
     // scale the particle eta, phi to hardware units
     etaphi_t aphi = etaphi_t(a.phi() * etaphi_base);
     etaphi_t bphi = etaphi_t(b.phi() * etaphi_base);
@@ -121,7 +121,7 @@ namespace L1TauEmu {
     return dphiw;
   }
 
-  bool inCone(l1t::PFCandidate seed, l1t::PFCandidate part, detaphi_t cone2) {
+  inline bool inCone(l1t::PFCandidate seed, l1t::PFCandidate part, detaphi_t cone2) {
     // scale the particle eta, phi to hardware units
     etaphi_t seta = etaphi_t(seed.eta() * etaphi_base);
     etaphi_t peta = etaphi_t(part.eta() * etaphi_base);

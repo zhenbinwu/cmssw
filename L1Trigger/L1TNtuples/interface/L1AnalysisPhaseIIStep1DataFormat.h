@@ -62,7 +62,7 @@ namespace L1Analysis {
       caloJetHTMenu.clear();
       caloJetMHTMenuEt.clear();
       caloJetMHTMenuPhi.clear();
-      nCaloJetMHTMenu=0;
+      nCaloJetMHTMenu = 0;
 
       nPhase1PuppiJets = 0;
       phase1PuppiJetPt.clear();
@@ -79,12 +79,11 @@ namespace L1Analysis {
       phase1PuppiMHTEt = 0;
       phase1PuppiMHTPhi = 0;
 
-      phase1PuppiMETEt = 0; 
+      phase1PuppiMETEt = 0;
       phase1PuppiMETPhi = 0;
 
       puppiMETEt = 0;
       puppiMETPhi = 0;
-
 
       nEG = 0;
       EGPt.clear();
@@ -108,7 +107,7 @@ namespace L1Analysis {
       tkElectronBx.clear();
       tkElectronTrkIso.clear();
       tkElectronPfIso.clear();
-      tkElectronPuppiIso.clear(); 
+      tkElectronPuppiIso.clear();
       tkElectronzVtx.clear();
       tkElectronHwQual.clear();
       tkElectronEGRefPt.clear();
@@ -167,7 +166,6 @@ namespace L1Analysis {
       tkMuonMuRefChg.clear();
       tkMuonRegion.clear();
 
-
       //global
       nGlobalMuons = 0;
       globalMuonPt.clear();
@@ -188,7 +186,6 @@ namespace L1Analysis {
       globalMuonTfMuonIdx.clear();
       globalMuonBx.clear();
 
-
       nTkGlbMuons = 0;
       tkGlbMuonPt.clear();
       tkGlbMuonEta.clear();
@@ -204,7 +201,6 @@ namespace L1Analysis {
       tkGlbMuonMuRefEta.clear();
       tkGlbMuonDRMuTrack.clear();
       tkGlbMuonNMatchedTracks.clear();
-
 
       nGmtMuons = 0;
       gmtMuonPt.clear();
@@ -229,7 +225,6 @@ namespace L1Analysis {
       gmtTkMuonPhi.clear();
       gmtTkMuonZ0.clear();
       gmtTkMuonD0.clear();
-
 
       gmtTkMuonIPt.clear();
       gmtTkMuonIEta.clear();
@@ -257,7 +252,6 @@ namespace L1Analysis {
       seededConePuppiMHTPhi.clear();
       nSeededConePuppiMHT = 0;
 
-
       nNNTaus = 0;
       nnTauPt.clear();
       nnTauEt.clear();
@@ -271,7 +265,7 @@ namespace L1Analysis {
       nnTauPassLoosePF.clear();
       nnTauPassTightPF.clear();
       nnTauPassTightNN.clear();
-   
+
       // TkJets
       nTrackerJets = 0;
       trackerJetPt.clear();
@@ -289,12 +283,11 @@ namespace L1Analysis {
       trackerJetDisplacedBx.clear();
       trackerJetDisplacedzVtx.clear();
 
-
       // TrackerMet
       nTrackerMet = 0;
       trackerMetSumEt.clear();
-      trackerMetEt=0;
-      trackerMetPhi=0;
+      trackerMetEt = 0;
+      trackerMetPhi = 0;
       trackerMetBx.clear();
 
       //trackerMHT
@@ -302,7 +295,6 @@ namespace L1Analysis {
       trackerHT.clear();
       trackerMHT.clear();
       trackerMHTPhi.clear();
-
 
       // TrackerMetDisplaced
       nTrackerMetDisplaced = 0;
@@ -316,7 +308,6 @@ namespace L1Analysis {
       trackerHTDisplaced.clear();
       trackerMHTDisplaced.clear();
       trackerMHTPhiDisplaced.clear();
-
     }
 
     double z0Puppi;
@@ -343,17 +334,16 @@ namespace L1Analysis {
     std::vector<short int> caloTauIsMerged;
     std::vector<short int> caloTauHwQual;
 
-
     unsigned int nHPSTaus;
-    std::vector<double>   hpsTauPt;
-    std::vector<double>   hpsTauEt;
-    std::vector<double>   hpsTauEta;
-    std::vector<double>   hpsTauPhi;
-    std::vector<int>   hpsTauChg;
-    std::vector<double>   hpsTauPassTightRelIso;
-    std::vector<double>   hpsTauPassTightRelIsoMenu;
-    std::vector<unsigned int>   hpsTauType;
-    std::vector<double>   hpsTauZ0;
+    std::vector<double> hpsTauPt;
+    std::vector<double> hpsTauEt;
+    std::vector<double> hpsTauEta;
+    std::vector<double> hpsTauPhi;
+    std::vector<int> hpsTauChg;
+    std::vector<double> hpsTauPassTightRelIso;
+    std::vector<double> hpsTauPassTightRelIsoMenu;
+    std::vector<unsigned int> hpsTauType;
+    std::vector<double> hpsTauZ0;
 
     unsigned short int nCaloJets;
     std::vector<double> caloJetPt;
@@ -388,7 +378,6 @@ namespace L1Analysis {
 
     double puppiMETEt;
     double puppiMETPhi;
-
 
     unsigned int nEG;
     std::vector<double> EGPt;
@@ -542,7 +531,6 @@ namespace L1Analysis {
     std::vector<unsigned int> gmtTkMuonNStubs;
     std::vector<short int> gmtTkMuonBx;
 
-
     unsigned int nSeededConePuppiJets;
     std::vector<double> seededConePuppiJetPt;
     std::vector<double> seededConePuppiJetEt;
@@ -556,7 +544,6 @@ namespace L1Analysis {
     std::vector<double> seededConePuppiMHTEt;
     std::vector<double> seededConePuppiMHTPhi;
     unsigned int nSeededConePuppiMHT;
-
 
     unsigned int nNNTaus;
     std::vector<double> nnTauPt;
@@ -588,7 +575,6 @@ namespace L1Analysis {
     std::vector<int> trackerJetDisplacedBx;
     std::vector<double> trackerJetDisplacedzVtx;
 
-
     unsigned int nTrackerMet;
     std::vector<double> trackerMetSumEt;
     double trackerMetEt;
@@ -610,8 +596,6 @@ namespace L1Analysis {
     std::vector<double> trackerHTDisplaced;
     std::vector<double> trackerMHTDisplaced;
     std::vector<double> trackerMHTPhiDisplaced;
-
-
   };
 }  // namespace L1Analysis
 #endif
