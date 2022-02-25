@@ -122,7 +122,7 @@ namespace L1Analysis {
 
     void SetTkJet(const edm::Handle<l1t::TkJetCollection> tkTrackerJet, unsigned maxL1Extra);
     void SetTkCaloJet(const edm::Handle<l1t::TkJetCollection> tkCaloJet, unsigned maxL1Extra);
-    void SetTkMET(const edm::Handle<l1t::TkEtMissCollection> trackerMets);
+    void SetTkMET(const edm::Handle<l1t::TkEtMissCollection> trackerMETts);
     void SetTkMHT(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs);
 
     // Add new PFJet collections
