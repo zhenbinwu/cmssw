@@ -8,7 +8,7 @@
 // FRAMEWORK HEADERS
 #include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Framework/interface/stream/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -99,7 +99,7 @@ using namespace edm;
 //                          //
 //////////////////////////////
 
-class L1TrackObjectNtupleMaker : public edm::stream::EDAnalyzer<> {
+class L1TrackObjectNtupleMaker : public edm::one::EDAnalyzer<> {
 private:
   // ----------constants, enums and typedefs ---------
   typedef TTTrack<Ref_Phase2TrackerDigi_> L1Track;
