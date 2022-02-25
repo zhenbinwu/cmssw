@@ -74,7 +74,7 @@ private:
 
 // _____________________________________________________________________________
 MakeAngleLUT::MakeAngleLUT(const edm::ParameterSet& iConfig)
-    : geometry_translator_(consumesCollector()),
+    : geometry_translator_(),
       config_(iConfig),
       verbose_(iConfig.getUntrackedParameter<int>("verbosity")),
       outfile_(iConfig.getParameter<std::string>("outfile")),

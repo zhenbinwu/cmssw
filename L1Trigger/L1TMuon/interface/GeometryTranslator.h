@@ -43,7 +43,7 @@ namespace L1TMuon {
 
   class GeometryTranslator {
   public:
-    GeometryTranslator(edm::ConsumesCollector);
+    GeometryTranslator();
     ~GeometryTranslator();
 
     double calculateGlobalEta(const TriggerPrimitive&) const;
