@@ -50,15 +50,16 @@ private:
 // constructors and destructor
 //
 Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iConfig)
-    : srcCSC_(
-          consumes<MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi> >(iConfig.getParameter<edm::InputTag>("srcCSC"))),
-      srcDT_(consumes<L1Phase2MuDTPhContainer>(iConfig.getParameter<edm::InputTag>("srcDT"))),
-      srcDTTheta_(consumes<L1MuDTChambThContainer>(iConfig.getParameter<edm::InputTag>("srcDTTheta"))),
-      srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
-      procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
-      procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
-      translator_(new L1TMuon::GeometryTranslator),
-      verbose_(iConfig.getParameter<int>("verbose")) {
+  : srcCSC_(
+	    consumes<MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi> >(iConfig.getParameter<edm::InputTag>("srcCSC"))),
+    srcDT_(consumes<L1Phase2MuDTPhContainer>(iConfig.getParameter<edm::InputTag>("srcDT"))),
+    srcDTTheta_(consumes<L1MuDTChambThContainer>(iConfig.getParameter<edm::InputTag>("srcDTTheta"))),
+    srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
+    procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
+  procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
+  verbose_(iConfig.getParameter<int>("verbose")) {
+  edm::ConsumesCollector consumesColl(edm::ConsumesCollector());
+  translator_ = new L1TMuon::GeometryTranslator(consumesColl);
   produces<l1t::MuonStubCollection>();
 }
 
