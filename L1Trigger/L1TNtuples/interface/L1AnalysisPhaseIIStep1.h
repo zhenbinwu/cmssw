@@ -35,7 +35,6 @@
 #include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
 #include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
 
-
 #include "DataFormats/L1TCorrelator/interface/TkMuon.h"
 #include "DataFormats/L1TCorrelator/interface/TkMuonFwd.h"
 #include "DataFormats/L1TCorrelator/interface/TkGlbMuon.h"
@@ -76,6 +75,8 @@
 #include "DataFormats/L1TCorrelator/interface/TkBsCandidateFwd.h"
 
 //#include "DataFormats/L1TMuon/interface/BayesMuCorrelatorTrack.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TkEtMissEmuAlgo.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TkHTMissEmulatorProducer.h" 
 
 #include "DataFormats/JetReco/interface/CaloJet.h"
 
@@ -96,8 +97,8 @@ namespace L1Analysis {
                const edm::Handle<l1t::EGammaBxCollection> EGHGC,
                unsigned maxL1Extra);
     void SetCaloTau(const edm::Handle<l1t::TauBxCollection> calotau, unsigned maxL1Extra);
-    void SetHPSPFTaus  (const  edm::Handle<l1t::HPSPFTauCollection> HPSPFTau, unsigned maxL1Extra);
-    void SetCaloJet  (const edm::Handle<l1t::JetBxCollection>    calojet,  unsigned maxL1Extra, float caloJetHTT);
+    void SetHPSPFTaus(const edm::Handle<l1t::HPSPFTauCollection> HPSPFTau, unsigned maxL1Extra);
+    void SetCaloJet(const edm::Handle<l1t::JetBxCollection> calojet, unsigned maxL1Extra, float caloJetHTT);
 
     // Add L1TrackTriggerObjects
     void SetTkEG(const edm::Handle<l1t::TkElectronCollection> tkEG,
@@ -111,15 +112,15 @@ namespace L1Analysis {
                    unsigned maxL1Extra,
                    unsigned int muonDetector);
     void SetMuonEMTF(const edm::Handle<l1t::EMTFTrackCollection> muonKF,
-                   unsigned maxL1Extra,
-                   unsigned int muonDetector);
+                     unsigned maxL1Extra,
+                     unsigned int muonDetector);
 
     void SetTkMuon(const edm::Handle<l1t::TkMuonCollection> TkMuon, unsigned maxL1Extra);
 
     void SetMuon(const edm::Handle<l1t::MuonBxCollection> muon, unsigned maxL1Extra);
-    void SetTkGlbMuon(const edm::Handle<l1t::TkGlbMuonCollection> TkGlbMuon, unsigned maxL1Extra); 
+    void SetTkGlbMuon(const edm::Handle<l1t::TkGlbMuonCollection> TkGlbMuon, unsigned maxL1Extra);
 
-    void SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon> > gmtMuon, unsigned maxL1Extra);
+    void SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon>> gmtMuon, unsigned maxL1Extra);
     void SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon>> gmtTkMuon, unsigned maxL1Extra);
 
     // Add new PFJet collections
@@ -128,22 +129,23 @@ namespace L1Analysis {
     // reco::caloJet collection for "Phase1L1Jets" ...
     void SetL1PfPhase1L1TJet(const edm::Handle<std::vector<reco::CaloJet>> l1L1PFPhase1L1Jet, unsigned maxL1Extra);
     void SetL1PfPhase1L1TJetMET(const edm::Handle<std::vector<l1t::EtSum>> l1L1PFPhase1L1TJetMET, unsigned maxL1Extra);
-    void SetL1PfPhase1L1TJetSums(const edm::Handle<std::vector<l1t::EtSum>> l1L1PFPhase1L1TJetSums, unsigned maxL1Extra);
+    void SetL1PfPhase1L1TJetSums(const edm::Handle<std::vector<l1t::EtSum>> l1L1PFPhase1L1TJetSums,
+                                 unsigned maxL1Extra);
 
     void SetPFJet(const edm::Handle<l1t::PFJetCollection> PFJet, unsigned maxL1Extra);
 
     // Add nntaus
     void SetNNTaus(const edm::Handle<std::vector<l1t::PFTau>> l1nnTaus, unsigned maxL1Extra);
+    void SetNNTau2vtxs(const edm::Handle<std::vector<l1t::PFTau>> l1nnTau2vtxs, unsigned maxL1Extra);
 
     //tkjets, tkmet, tkht
     void SetTkJet(const edm::Handle<l1t::TkJetWordCollection> tkTrackerJet, unsigned maxL1Extra);
     void SetTkJetDisplaced(const edm::Handle<l1t::TkJetWordCollection> tkTrackerJet, unsigned maxL1Extra);
 
-    void SetTkMET(const edm::Handle <std::vector<l1t::EtSum>> trackerMets);
-    void SetTkMHT(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs);
-    void SetTkMETDisplaced(const edm::Handle<l1t::TkEtMissCollection> trackerMets);
-    void SetTkMHTDisplaced(const edm::Handle<l1t::TkHTMissCollection> trackerMHTs);
-
+    void SetTkMET(const edm::Handle <std::vector<l1t::EtSum>> trackerMet);
+    void SetTkMHT(const edm::Handle <std::vector<l1t::EtSum>> trackerMHT);
+    void SetTkMETDisplaced(const edm::Handle<l1t::TkEtMissCollection> trackerMets); // still not emu! 
+    void SetTkMHTDisplaced(const edm::Handle <std::vector<l1t::EtSum>> trackerMHT);
 
     L1AnalysisPhaseIIStep1DataFormat* getData() { return &l1extra_; }
 

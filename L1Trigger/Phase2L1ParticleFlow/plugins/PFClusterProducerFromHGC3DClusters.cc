@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -87,8 +89,8 @@ void l1tpf::PFClusterProducerFromHGC3DClusters::produce(edm::Event &iEvent, cons
   auto outEgamma = std::make_unique<l1t::PFClusterCollection>();
   std::unique_ptr<l1t::PFClusterCollection> outEm, outHad;
   if (hasEmId_) {
-    outEm.reset(new l1t::PFClusterCollection());
-    outHad.reset(new l1t::PFClusterCollection());
+    outEm = std::make_unique<l1t::PFClusterCollection>();
+    outHad = std::make_unique<l1t::PFClusterCollection>();
   }
   edm::Handle<l1t::HGCalMulticlusterBxCollection> multiclusters;
   iEvent.getByToken(src_, multiclusters);

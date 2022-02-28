@@ -45,7 +45,6 @@
 #include "CommonTools/Utils/interface/MinNumberSelector.h"
 #include "CommonTools/Utils/interface/PtMinSelector.h"
 #include "CommonTools/Utils/interface/Selection.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/global/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"

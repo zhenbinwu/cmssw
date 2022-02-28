@@ -32,7 +32,7 @@ namespace l1ct {
       int eta;
     };
 
-    bool sortRegionInfo(RegionInfo& a, RegionInfo& b) {
+    inline bool sortRegionInfo(RegionInfo& a, RegionInfo& b) {
       if (a.phi < b.phi)
         return true;
       if (a.phi > b.phi)

@@ -20,7 +20,7 @@
 #ifndef NNET_ACTIVATION_H_
 #define NNET_ACTIVATION_H_
 
-#include <math.h>
+#include <cmath>
 #include "ap_fixed.h"
 #include "nnet_common.h"
 

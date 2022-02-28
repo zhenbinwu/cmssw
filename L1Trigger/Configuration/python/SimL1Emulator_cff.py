@@ -137,9 +137,10 @@ _phase2_siml1emulator.add(L1VertexFinderEmulator)
 # ########################################################################
 
 from L1Trigger.L1TTrackMatch.L1TkPrimaryVertexProducer_cfi import L1TkPrimaryVertex
-from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsCrystal, L1TkElectronsLooseCrystal, L1TkElectronsEllipticMatchCrystal, L1TkIsoElectronsCrystal, L1TkElectronsHGC, L1TkElectronsEllipticMatchHGC, L1TkIsoElectronsHGC
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsCrystal, L1TkElectronsLooseCrystal, L1TkElectronsEllipticMatchCrystal, L1TkIsoElectronsCrystal, L1TkElectronsHGC, L1TkElectronsEllipticMatchHGC, L1TkIsoElectronsHGC, L1TkElectronsLooseHGC
 from L1Trigger.L1TTrackMatch.L1TkEmParticleProducer_cfi import L1TkPhotonsCrystal, L1TkPhotonsHGC
-from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuons
+from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuons, L1TkMuonsTP
+from L1Trigger.L1TTrackMatch.L1TkGlbMuonProducer_cfi import L1TkGlbMuons
 
 _phase2_siml1emulator.add(L1TkPrimaryVertex)
 
@@ -151,11 +152,18 @@ _phase2_siml1emulator.add(L1TkPhotonsCrystal)
 
 _phase2_siml1emulator.add(L1TkElectronsHGC)
 _phase2_siml1emulator.add(L1TkElectronsEllipticMatchHGC)
+_phase2_siml1emulator.add(L1TkElectronsLooseHGC)
 _phase2_siml1emulator.add(L1TkIsoElectronsHGC)
 _phase2_siml1emulator.add(L1TkPhotonsHGC)
 
+<<<<<<< HEAD
 #_phase2_siml1emulator.add( L1TkMuons )
 #_phase2_siml1emulator.add( L1TkGlbMuons )
+=======
+_phase2_siml1emulator.add( L1TkMuons )
+_phase2_siml1emulator.add( L1TkMuonsTP )
+_phase2_siml1emulator.add( L1TkGlbMuons )
+>>>>>>> cecilecaillol/test-phase2-l1t-integration-1230pre4
 
 # Emulated GMT Muons (Tk + Stub, Tk + MuonTFT, StandaloneMuon)
 # ########################################################################
@@ -198,6 +206,9 @@ from L1Trigger.L1TTrackMatch.L1TrackerEtMissEmulatorProducer_cfi import *
 L1TrackerEmuEtMiss.L1VertexInputTag = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation")
 _phase2_siml1emulator.add(L1TrackerEmuEtMiss)
 
+from L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi import *
+_phase2_siml1emulator.add(L1TrackerEmuHTMiss)
+_phase2_siml1emulator.add(L1TrackerEmuHTMissExtended)
 
 # PF Candidates
 # ########################################################################
@@ -242,14 +253,11 @@ _phase2_siml1emulator.add(L1MetPfProducer)
 # NNTaus
 # ########################################################################
 from L1Trigger.Phase2L1ParticleFlow.L1NNTauProducer_cff import *
-l1NNTauProducer = L1NNTauProducerPF.clone(
-  L1PFObjects = cms.InputTag("l1pfCandidates","PF")
-)
-l1NNTauProducerPuppi = L1NNTauProducerPuppi.clone(
-  L1PFObjects = cms.InputTag("l1pfCandidates","Puppi")
-)
-#_phase2_siml1emulator.add(l1NNTauProducer)
-#_phase2_siml1emulator.add(l1NNTauProducerPuppi)
+
+_phase2_siml1emulator.add(L1NNTauProducerPuppi)
+#_phase2_siml1emulator.add(L1NNTauProducerPuppi2Vtx)
+_phase2_siml1emulator.add(tau2VtxTaskHW)
+
 
 # --> add modules
 from Configuration.Eras.Modifier_phase2_trigger_cff import phase2_trigger

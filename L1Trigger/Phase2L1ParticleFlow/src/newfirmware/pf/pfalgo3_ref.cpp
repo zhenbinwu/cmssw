@@ -62,7 +62,7 @@ int l1ct::PFAlgo3Emulator::tk_best_match_ref(unsigned int dR2MAX,
                                              const std::vector<l1ct::EmCaloObjEmu>& calo,
                                              const l1ct::TkObjEmu& track) const {
   int drmin = dR2MAX, ibest = -1;
-  for (unsigned int ic = 0, nCAL = std::min<unsigned>(nEMCALO_,calo.size()); ic < nCAL; ++ic) {
+  for (unsigned int ic = 0, nCAL = std::min<unsigned>(nEMCALO_, calo.size()); ic < nCAL; ++ic) {
     if (calo[ic].hwPt <= 0)
       continue;
     int dr = dr2_int(track.hwEta, track.hwPhi, calo[ic].hwEta, calo[ic].hwPhi);
@@ -376,7 +376,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
           in.region.floatGlbPhi(in.muon[i].hwVtxPhi()),
           in.muon[i].pack().to_string(16).c_str());
     }
-    dbgPrintf("FW\n");
+    dbgPrintf("%s", "FW\n");
   }
 
   ////////////////////////////////////////////////////
@@ -503,7 +503,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
   }
 
   if (debug_) {
-    dbgPrintf("FW\n");
+    dbgPrintf("%s", "FW\n");
     for (unsigned int i = 0; i < nTRACK; ++i) {
       if (out.pfcharged[i].hwPt == 0)
         continue;
@@ -543,7 +543,7 @@ void l1ct::PFAlgo3Emulator::run(const PFInputRegion& in, OutputRegion& out) cons
                 out.pfneutral[i].intPhi(),
                 out.pfneutral[i].intId());
     }
-    dbgPrintf("FW\n");
+    dbgPrintf("%s", "FW\n");
   }
 }
 
