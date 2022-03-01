@@ -1,9 +1,9 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Utilities/interface/ESGetToken.h"
 #include "FWCore/Framework/interface/ModuleFactory.h"
 #include "FWCore/Framework/interface/ESProducer.h"
-#include "FWCore/Framework/interface/ESHandle.h"
+//#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/ESProducts.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 
@@ -32,8 +32,6 @@
 #include "L1Trigger/DTTriggerPhase2/interface/MPFilter.h"
 #include "L1Trigger/DTTriggerPhase2/interface/MPQualityEnhancerFilter.h"
 #include "L1Trigger/DTTriggerPhase2/interface/MPRedundantFilter.h"
-#include "L1Trigger/DTTriggerPhase2/interface/MPCleanHitsFilter.h"
-#include "L1Trigger/DTTriggerPhase2/interface/MPQualityEnhancerFilterBayes.h"
 #include "L1Trigger/DTTriggerPhase2/interface/GlobalCoordsObtainer.h"
 
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
@@ -68,7 +66,7 @@ using namespace edm;
 using namespace std;
 using namespace cmsdt;
 
-class DTTrigPhase2Prod : public edm::stream::EDProducer<> {
+class DTTrigPhase2Prod : public edm::one::EDProducer<> {
   typedef std::map<DTChamberId, DTDigiCollection, std::less<DTChamberId>> DTDigiMap;
   typedef DTDigiMap::iterator DTDigiMap_iterator;
   typedef DTDigiMap::const_iterator DTDigiMap_const_iterator;
@@ -81,13 +79,13 @@ public:
   ~DTTrigPhase2Prod() override;
 
   //! Create Trigger Units before starting event processing
-  void beginRun(edm::Run const& iRun, const edm::EventSetup& iEventSetup) override;
+  void beginRun(edm::Run const& iRun, const edm::EventSetup& iEventSetup);
 
   //! Producer: process every event and generates trigger data
   void produce(edm::Event& iEvent, const edm::EventSetup& iEventSetup) override;
 
   //! endRun: finish things
-  void endRun(edm::Run const& iRun, const edm::EventSetup& iEventSetup) override;
+  void endRun(edm::Run const& iRun, const edm::EventSetup& iEventSetup);
 
   // Methods
   int rango(const metaPrimitive& mp) const;
@@ -105,8 +103,6 @@ public:
   void setMinimumQuality(MP_QUALITY q);
 
   // data-members
-  const DTGeometry* dtGeo_;
-  edm::ESGetToken<DTGeometry, MuonGeometryRecord> dtGeomH;
   std::vector<std::pair<int, MuonPath>> primitives_;
 
 private:
@@ -123,21 +119,20 @@ private:
   bool do_correlation_;
   int scenario_;
   int df_extended_;
-  //  std::string geometry_tag_;
+  std::string geometry_tag_;
 
   // ParameterSet
   edm::EDGetTokenT<DTDigiCollection> dtDigisToken_;
   edm::EDGetTokenT<RPCRecHitCollection> rpcRecHitsLabel_;
-
+  edm::ESGetToken<DTGeometry, MuonGeometryRecord> dtGeomToken_;
 
   // Grouping attributes and methods
   int algo_;  // Grouping code
   std::unique_ptr<MotherGrouping> grouping_obj_;
   std::unique_ptr<MuonPathAnalyzer> mpathanalyzer_;
   std::unique_ptr<MPFilter> mpathqualityenhancer_;
-  std::unique_ptr<MPFilter> mpathqualityenhancerbayes_;
   std::unique_ptr<MPFilter> mpathredundantfilter_;
-  std::unique_ptr<MPFilter> mpathhitsfilter_;
+  // std::unique_ptr<MPFilter> mpathhitsfilter_;
   std::unique_ptr<MuonPathAssociator> mpathassociator_;
   std::shared_ptr<GlobalCoordsObtainer> globalcoordsobtainer_;
 
@@ -169,7 +164,10 @@ namespace {
 }  // namespace
 
 DTTrigPhase2Prod::DTTrigPhase2Prod(const ParameterSet& pset)
-  : qmap_({{9, 9}, {8, 8}, {7, 6}, {6, 7}, {5, 3}, {4, 5}, {3, 4}, {2, 2}, {1, 1}}) {
+    : dtDigisToken_(consumes<DTDigiCollection>(pset.getParameter<edm::InputTag>("digiTag"))),
+      rpcRecHitsLabel_(consumes<RPCRecHitCollection>(pset.getParameter<edm::InputTag>("rpcRecHits"))),
+      dtGeomToken_(esConsumes<DTGeometry, MuonGeometryRecord>(edm::ESInputTag("", ""))),
+      qmap_({{9, 9}, {8, 8}, {7, 6}, {6, 7}, {5, 3}, {4, 5}, {3, 4}, {2, 2}, {1, 1}}){
   produces<L1Phase2MuDTPhContainer>();
   produces<L1Phase2MuDTThContainer>();
   produces<L1Phase2MuDTExtPhContainer>();
@@ -183,17 +181,13 @@ DTTrigPhase2Prod::DTTrigPhase2Prod(const ParameterSet& pset)
 
   df_extended_ = pset.getParameter<int>("df_extended");
 
-  dtDigisToken_ = consumes<DTDigiCollection>(pset.getParameter<edm::InputTag>("digiTag"));
-
-  rpcRecHitsLabel_ = consumes<RPCRecHitCollection>(pset.getParameter<edm::InputTag>("rpcRecHits"));
   useRPC_ = pset.getParameter<bool>("useRPC");
 
   // Choosing grouping scheme:
   algo_ = pset.getParameter<int>("algo");
 
   // Local to global coordinates approach
-  //  geometry_tag_ = 
-  //  dtGeomToken_ = consumes<>(pset.getUntrackedParameter<std::string>("geometry_tag", "")); 
+  geometry_tag_ = pset.getUntrackedParameter<std::string>("geometry_tag", "");
 
   edm::ConsumesCollector consumesColl(consumesCollector());
   globalcoordsobtainer_ = std::make_shared<GlobalCoordsObtainer>(pset);
@@ -225,13 +219,9 @@ DTTrigPhase2Prod::DTTrigPhase2Prod(const ParameterSet& pset)
   superCelltimewidth_ = pset.getParameter<double>("superCelltimewidth");
 
   mpathqualityenhancer_ = std::make_unique<MPQualityEnhancerFilter>(pset);
-  mpathqualityenhancerbayes_ = std::make_unique<MPQualityEnhancerFilterBayes>(pset);
   mpathredundantfilter_ = std::make_unique<MPRedundantFilter>(pset);
-  mpathhitsfilter_ = std::make_unique<MPCleanHitsFilter>(pset);
   mpathassociator_ = std::make_unique<MuonPathAssociator>(pset, consumesColl, globalcoordsobtainer_);
   rpc_integrator_ = std::make_unique<RPCIntegrator>(pset, consumesColl);
-
-  dtGeomH = esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>();
 }
 
 DTTrigPhase2Prod::~DTTrigPhase2Prod() {
@@ -249,17 +239,14 @@ void DTTrigPhase2Prod::beginRun(edm::Run const& iRun, const edm::EventSetup& iEv
   mpathanalyzer_->initialise(iEventSetup);         // Analyzer object initialisation
   mpathqualityenhancer_->initialise(iEventSetup);  // Filter object initialisation
   mpathredundantfilter_->initialise(iEventSetup);  // Filter object initialisation
-  mpathqualityenhancerbayes_->initialise(iEventSetup);  // Filter object initialisation
-  mpathhitsfilter_->initialise(iEventSetup);
   mpathassociator_->initialise(iEventSetup);       // Associator object initialisation
 
-  
-  if (auto geom = iEventSetup.getHandle(dtGeomH)){ 
-    dtGeo_ = &(*geom);
-  }
 }
 
 void DTTrigPhase2Prod::produce(Event& iEvent, const EventSetup& iEventSetup) {
+
+  const DTGeometry &dtGeom = iEventSetup.getData(dtGeomToken_);
+
   if (debug_)
     LogDebug("DTTrigPhase2Prod") << "produce";
   edm::Handle<DTDigiCollection> dtdigis;
@@ -290,7 +277,7 @@ void DTTrigPhase2Prod::produce(Event& iEvent, const EventSetup& iEventSetup) {
     LogDebug("DTTrigPhase2Prod") << "produce - Getting and grouping digis per chamber.";
 
   MuonPathPtrs muonpaths;
-  for (const auto& ich : dtGeo_->chambers()) {
+  for (const auto& ich : dtGeom.chambers()) {
     // The code inside this for loop would ideally later fit inside a trigger unit (in principle, a DT station) of the future Phase 2 DT Trigger.
     const DTChamber* chamb = ich;
     DTChamberId chid = chamb->id();
@@ -359,9 +346,6 @@ void DTTrigPhase2Prod::produce(Event& iEvent, const EventSetup& iEventSetup) {
   MuonPathPtrs filteredmuonpaths;
   if (algo_ == Standard) {
     mpathredundantfilter_->run(iEvent, iEventSetup, muonpaths, filteredmuonpaths);
-  }
-  else {
-    mpathhitsfilter_->run(iEvent, iEventSetup, muonpaths, filteredmuonpaths);
   }
 
   if (dump_) {
@@ -723,9 +707,7 @@ void DTTrigPhase2Prod::endRun(edm::Run const& iRun, const edm::EventSetup& iEven
   grouping_obj_->finish();
   mpathanalyzer_->finish();
   mpathqualityenhancer_->finish();
-  mpathqualityenhancerbayes_->finish();
   mpathredundantfilter_->finish();
-  mpathhitsfilter_->finish();
   mpathassociator_->finish();
   rpc_integrator_->finish();
 };

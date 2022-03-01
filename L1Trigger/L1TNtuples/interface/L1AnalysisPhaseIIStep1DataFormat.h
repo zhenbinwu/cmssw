@@ -16,9 +16,8 @@ namespace L1Analysis {
     ~L1AnalysisPhaseIIStep1DataFormat(){};
 
     void Reset() {
-      z0Puppi = 0;
       z0L1TkPV.clear();
-      sumL1TkPV.clear();
+      z0L1TkAll.clear();
       nL1TkPVs = 0;
 
       nCaloTaus = 0;
@@ -265,6 +264,30 @@ namespace L1Analysis {
       nnTauPassLoosePF.clear();
       nnTauPassTightPF.clear();
       nnTauPassTightNN.clear();
+      nnTauPassLooseNNMass.clear();
+      nnTauPassTightNNMass.clear();
+      nnTauPassMass.clear();
+      nnTauDXY.clear();
+      nnTauZ0.clear();
+
+      nNNTau2vtxs = 0;
+      nnTau2vtxPt.clear();
+      nnTau2vtxEt.clear();
+      nnTau2vtxEta.clear();
+      nnTau2vtxPhi.clear();
+      nnTau2vtxChg.clear();
+      nnTau2vtxChargedIso.clear();
+      nnTau2vtxFullIso.clear();
+      nnTau2vtxID.clear();
+      nnTau2vtxPassLooseNN.clear();
+      nnTau2vtxPassLoosePF.clear();
+      nnTau2vtxPassTightPF.clear();
+      nnTau2vtxPassTightNN.clear();
+      nnTau2vtxPassLooseNNMass.clear();
+      nnTau2vtxPassTightNNMass.clear();
+      nnTau2vtxPassMass.clear();
+      nnTau2vtxDXY.clear();
+      nnTau2vtxZ0.clear();
 
       // TkJets
       nTrackerJets = 0;
@@ -273,7 +296,7 @@ namespace L1Analysis {
       trackerJetEta.clear();
       trackerJetPhi.clear();
       trackerJetBx.clear();
-      trackerJetzVtx.clear();
+      trackerJetZ0.clear();
 
       nTrackerJetsDisplaced = 0;
       trackerJetDisplacedPt.clear();
@@ -281,20 +304,20 @@ namespace L1Analysis {
       trackerJetDisplacedEta.clear();
       trackerJetDisplacedPhi.clear();
       trackerJetDisplacedBx.clear();
-      trackerJetDisplacedzVtx.clear();
+      trackerJetDisplacedZ0.clear();
 
       // TrackerMet
-      nTrackerMet = 0;
-      trackerMetSumEt.clear();
-      trackerMetEt = 0;
-      trackerMetPhi = 0;
-      trackerMetBx.clear();
+      trackerMET=0;
+      trackerMETPhi=0;
 
-      //trackerMHT
-      nTrackerMHT = 0;
-      trackerHT.clear();
-      trackerMHT.clear();
-      trackerMHTPhi.clear();
+      // TrackerMHT (including displaced)
+      trackerHT=0;
+      trackerMHT=0;
+      trackerMHTPhi=0;
+
+      trackerHTDisplaced=0;
+      trackerMHTDisplaced=0;
+      trackerMHTPhiDisplaced=0;
 
       // TrackerMetDisplaced
       nTrackerMetDisplaced = 0;
@@ -303,17 +326,13 @@ namespace L1Analysis {
       trackerMetDisplacedPhi.clear();
       trackerMetDisplacedBx.clear();
 
-      //trackerMHTDisplaced
-      nTrackerMHTDisplaced = 0;
-      trackerHTDisplaced.clear();
-      trackerMHTDisplaced.clear();
-      trackerMHTPhiDisplaced.clear();
     }
 
-    double z0Puppi;
+    //double z0Puppi;
     unsigned short int nL1TkPVs;
+    std::vector<double> z0L1TkAll;
     std::vector<double> z0L1TkPV;
-    std::vector<double> sumL1TkPV;
+    //std::vector<double> sumL1TkPV;
 
     unsigned short int nCaloTaus;
     std::vector<double> caloTauPt;
@@ -558,6 +577,30 @@ namespace L1Analysis {
     std::vector<unsigned int> nnTauPassLoosePF;
     std::vector<unsigned int> nnTauPassTightPF;
     std::vector<unsigned int> nnTauPassTightNN;
+    std::vector<unsigned int> nnTauPassLooseNNMass;
+    std::vector<unsigned int> nnTauPassTightNNMass;
+    std::vector<unsigned int> nnTauPassMass;
+    std::vector<double> nnTauDXY;
+    std::vector<double> nnTauZ0;
+
+    unsigned int nNNTau2vtxs;
+    std::vector<double> nnTau2vtxPt;
+    std::vector<double> nnTau2vtxEt;
+    std::vector<double> nnTau2vtxEta;
+    std::vector<double> nnTau2vtxPhi;
+    std::vector<int> nnTau2vtxChg;
+    std::vector<double> nnTau2vtxChargedIso;
+    std::vector<double> nnTau2vtxFullIso;
+    std::vector<unsigned int> nnTau2vtxID;
+    std::vector<unsigned int> nnTau2vtxPassLooseNN;
+    std::vector<unsigned int> nnTau2vtxPassLoosePF;
+    std::vector<unsigned int> nnTau2vtxPassTightPF;
+    std::vector<unsigned int> nnTau2vtxPassTightNN;
+    std::vector<unsigned int> nnTau2vtxPassLooseNNMass;
+    std::vector<unsigned int> nnTau2vtxPassTightNNMass;
+    std::vector<unsigned int> nnTau2vtxPassMass;
+    std::vector<double> nnTau2vtxDXY;
+    std::vector<double> nnTau2vtxZ0;
 
     unsigned int nTrackerJets;
     std::vector<double> trackerJetPt;
@@ -565,7 +608,7 @@ namespace L1Analysis {
     std::vector<double> trackerJetEta;
     std::vector<double> trackerJetPhi;
     std::vector<int> trackerJetBx;
-    std::vector<double> trackerJetzVtx;
+    std::vector<double> trackerJetZ0;
 
     unsigned int nTrackerJetsDisplaced;
     std::vector<double> trackerJetDisplacedPt;
@@ -573,18 +616,18 @@ namespace L1Analysis {
     std::vector<double> trackerJetDisplacedEta;
     std::vector<double> trackerJetDisplacedPhi;
     std::vector<int> trackerJetDisplacedBx;
-    std::vector<double> trackerJetDisplacedzVtx;
+    std::vector<double> trackerJetDisplacedZ0;
 
-    unsigned int nTrackerMet;
-    std::vector<double> trackerMetSumEt;
-    double trackerMetEt;
-    double trackerMetPhi;
-    std::vector<double> trackerMetBx;
+    double trackerMET;
+    double trackerMETPhi;
 
-    unsigned int nTrackerMHT;
-    std::vector<double> trackerHT;
-    std::vector<double> trackerMHT;
-    std::vector<double> trackerMHTPhi;
+    double trackerHT;
+    double trackerMHT;
+    double trackerMHTPhi;
+
+    double trackerHTDisplaced;
+    double trackerMHTDisplaced;
+    double trackerMHTPhiDisplaced;
 
     unsigned int nTrackerMetDisplaced;
     std::vector<double> trackerMetDisplacedSumEt;
@@ -592,10 +635,6 @@ namespace L1Analysis {
     std::vector<double> trackerMetDisplacedPhi;
     std::vector<double> trackerMetDisplacedBx;
 
-    unsigned int nTrackerMHTDisplaced;
-    std::vector<double> trackerHTDisplaced;
-    std::vector<double> trackerMHTDisplaced;
-    std::vector<double> trackerMHTPhiDisplaced;
   };
 }  // namespace L1Analysis
 #endif
