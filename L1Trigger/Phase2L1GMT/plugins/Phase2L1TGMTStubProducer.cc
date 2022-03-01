@@ -11,13 +11,18 @@
 #include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTEndcapStubProcessor.h"
 #include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTBarrelStubProcessor.h"
 
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "FWCore/Framework/interface/ESProducts.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
+#include "FWCore/Utilities/interface/ESGetToken.h"
 //
 // class declaration
 //
 
 class Phase2L1TGMTStubProducer : public edm::stream::EDProducer<> {
 public:
-  explicit Phase2L1TGMTStubProducer(const edm::ParameterSet&);
+  explicit Phase2L1TGMTStubProducer(const edm::ParameterSet&);//,edm::ConsumesCollector& iCollector);
   ~Phase2L1TGMTStubProducer() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
@@ -49,7 +54,7 @@ private:
 //
 // constructors and destructor
 //
-Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iConfig)
+Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iConfig)//,edm::ConsumesCollector& iCollector)
   : srcCSC_(
 	    consumes<MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi> >(iConfig.getParameter<edm::InputTag>("srcCSC"))),
     srcDT_(consumes<L1Phase2MuDTPhContainer>(iConfig.getParameter<edm::InputTag>("srcDT"))),
@@ -57,10 +62,11 @@ Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iCon
     srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
     procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
   procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
+//   translator_(new L1TMuon::GeometryTranslator),
   verbose_(iConfig.getParameter<int>("verbose")) {
-  edm::ConsumesCollector consumesColl(edm::ConsumesCollector());
-  translator_ = new L1TMuon::GeometryTranslator(consumesColl);
-  produces<l1t::MuonStubCollection>();
+        produces<l1t::MuonStubCollection>();
+        edm::ConsumesCollector consumesColl(consumesCollector());
+        translator_ =new L1TMuon::GeometryTranslator(consumesColl);
 }
 
 Phase2L1TGMTStubProducer::~Phase2L1TGMTStubProducer() {
@@ -70,7 +76,7 @@ Phase2L1TGMTStubProducer::~Phase2L1TGMTStubProducer() {
     delete procEndcap_;
   if (procBarrel_ != nullptr)
     delete procBarrel_;
-  if (translator_ != nullptr)
+  if (translator_ != nullptr) 
     delete translator_;
 }
 
