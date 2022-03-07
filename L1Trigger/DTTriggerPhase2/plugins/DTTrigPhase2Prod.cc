@@ -131,7 +131,6 @@ private:
   edm::EDGetTokenT<DTDigiCollection> dtDigisToken_;
   edm::EDGetTokenT<RPCRecHitCollection> rpcRecHitsLabel_;
 
-
   // Grouping attributes and methods
   int algo_;  // Grouping code
   std::unique_ptr<MotherGrouping> grouping_obj_;
@@ -171,7 +170,7 @@ namespace {
 }  // namespace
 
 DTTrigPhase2Prod::DTTrigPhase2Prod(const ParameterSet& pset)
-  : qmap_({{9, 9}, {8, 8}, {7, 6}, {6, 7}, {5, 3}, {4, 5}, {3, 4}, {2, 2}, {1, 1}}) {
+    : qmap_({{9, 9}, {8, 8}, {7, 6}, {6, 7}, {5, 3}, {4, 5}, {3, 4}, {2, 2}, {1, 1}}) {
   produces<L1Phase2MuDTPhContainer>();
   produces<L1Phase2MuDTThContainer>();
   produces<L1Phase2MuDTExtPhContainer>();
@@ -244,16 +243,15 @@ void DTTrigPhase2Prod::beginRun(edm::Run const& iRun, const edm::EventSetup& iEv
   if (debug_)
     LogDebug("DTTrigPhase2Prod") << "beginRun: getting DT geometry";
 
-  grouping_obj_->initialise(iEventSetup);          // Grouping object initialisation
-  mpathanalyzer_->initialise(iEventSetup);         // Analyzer object initialisation
-  mpathqualityenhancer_->initialise(iEventSetup);  // Filter object initialisation
-  mpathredundantfilter_->initialise(iEventSetup);  // Filter object initialisation
+  grouping_obj_->initialise(iEventSetup);               // Grouping object initialisation
+  mpathanalyzer_->initialise(iEventSetup);              // Analyzer object initialisation
+  mpathqualityenhancer_->initialise(iEventSetup);       // Filter object initialisation
+  mpathredundantfilter_->initialise(iEventSetup);       // Filter object initialisation
   mpathqualityenhancerbayes_->initialise(iEventSetup);  // Filter object initialisation
   mpathhitsfilter_->initialise(iEventSetup);
-  mpathassociator_->initialise(iEventSetup);       // Associator object initialisation
+  mpathassociator_->initialise(iEventSetup);  // Associator object initialisation
 
-  
-  if (auto geom = iEventSetup.getHandle(dtGeomH)){ 
+  if (auto geom = iEventSetup.getHandle(dtGeomH)) {
     dtGeo_ = &(*geom);
   }
 }
@@ -358,8 +356,7 @@ void DTTrigPhase2Prod::produce(Event& iEvent, const EventSetup& iEventSetup) {
   MuonPathPtrs filteredmuonpaths;
   if (algo_ == Standard) {
     mpathredundantfilter_->run(iEvent, iEventSetup, muonpaths, filteredmuonpaths);
-  }
-  else {
+  } else {
     mpathhitsfilter_->run(iEvent, iEventSetup, muonpaths, filteredmuonpaths);
   }
 

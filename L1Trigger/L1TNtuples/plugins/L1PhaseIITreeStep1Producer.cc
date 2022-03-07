@@ -235,8 +235,8 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   tkMetToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMetToken"));
   tkMetDisplacedToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetDisplacedToken"));
 
-  tkMhtToken_ = consumes<std::vector<l1t::EtSum> >(iConfig.getParameter<edm::InputTag>("tkMhtToken"));
-  tkMhtDisplacedToken_ = consumes<std::vector<l1t::EtSum> >(iConfig.getParameter<edm::InputTag>("tkMhtDisplacedToken"));
+  tkMhtToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMhtToken"));
+  tkMhtDisplacedToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMhtDisplacedToken"));
 
   /*const auto& mhttokens = iConfig.getParameter<std::vector<edm::InputTag>>("tkMhtTokens");
   for (const auto& mhttoken : mhttokens) {
@@ -353,8 +353,8 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<std::vector<l1t::EtSum>> tkMets;  //was TkEtMissCollection
   edm::Handle<l1t::TkEtMissCollection> tkMetsDisplaced;
 
-  edm::Handle<std::vector<l1t::EtSum> > tkMhts;
-  edm::Handle<std::vector<l1t::EtSum> > tkMhtsDisplaced;
+  edm::Handle<std::vector<l1t::EtSum>> tkMhts;
+  edm::Handle<std::vector<l1t::EtSum>> tkMhtsDisplaced;
 
   iEvent.getByToken(tkTrackerJetToken_, tkTrackerJet);
   iEvent.getByToken(tkTrackerJetDisplacedToken_, tkTrackerJetDisplaced);
@@ -395,9 +395,9 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     iEvent.getByToken(tkmhttoken, tkMhts);*/
 
   if (tkMhts.isValid()) {
-      l1Extra->SetTkMHT(tkMhts);
+    l1Extra->SetTkMHT(tkMhts);
   } else {
-      edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT not found. Branch will not be filled" << std::endl;
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT not found. Branch will not be filled" << std::endl;
   }
 
   /*for (auto& tkmhtdisplacedtoken : tkMhtDisplacedToken_) {
@@ -405,10 +405,9 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     iEvent.getByToken(tkmhtdisplacedtoken, tkMhtsDisplaced);*/
 
   if (tkMhtsDisplaced.isValid()) {
-      l1Extra->SetTkMHTDisplaced(tkMhtsDisplaced);
+    l1Extra->SetTkMHTDisplaced(tkMhtsDisplaced);
   } else {
-      edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT Displaced not found. Branch will not be filled"
-                                        << std::endl;
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT Displaced not found. Branch will not be filled" << std::endl;
   }
 
   //  float vertexTDRZ0=-999;

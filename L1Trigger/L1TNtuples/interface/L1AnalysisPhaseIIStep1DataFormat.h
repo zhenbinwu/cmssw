@@ -307,17 +307,17 @@ namespace L1Analysis {
       trackerJetDisplacedZ0.clear();
 
       // TrackerMet
-      trackerMET=0;
-      trackerMETPhi=0;
+      trackerMET = 0;
+      trackerMETPhi = 0;
 
       // TrackerMHT (including displaced)
-      trackerHT=0;
-      trackerMHT=0;
-      trackerMHTPhi=0;
+      trackerHT = 0;
+      trackerMHT = 0;
+      trackerMHTPhi = 0;
 
-      trackerHTDisplaced=0;
-      trackerMHTDisplaced=0;
-      trackerMHTPhiDisplaced=0;
+      trackerHTDisplaced = 0;
+      trackerMHTDisplaced = 0;
+      trackerMHTPhiDisplaced = 0;
 
       // TrackerMetDisplaced
       nTrackerMetDisplaced = 0;
@@ -325,7 +325,6 @@ namespace L1Analysis {
       trackerMetDisplacedEt.clear();
       trackerMetDisplacedPhi.clear();
       trackerMetDisplacedBx.clear();
-
     }
 
     //double z0Puppi;
@@ -634,7 +633,6 @@ namespace L1Analysis {
     std::vector<double> trackerMetDisplacedEt;
     std::vector<double> trackerMetDisplacedPhi;
     std::vector<double> trackerMetDisplacedBx;
-
   };
 }  // namespace L1Analysis
 #endif

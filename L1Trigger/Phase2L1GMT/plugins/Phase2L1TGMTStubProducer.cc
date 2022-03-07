@@ -54,17 +54,17 @@ private:
 // constructors and destructor
 //
 Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iConfig)
-  : srcCSC_(
-	    consumes<MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi> >(iConfig.getParameter<edm::InputTag>("srcCSC"))),
-    srcDT_(consumes<L1Phase2MuDTPhContainer>(iConfig.getParameter<edm::InputTag>("srcDT"))),
-    srcDTTheta_(consumes<L1MuDTChambThContainer>(iConfig.getParameter<edm::InputTag>("srcDTTheta"))),
-    srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
-    procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
-  procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
-  verbose_(iConfig.getParameter<int>("verbose")) {
-        produces<l1t::MuonStubCollection>();
-        edm::ConsumesCollector consumesColl(consumesCollector());
-        translator_ =new L1TMuon::GeometryTranslator(consumesColl);
+    : srcCSC_(
+          consumes<MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi> >(iConfig.getParameter<edm::InputTag>("srcCSC"))),
+      srcDT_(consumes<L1Phase2MuDTPhContainer>(iConfig.getParameter<edm::InputTag>("srcDT"))),
+      srcDTTheta_(consumes<L1MuDTChambThContainer>(iConfig.getParameter<edm::InputTag>("srcDTTheta"))),
+      srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
+      procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
+      procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
+      verbose_(iConfig.getParameter<int>("verbose")) {
+  produces<l1t::MuonStubCollection>();
+  edm::ConsumesCollector consumesColl(consumesCollector());
+  translator_ = new L1TMuon::GeometryTranslator(consumesColl);
 }
 
 Phase2L1TGMTStubProducer::~Phase2L1TGMTStubProducer() {
@@ -74,7 +74,7 @@ Phase2L1TGMTStubProducer::~Phase2L1TGMTStubProducer() {
     delete procEndcap_;
   if (procBarrel_ != nullptr)
     delete procBarrel_;
-  if (translator_ != nullptr) 
+  if (translator_ != nullptr)
     delete translator_;
 }
 
