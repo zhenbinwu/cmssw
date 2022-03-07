@@ -156,14 +156,10 @@ _phase2_siml1emulator.add(L1TkElectronsLooseHGC)
 _phase2_siml1emulator.add(L1TkIsoElectronsHGC)
 _phase2_siml1emulator.add(L1TkPhotonsHGC)
 
-<<<<<<< HEAD
-#_phase2_siml1emulator.add( L1TkMuons )
-#_phase2_siml1emulator.add( L1TkGlbMuons )
-=======
 _phase2_siml1emulator.add( L1TkMuons )
 _phase2_siml1emulator.add( L1TkMuonsTP )
 _phase2_siml1emulator.add( L1TkGlbMuons )
->>>>>>> cecilecaillol/test-phase2-l1t-integration-1230pre4
+
 
 # Emulated GMT Muons (Tk + Stub, Tk + MuonTFT, StandaloneMuon)
 # ########################################################################
