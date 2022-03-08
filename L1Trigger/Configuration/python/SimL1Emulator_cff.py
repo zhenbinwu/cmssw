@@ -100,7 +100,8 @@ _phase2_siml1emulator.add(l1EGammaEEProducer)
 from L1Trigger.L1CaloTrigger.L1TowerCalibrationProducer_cfi import *
 L1TowerCalibration = L1TowerCalibrationProducer.clone(
   L1HgcalTowersInputTag = cms.InputTag("hgcalTowerProducer","HGCalTowerProcessor",""),
-  l1CaloTowers = cms.InputTag("L1EGammaClusterEmuProducer","","")
+  #l1CaloTowers = cms.InputTag("L1EGammaClusterEmuProducer","","")
+  l1CaloTowers = cms.InputTag("L1EGammaClusterEmuProducer","L1CaloTowerCollection","")
 )
 # ----    Produce the L1CaloJets
 from L1Trigger.L1CaloTrigger.L1CaloJetProducer_cfi import *
