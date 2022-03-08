@@ -135,6 +135,6 @@ l1tPhase2CorrelatorOfflineDQM = DQMEDAnalyzer(
 )
 
 l1tPhase2OfflineDQM = cms.Sequence(
-                          l1tPhase2CorrelatorOfflineDQM +
+                          #l1tPhase2CorrelatorOfflineDQM +
                           OuterTrackerTkMET
                           )
