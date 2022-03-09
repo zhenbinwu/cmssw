@@ -5,7 +5,7 @@ from L1Trigger.Phase2L1ParticleFlow.pfClustersFromL1EGClusters_cfi import pfClus
 from L1Trigger.Phase2L1ParticleFlow.pfClustersFromCombinedCalo_cff import pfClustersFromCombinedCaloHCal, pfClustersFromCombinedCaloHF
 from L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi import pfClustersFromHGC3DClusters
 
-from l1TkEgAlgoEmulator_cfi import tkEgAlgoParameters
+from L1Trigger.Phase2L1ParticleFlow.l1TkEgAlgoEmulator_cfi import tkEgAlgoParameters
 
 muonInputConversionParameters = cms.PSet(
     z0Scale = cms.double(1.875),

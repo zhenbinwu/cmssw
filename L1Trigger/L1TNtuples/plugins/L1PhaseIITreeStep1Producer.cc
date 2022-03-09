@@ -170,17 +170,17 @@ private:
   edm::EDGetTokenT<l1t::VertexWordCollection> l1TkPrimaryVertexToken_;
 
   edm::EDGetTokenT<l1t::PFTauCollection> L1NNTauToken_;
-  edm::EDGetTokenT<l1t::PFTauCollection> L1NNTauPFToken_;
+  edm::EDGetTokenT<l1t::PFTauCollection> L1NNTau2vtxToken_;
 
   //adding tkjets, tkmet, tkht
   edm::EDGetTokenT<l1t::TkJetWordCollection> tkTrackerJetToken_;
   edm::EDGetTokenT<l1t::TkJetWordCollection> tkTrackerJetDisplacedToken_;
 
   edm::EDGetTokenT<std::vector<l1t::EtSum>> tkMetToken_;  //was TkEtMissCollection like displaced
-  std::vector<edm::EDGetTokenT<l1t::TkHTMissCollection>> tkMhtToken_;
+  edm::EDGetTokenT<std::vector<l1t::EtSum>> tkMhtToken_;
 
   edm::EDGetTokenT<l1t::TkEtMissCollection> tkMetDisplacedToken_;
-  std::vector<edm::EDGetTokenT<l1t::TkHTMissCollection>> tkMhtDisplacedToken_;
+  edm::EDGetTokenT<std::vector<l1t::EtSum>> tkMhtDisplacedToken_;
 };
 
 L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& iConfig) {
@@ -226,7 +226,7 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
       consumes<l1t::VertexWordCollection>(iConfig.getParameter<edm::InputTag>("l1TkPrimaryVertex"));
 
   L1NNTauToken_ = consumes<l1t::PFTauCollection>(iConfig.getParameter<edm::InputTag>("L1NNTauToken"));
-  L1NNTauPFToken_ = consumes<l1t::PFTauCollection>(iConfig.getParameter<edm::InputTag>("L1NNTauPFToken"));
+  L1NNTau2vtxToken_ = consumes<l1t::PFTauCollection>(iConfig.getParameter<edm::InputTag>("L1NNTau2vtxToken"));
 
   tkTrackerJetToken_ = consumes<l1t::TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetToken"));
   tkTrackerJetDisplacedToken_ =
@@ -234,9 +234,11 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
 
   tkMetToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMetToken"));
   tkMetDisplacedToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetDisplacedToken"));
-  //tkMhtToken_ = consumes<l1t::TkHTMissCollection>(iConfig.getParameter<edm::InputTag>("tkMhtToken"));
 
-  const auto& mhttokens = iConfig.getParameter<std::vector<edm::InputTag>>("tkMhtTokens");
+  tkMhtToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMhtToken"));
+  tkMhtDisplacedToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMhtDisplacedToken"));
+
+  /*const auto& mhttokens = iConfig.getParameter<std::vector<edm::InputTag>>("tkMhtTokens");
   for (const auto& mhttoken : mhttokens) {
     tkMhtToken_.push_back(consumes<l1t::TkHTMissCollection>(mhttoken));
   }
@@ -244,7 +246,7 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
   const auto& mhtdisplacedtokens = iConfig.getParameter<std::vector<edm::InputTag>>("tkMhtDisplacedTokens");
   for (const auto& mhtdisplacedtoken : mhtdisplacedtokens) {
     tkMhtDisplacedToken_.push_back(consumes<l1t::TkHTMissCollection>(mhtdisplacedtoken));
-  }
+  }*/
 
   maxL1Extra_ = iConfig.getParameter<unsigned int>("maxL1Extra");
 
@@ -296,8 +298,8 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<l1t::PFTauCollection> l1NNTau;
   iEvent.getByToken(L1NNTauToken_, l1NNTau);
 
-  edm::Handle<l1t::PFTauCollection> l1NNTauPF;
-  iEvent.getByToken(L1NNTauPFToken_, l1NNTauPF);
+  edm::Handle<l1t::PFTauCollection> l1NNTau2vtx;
+  iEvent.getByToken(L1NNTau2vtxToken_, l1NNTau2vtx);
 
   edm::Handle<l1t::TauBxCollection> caloTau;
   iEvent.getByToken(caloTauToken_, caloTau);
@@ -350,13 +352,18 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
 
   edm::Handle<std::vector<l1t::EtSum>> tkMets;  //was TkEtMissCollection
   edm::Handle<l1t::TkEtMissCollection> tkMetsDisplaced;
-  //edm::Handle<l1t::TkHTMissCollection> tkMhts;
+
+  edm::Handle<std::vector<l1t::EtSum>> tkMhts;
+  edm::Handle<std::vector<l1t::EtSum>> tkMhtsDisplaced;
 
   iEvent.getByToken(tkTrackerJetToken_, tkTrackerJet);
   iEvent.getByToken(tkTrackerJetDisplacedToken_, tkTrackerJetDisplaced);
 
   iEvent.getByToken(tkMetToken_, tkMets);
   iEvent.getByToken(tkMetDisplacedToken_, tkMetsDisplaced);
+
+  iEvent.getByToken(tkMhtToken_, tkMhts);
+  iEvent.getByToken(tkMhtDisplacedToken_, tkMhtsDisplaced);
 
   if (tkTrackerJet.isValid()) {
     l1Extra->SetTkJet(tkTrackerJet, maxL1Extra_);
@@ -383,27 +390,24 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     edm::LogWarning("MissingProduct") << "L1PhaseII TkMET Displaced not found. Branch will not be filled" << std::endl;
   }
 
-  for (auto& tkmhttoken : tkMhtToken_) {
+  /*for (auto& tkmhttoken : tkMhtToken_) {
     edm::Handle<l1t::TkHTMissCollection> tkMhts;
-    iEvent.getByToken(tkmhttoken, tkMhts);
+    iEvent.getByToken(tkmhttoken, tkMhts);*/
 
-    if (tkMhts.isValid()) {
-      l1Extra->SetTkMHT(tkMhts);
-    } else {
-      edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT not found. Branch will not be filled" << std::endl;
-    }
+  if (tkMhts.isValid()) {
+    l1Extra->SetTkMHT(tkMhts);
+  } else {
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT not found. Branch will not be filled" << std::endl;
   }
 
-  for (auto& tkmhtdisplacedtoken : tkMhtDisplacedToken_) {
+  /*for (auto& tkmhtdisplacedtoken : tkMhtDisplacedToken_) {
     edm::Handle<l1t::TkHTMissCollection> tkMhtsDisplaced;
-    iEvent.getByToken(tkmhtdisplacedtoken, tkMhtsDisplaced);
+    iEvent.getByToken(tkmhtdisplacedtoken, tkMhtsDisplaced);*/
 
-    if (tkMhtsDisplaced.isValid()) {
-      l1Extra->SetTkMHTDisplaced(tkMhtsDisplaced);
-    } else {
-      edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT Displaced not found. Branch will not be filled"
-                                        << std::endl;
-    }
+  if (tkMhtsDisplaced.isValid()) {
+    l1Extra->SetTkMHTDisplaced(tkMhtsDisplaced);
+  } else {
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMHT Displaced not found. Branch will not be filled" << std::endl;
   }
 
   //  float vertexTDRZ0=-999;
@@ -565,7 +569,13 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   if (l1NNTau.isValid()) {
     l1Extra->SetNNTaus(l1NNTau, maxL1Extra_);
   } else {
-    edm::LogWarning("MissingProduct") << "L1NNTaus missing" << std::endl;
+    edm::LogWarning("MissingProduct") << "L1NNTau missing" << std::endl;
+  }
+
+  if (l1NNTau2vtx.isValid()) {
+    l1Extra->SetNNTau2vtxs(l1NNTau2vtx, maxL1Extra_);
+  } else {
+    edm::LogWarning("MissingProduct") << "L1NNTau2vtxs missing" << std::endl;
   }
 
   tree_->Fill();

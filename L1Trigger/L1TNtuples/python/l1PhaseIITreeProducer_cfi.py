@@ -59,8 +59,8 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeProducer",
    l1TkPrimaryVertex= cms.InputTag("L1TkPrimaryVertex",""),
 
  #  L1PFTauToken = cms.InputTag("l1pfTauProducer","L1PFTaus"),   
-   L1NNTauToken = cms.InputTag("l1NNTauProducerPuppi","L1PFTausNN"),
-   L1NNTauPFToken = cms.InputTag("l1NNTauProducer","L1PFTausNN"),
+   L1NNTauToken = cms.InputTag("L1NNTauProducerPuppi"),
+   L1NNTauPFToken = cms.InputTag("L1NNTauProducerPF"),
 
  #  L1HPSPFTauToken = cms.InputTag("L1HPSPFTauProducerPF",""),
 

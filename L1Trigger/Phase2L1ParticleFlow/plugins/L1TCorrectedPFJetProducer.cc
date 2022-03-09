@@ -1,5 +1,6 @@
 #include "DataFormats/L1TParticleFlow/interface/PFJet.h"
 #include "DataFormats/JetReco/interface/Jet.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 

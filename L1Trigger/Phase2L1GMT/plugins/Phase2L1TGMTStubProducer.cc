@@ -11,6 +11,10 @@
 #include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTEndcapStubProcessor.h"
 #include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTBarrelStubProcessor.h"
 
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "FWCore/Framework/interface/ESProducts.h"
+#include "FWCore/Utilities/interface/ESGetToken.h"
 //
 // class declaration
 //
@@ -57,9 +61,10 @@ Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iCon
       srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
       procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
       procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
-      translator_(new L1TMuon::GeometryTranslator),
       verbose_(iConfig.getParameter<int>("verbose")) {
   produces<l1t::MuonStubCollection>();
+  edm::ConsumesCollector consumesColl(consumesCollector());
+  translator_ = new L1TMuon::GeometryTranslator(consumesColl);
 }
 
 Phase2L1TGMTStubProducer::~Phase2L1TGMTStubProducer() {
