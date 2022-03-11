@@ -51,6 +51,10 @@ namespace l1gt {
     phi_t phi;
     eta_t eta;
 
+    inline bool operator==(const ThreeVector &other) const {
+      return pt == other.pt && phi == other.phi && eta == other.eta;
+    }
+
     static const int BITWIDTH = pt_t::width + phi_t::width + eta_t::width;
     inline ap_uint<BITWIDTH> pack() const {
       ap_uint<BITWIDTH> ret;
@@ -66,6 +70,8 @@ namespace l1gt {
     valid_t valid;
     ThreeVector v3;
     z0_t z0;
+
+    inline bool operator==(const Jet &other) const { return valid == other.valid && z0 == other.z0 && v3 == other.v3; }
 
     static const int BITWIDTH = 128;
     inline ap_uint<BITWIDTH> pack_ap() const {
@@ -85,6 +91,21 @@ namespace l1gt {
       return packed;
     }
 
+    inline static Jet unpack_ap(const ap_uint<BITWIDTH> &src) {
+      Jet ret;
+      ret.initFromBits(src);
+      return ret;
+    }
+
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, valid);
+      _unpack_from_bits(src, start, v3.pt);
+      _unpack_from_bits(src, start, v3.phi);
+      _unpack_from_bits(src, start, v3.eta);
+      _unpack_from_bits(src, start, z0);
+    }
+
   };  // struct Jet
 
   struct Sum {
@@ -92,6 +113,18 @@ namespace l1gt {
     pt_t vector_pt;
     phi_t vector_phi;
     pt_t scalar_pt;
+
+    inline bool operator==(const Sum &other) const {
+      return valid == other.valid && vector_pt == other.vector_pt && vector_phi == other.vector_phi &&
+             scalar_pt == other.scalar_pt;
+    }
+
+    inline void clear() {
+      valid = 0;
+      vector_pt = 0;
+      vector_phi = 0;
+      scalar_pt = 0;
+    }
 
     static const int BITWIDTH = 64;
     inline ap_uint<BITWIDTH> pack() const {
@@ -102,6 +135,20 @@ namespace l1gt {
       _pack_into_bits(ret, start, vector_phi);
       _pack_into_bits(ret, start, scalar_pt);
       return ret;
+    }
+
+    inline static Sum unpack_ap(const ap_uint<BITWIDTH> &src) {
+      Sum ret;
+      ret.initFromBits(src);
+      return ret;
+    }
+
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, valid);
+      _unpack_from_bits(src, start, vector_pt);
+      _unpack_from_bits(src, start, vector_phi);
+      _unpack_from_bits(src, start, scalar_pt);
     }
   };  // struct Sum
 
