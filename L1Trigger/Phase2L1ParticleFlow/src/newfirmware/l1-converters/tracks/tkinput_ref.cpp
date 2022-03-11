@@ -57,8 +57,14 @@ l1ct::TrackInputEmulator::TrackInputEmulator(const edm::ParameterSet &iConfig)
   configPhi(iConfig.getParameter<uint32_t>("phiBits"));
   configZ0(iConfig.getParameter<uint32_t>("z0Bits"));
   if (region_ == Region::Barrel) {
-    //using eta LUTs for deta, no config needed
-    //using DSP for dphi, no config needed
+    configDEtaBarrel(iConfig.getParameter<uint32_t>("dEtaBarrelBits"),
+                     iConfig.getParameter<uint32_t>("dEtaBarrelZ0PreShift"),
+                     iConfig.getParameter<uint32_t>("dEtaBarrelZ0PostShift"),
+                     iConfig.getParameter<double>("dEtaBarrelFloatOffs"));
+    configDPhiBarrel(iConfig.getParameter<uint32_t>("dPhiBarrelBits"),
+                     iConfig.getParameter<uint32_t>("dPhiBarrelRInvPreShift"),
+                     iConfig.getParameter<uint32_t>("dPhiBarrelRInvPostShift"),
+                     iConfig.getParameter<double>("dPhiBarrelFloatOffs"));
   }
   if (region_ == Region::Endcap) {
     configDEtaHGCal(iConfig.getParameter<uint32_t>("dEtaHGCalBits"),

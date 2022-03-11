@@ -24,8 +24,29 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
-    trackInputConversionAlgo = cms.string("Ideal"),
-    muonInputConversionAlgo = cms.string("Ideal"),
+    trackInputConversionAlgo = cms.string("Emulator"),
+    trackInputConversionParameters = cms.PSet(
+        region = cms.string("barrel"),
+        trackWordEncoding = cms.string("biased"),
+        bitwiseAccurate = cms.bool(True),
+        ptLUTBits = cms.uint32(11),
+        etaLUTBits = cms.uint32(10),
+        etaPreOffs = cms.int32(0),
+        etaShift = cms.uint32(15-10),
+        etaPostOffs = cms.int32(0),
+        etaSigned = cms.bool(True),
+        phiBits = cms.uint32(10),
+        z0Bits = cms.uint32(12),
+        dEtaBarrelBits = cms.uint32(8),
+        dEtaBarrelZ0PreShift = cms.uint32(2),
+        dEtaBarrelZ0PostShift = cms.uint32(2),
+        dEtaBarrelFloatOffs = cms.double(0.0),
+        dPhiBarrelBits = cms.uint32(4),
+        dPhiBarrelRInvPreShift = cms.uint32(4),
+        dPhiBarrelRInvPostShift = cms.uint32(4),
+        dPhiBarrelFloatOffs = cms.double(0.0)
+        ),
+    muonInputConversionAlgo = cms.string("Emulator"),
     muonInputConversionParameters = muonInputConversionParameters.clone(),
     regionizerAlgo = cms.string("Ideal"),
     pfAlgo = cms.string("PFAlgo3"),
@@ -105,11 +126,14 @@ l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     boards=cms.VPSet(
         cms.PSet(
-            regions=cms.vuint32(range(0, 18))),
+              regions=cms.vuint32(*[0+9*ie+i for ie in range(6) for i in range(3)])), # phi splitting
+            # regions=cms.vuint32(range(0, 18))), # eta splitting
         cms.PSet(
-            regions=cms.vuint32(range(18, 36))),
+              regions=cms.vuint32(*[3+9*ie+i for ie in range(6) for i in range(3)])), # phi splitting
+            # regions=cms.vuint32(range(18, 36))), # eta splitting
         cms.PSet(
-            regions=cms.vuint32(range(36, 54))),
+              regions=cms.vuint32(*[6+9*ie+i for ie in range(6) for i in range(3)])), # phi splitting
+            # regions=cms.vuint32(range(36, 54))), # eta splitting
     )
 )
 
@@ -231,6 +255,7 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
         nEMCALO_EGIN = 10, 
         nEM_EGOUT = 5,
         doBremRecovery=True,
+        writeBeforeBremRecovery=False,
         writeEGSta=True),
     tkEgSorterParameters=tkEgSorterParameters.clone(
         nObjToSort = 5
@@ -272,7 +297,7 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     emPtCut  = cms.double(0.5),
     hadPtCut = cms.double(1.0),
     trkPtCut    = cms.double(2.0),
-    muonInputConversionAlgo = cms.string("Ideal"),
+    muonInputConversionAlgo = cms.string("Emulator"),
     muonInputConversionParameters = muonInputConversionParameters.clone(),
     regionizerAlgo = cms.string("Ideal"),
     pfAlgo = cms.string("PFAlgoDummy"),
@@ -315,6 +340,7 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
         nEMCALO_EGIN = 10, 
         nEM_EGOUT = 5,
         doBremRecovery=True,
+        writeBeforeBremRecovery=False,
         writeEGSta=True),
     tkEgSorterParameters=tkEgSorterParameters.clone(
         nObjToSort=5
