@@ -2,6 +2,7 @@
 #define FIRMWARE_dataformats_sums_h
 
 #include "datatypes.h"
+#include "gt_datatypes.h"
 #include "bit_encoding.h"
 
 namespace l1ct {
@@ -44,6 +45,15 @@ namespace l1ct {
       _unpack_from_bits(src, start, ret.hwPhi);
       _unpack_from_bits(src, start, ret.hwSumPt);
       return ret;
+    }
+
+    l1gt::Sum toGT() const {
+      l1gt::Sum sum;
+      sum.valid = (hwPt != 0) || (hwSumPt != 0);
+      sum.vector_pt = CTtoGT_pt(hwPt);
+      sum.vector_phi = CTtoGT_phi(hwPhi);
+      sum.scalar_pt = CTtoGT_phi(hwSumPt);
+      return sum;
     }
   };
 

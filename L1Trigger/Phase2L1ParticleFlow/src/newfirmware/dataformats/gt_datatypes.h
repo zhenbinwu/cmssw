@@ -64,6 +64,19 @@ namespace l1gt {
       _pack_into_bits(ret, start, eta);
       return ret;
     }
+
+    inline static ThreeVector unpack_ap(const ap_uint<BITWIDTH> &src) {
+      ThreeVector ret;
+      ret.initFromBits(src);
+      return ret;
+    }
+
+    inline void initFromBits(const ap_uint<BITWIDTH> &src) {
+      unsigned int start = 0;
+      _unpack_from_bits(src, start, pt);
+      _unpack_from_bits(src, start, phi);
+      _unpack_from_bits(src, start, eta);
+    }
   };
 
   struct Jet {
@@ -104,6 +117,19 @@ namespace l1gt {
       _unpack_from_bits(src, start, v3.phi);
       _unpack_from_bits(src, start, v3.eta);
       _unpack_from_bits(src, start, z0);
+    }
+
+    inline static Jet unpack(const std::array<uint64_t, 2> &src) {
+      ap_uint<BITWIDTH> bits;
+      bits(63, 0) = src[0];
+      bits(127, 64) = src[1];
+      return unpack_ap(bits);
+    }
+
+    inline static Jet unpack(long long unsigned int &src) {
+      // unpack from single 64b int
+      ap_uint<BITWIDTH> bits = src;
+      return unpack_ap(bits);
     }
 
   };  // struct Jet
