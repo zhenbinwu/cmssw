@@ -212,11 +212,8 @@ _phase2_siml1emulator.add(L1TrackerEmuHTMissExtended)
 from L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff import *
 _phase2_siml1emulator.add(l1ParticleFlowTask)
 from L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff import *
-l1ctLayer1Barrel.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
-l1ctLayer1HGCal.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
-l1ctLayer1HGCalNoTK.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
-l1ctLayer1HF.muons = cms.InputTag("L1SAMuonsGmt", "promptSAMuons")
-_phase2_siml1emulator.add(l1ctLayer1TaskInputsTask, l1ctLayer1Task)
+from L1Trigger.Phase2L1ParticleFlow.l1ctLayer2EG_cff import *
+_phase2_siml1emulator.add(l1ctLayer1TaskInputsTask, l1ctLayer1Task, l1ctLayer2EGTask)
 
 # PF Jet
 # ########################################################################

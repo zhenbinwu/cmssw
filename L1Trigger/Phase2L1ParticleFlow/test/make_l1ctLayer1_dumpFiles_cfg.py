@@ -31,6 +31,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '111X_mcRun4_realistic_T15_v3',
 
 process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
 process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff')
+process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer2EG_cff')
 process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
 process.load('L1Trigger.VertexFinder.VertexProducer_cff')
 process.L1VertexFinderEmulator = process.VertexProducer.clone()
