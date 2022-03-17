@@ -51,8 +51,6 @@
 #include "DataFormats/L1TCorrelator/interface/TkEm.h"
 #include "DataFormats/L1TCorrelator/interface/TkEmFwd.h"
 
-#include <TH1F.h>
-
 //--------------------------------------------------------------------------------------------------
 class L1TCorrelatorLayer1Producer : public edm::stream::EDProducer<> {
 public:

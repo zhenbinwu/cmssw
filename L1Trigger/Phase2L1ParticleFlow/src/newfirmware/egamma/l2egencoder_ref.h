@@ -66,6 +66,7 @@ namespace l1ct {
     template <class T>
     std::vector<ap_uint<96>> encodeLayer2(const std::vector<T>& egisos) const {
       std::vector<ap_uint<96>> ret;
+      ret.reserve(egisos.size());
       for (const auto& egiso : egisos) {
         ret.push_back(encodeLayer2(egiso));
       }

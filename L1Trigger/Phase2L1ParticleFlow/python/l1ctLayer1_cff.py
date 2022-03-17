@@ -16,7 +16,7 @@ muonInputConversionParameters = cms.PSet(
 
 l1ctLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag('pfTracksFromL1Tracks'),
-    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
+    muons = cms.InputTag('L1SAMuonsGmt','promptSAMuons'),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromL1EGClusters')),
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromCombinedCaloHCal:calibrated')),
     vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
@@ -153,7 +153,7 @@ _hgcalSectors = cms.VPSet(
 
 l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag('pfTracksFromL1Tracks'),
-    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
+    muons = cms.InputTag('L1SAMuonsGmt','promptSAMuons'),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
     vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
@@ -288,7 +288,7 @@ l1ctLayer1HGCal = cms.EDProducer("L1TCorrelatorLayer1Producer",
 
 l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag(''),
-    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
+    muons = cms.InputTag('L1SAMuonsGmt','promptSAMuons'),
     emClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters:egamma')), # used only for E/gamma
     hadClusters = cms.VInputTag(cms.InputTag('pfClustersFromHGC3DClusters')),
     vtxCollection = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation"),
@@ -370,7 +370,7 @@ l1ctLayer1HGCalNoTK = cms.EDProducer("L1TCorrelatorLayer1Producer",
 
 l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag(''),
-    muons = cms.InputTag('standaloneMuons','promptSAMuons'),
+    muons = cms.InputTag('L1SAMuonsGmt','promptSAMuons'),
     useStandaloneMuons = cms.bool(False),
     useTrackerMuons = cms.bool(False),
     emClusters = cms.VInputTag(),

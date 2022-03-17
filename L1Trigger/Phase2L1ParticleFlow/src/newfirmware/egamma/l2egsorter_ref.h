@@ -93,7 +93,7 @@ namespace l1ct {
 
     template <typename T>
     void print_objects(const std::vector<T> &objs, const std::string &label) const {
-      for (unsigned int i; i < objs.size(); ++i) {
+      for (unsigned int i = 0; i < objs.size(); ++i) {
         dbgCout() << label << " [" << i << "] pt: " << objs[i].hwPt << " eta: " << objs[i].hwEta
                   << " phi: " << objs[i].hwPhi << " qual: " << std::bitset<4>(objs[i].hwQual) << std::endl;
       }

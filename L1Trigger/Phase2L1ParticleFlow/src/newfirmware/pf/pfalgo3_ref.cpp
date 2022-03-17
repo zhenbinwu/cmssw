@@ -145,8 +145,8 @@ void l1ct::PFAlgo3Emulator::pfalgo3_em_ref(const PFInputRegion& in,
     if (calo_sumtk[ic] > 0) {
       dpt_t ptdiff = dpt_t(in.emcalo[ic].hwPt) - dpt_t(calo_sumtk[ic]);
       pt2_t sigma2 = in.emcalo[ic].hwPtErr * in.emcalo[ic].hwPtErr;
-      pt2_t sigma2Lo = 4 * sigma2,
-            sigma2Hi = sigma2;  // + (sigma2>>1); // cut at 1 sigma instead of old cut at sqrt(1.5) sigma's
+      pt2_t sigma2Lo = 4 * sigma2;
+      const pt2_t& sigma2Hi = sigma2;  // + (sigma2>>1); // cut at 1 sigma instead of old cut at sqrt(1.5) sigma's
       pt2_t ptdiff2 = ptdiff * ptdiff;
       if ((ptdiff >= 0 && ptdiff2 <= sigma2Hi) || (ptdiff < 0 && ptdiff2 < sigma2Lo)) {
         // electron

@@ -12,8 +12,7 @@ template <typename... Args>
 inline void dbgPrintf(const char *formatString, Args &&...args) {
   char buff[1024];
   std::fill(buff, buff + 1024, '\0');
-  //int ret = snprintf(buff, 1023"%s", , "%s %s",formatString, std::forward<Args>(args)...);
-  int ret = snprintf(buff, 1023, "%s", formatString);
+  int ret = snprintf(buff, 1023, formatString, std::forward<Args>(args)...);
   if (ret > 0 && ret < 1023 && buff[ret - 1] == '\n')
     buff[ret - 1] = '\0';
   edm::LogPrint("L1TCorrelator") << std::string_view(buff);

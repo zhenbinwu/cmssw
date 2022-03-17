@@ -12,7 +12,9 @@
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/layer1_emulator.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egsorter_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egsorter_ref.cpp"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egencoder_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/l2egencoder_ref.cpp"
 
 #include "L1Trigger/DemonstratorTools/interface/BoardDataWriter.h"
 #include "L1Trigger/DemonstratorTools/interface/utilities.h"
@@ -40,7 +42,7 @@ private:
 
   void produce(edm::StreamID, edm::Event &, const edm::EventSetup &) const override;
 
-  void endJob();
+  void endJob() override;
 
   struct RefRemapper {
     typedef TTTrack<Ref_Phase2TrackerDigi_> L1TTTrackType;
@@ -239,6 +241,7 @@ ap_uint<128> L1TCtL2EgProducer::encodeLayer1(const EGIsoEleObjEmu &egiso) const 
 
 std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoObjEmu> &photons) const {
   std::vector<ap_uint<64>> ret;
+  ret.reserve(photons.size());
   for (const auto &phot : photons) {
     ret.push_back(encodeLayer1(phot));
   }
@@ -247,6 +250,7 @@ std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIso
 
 std::vector<ap_uint<64>> L1TCtL2EgProducer::encodeLayer1(const std::vector<EGIsoEleObjEmu> &electrons) const {
   std::vector<ap_uint<64>> ret;
+  ret.reserve(2 * electrons.size());
   for (const auto &ele : electrons) {
     auto eleword = encodeLayer1(ele);
     ret.push_back(eleword(63, 0));
