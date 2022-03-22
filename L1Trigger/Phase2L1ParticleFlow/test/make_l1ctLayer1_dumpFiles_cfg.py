@@ -27,7 +27,7 @@ process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff') # needed to 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '111X_mcRun4_realistic_T15_v3', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '123X_mcRun4_realistic_v3', '')
 
 process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
 process.load('L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff')
@@ -71,9 +71,9 @@ if produceEGStage2Pattern:
     process.l1ctLayer2EG.writeOutPattern = True
 
 process.source.fileNames  = [ '/store/cmst3/group/l1tr/gpetrucc/11_1_0/NewInputs110X/110121.done/TTbar_PU200/inputs110X_%d.root' % i for i in (1,3,7,8,9) ]
+process.pfClustersFromCombinedCaloHCal.phase2barrelCaloTowers = [cms.InputTag("L1EGammaClusterEmuProducer",)]
 
 
 for det in "Barrel", "Barrel9", "HGCal", "HGCalNoTK", "HF":
     l1pf = getattr(process, 'l1ctLayer1'+det)
-    l1pf.dumpFileName = cms.untracked.string("TTbar_PU200_"+det+".dump")
-process.pfClustersFromCombinedCaloHCal.phase2barrelCaloTowers = [cms.InputTag("L1EGammaClusterEmuProducer",)]
+    l1pf.dumpFileName = cms.untracked.string("TTbar_PU200_110X_"+det+".dump")
