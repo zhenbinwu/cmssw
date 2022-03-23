@@ -388,7 +388,7 @@ void L1JetRecoTreeProducer::doPFJetCorr(edm::Handle<reco::PFJetCollection> pfJet
 
     nJets++;
 
-    if (it->pt() * corrFactor > jetptThreshold_ && fabs(it->eta()) < jetetaMax_) {
+    if (it->pt() * corrFactor > jetptThreshold_ && std::abs(it->eta()) < jetetaMax_) {
       mHx += -1. * it->px() * corrFactor;
       mHy += -1. * it->py() * corrFactor;
       met_data->Ht += it->pt() * corrFactor;
@@ -419,7 +419,7 @@ void L1JetRecoTreeProducer::doCaloJetCorr(edm::Handle<reco::CaloJetCollection> c
 
     nCaloJets++;
 
-    if (it->pt() * caloCorrFactor > jetptThreshold_ && fabs(it->eta()) < jetetaMax_) {
+    if (it->pt() * caloCorrFactor > jetptThreshold_ && std::abs(it->eta()) < jetetaMax_) {
       met_data->caloHt += it->pt() * caloCorrFactor;
     }
   }
@@ -487,7 +487,7 @@ void L1JetRecoTreeProducer::doCaloMetBE(edm::Handle<reco::CaloMETCollection> cal
 
 bool L1JetRecoTreeProducer::pfJetID(const reco::PFJet& jet) {
   bool tmp = true;
-  if (fabs(jet.eta()) < 2.7) {
+  if (std::abs(jet.eta()) < 2.7) {
     tmp &= jet.neutralHadronEnergyFraction() < 0.9;
     tmp &= jet.neutralEmEnergyFraction() < 0.9;
     tmp &= (jet.chargedMultiplicity() + jet.neutralMultiplicity()) > 1;
@@ -496,12 +496,12 @@ bool L1JetRecoTreeProducer::pfJetID(const reco::PFJet& jet) {
     tmp &= jet.chargedMultiplicity() > 0;
     tmp &= jet.chargedEmEnergyFraction() < 0.9;
   }
-  if (fabs(jet.eta()) > 2.7 && fabs(jet.eta()) < 3.0) {
+  if (std::abs(jet.eta()) > 2.7 && std::abs(jet.eta()) < 3.0) {
     tmp &= jet.neutralEmEnergyFraction() > 0.01;
     tmp &= jet.neutralHadronEnergyFraction() < 0.98;
     tmp &= jet.neutralMultiplicity() > 2;
   }
-  if (fabs(jet.eta()) > 3.0) {
+  if (std::abs(jet.eta()) > 3.0) {
     tmp &= jet.neutralEmEnergyFraction() < 0.9;
     tmp &= jet.neutralMultiplicity() > 10;
   }
