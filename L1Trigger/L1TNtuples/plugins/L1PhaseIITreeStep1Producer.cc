@@ -179,7 +179,6 @@ private:
   edm::EDGetTokenT<std::vector<l1t::EtSum>> tkMetToken_;  //was TkEtMissCollection like displaced
   edm::EDGetTokenT<std::vector<l1t::EtSum>> tkMhtToken_;
 
-  edm::EDGetTokenT<l1t::TkEtMissCollection> tkMetDisplacedToken_;
   edm::EDGetTokenT<std::vector<l1t::EtSum>> tkMhtDisplacedToken_;
 };
 
@@ -233,7 +232,6 @@ L1PhaseIITreeStep1Producer::L1PhaseIITreeStep1Producer(const edm::ParameterSet& 
       consumes<l1t::TkJetWordCollection>(iConfig.getParameter<edm::InputTag>("tkTrackerJetDisplacedToken"));
 
   tkMetToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMetToken"));
-  tkMetDisplacedToken_ = consumes<l1t::TkEtMissCollection>(iConfig.getParameter<edm::InputTag>("tkMetDisplacedToken"));
 
   tkMhtToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMhtToken"));
   tkMhtDisplacedToken_ = consumes<std::vector<l1t::EtSum>>(iConfig.getParameter<edm::InputTag>("tkMhtDisplacedToken"));
@@ -351,7 +349,6 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<l1t::TkJetWordCollection> tkTrackerJetDisplaced;
 
   edm::Handle<std::vector<l1t::EtSum>> tkMets;  //was TkEtMissCollection
-  edm::Handle<l1t::TkEtMissCollection> tkMetsDisplaced;
 
   edm::Handle<std::vector<l1t::EtSum>> tkMhts;
   edm::Handle<std::vector<l1t::EtSum>> tkMhtsDisplaced;
@@ -360,7 +357,6 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
   iEvent.getByToken(tkTrackerJetDisplacedToken_, tkTrackerJetDisplaced);
 
   iEvent.getByToken(tkMetToken_, tkMets);
-  iEvent.getByToken(tkMetDisplacedToken_, tkMetsDisplaced);
 
   iEvent.getByToken(tkMhtToken_, tkMhts);
   iEvent.getByToken(tkMhtDisplacedToken_, tkMhtsDisplaced);
@@ -384,11 +380,6 @@ void L1PhaseIITreeStep1Producer::analyze(const edm::Event& iEvent, const edm::Ev
     edm::LogWarning("MissingProduct") << "L1PhaseII TkMET not found. Branch will not be filled" << std::endl;
   }
 
-  if (tkMetsDisplaced.isValid()) {
-    l1Extra->SetTkMETDisplaced(tkMetsDisplaced);
-  } else {
-    edm::LogWarning("MissingProduct") << "L1PhaseII TkMET Displaced not found. Branch will not be filled" << std::endl;
-  }
 
   /*for (auto& tkmhttoken : tkMhtToken_) {
     edm::Handle<l1t::TkHTMissCollection> tkMhts;

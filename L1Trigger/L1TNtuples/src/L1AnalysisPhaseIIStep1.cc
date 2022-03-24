@@ -617,16 +617,6 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHT(const edm::Handle<std::vector<
   l1extra_.trackerMHTPhi = trackerMHT->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi - M_PI;
 }
 
-// trackerMetDisplaced
-void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMETDisplaced(const edm::Handle<l1t::TkEtMissCollection> trackerMets) {
-  for (l1t::TkEtMissCollection::const_iterator it = trackerMets->begin(); it != trackerMets->end(); it++) {
-    l1extra_.trackerMetDisplacedSumEt.push_back(it->etTotal());
-    l1extra_.trackerMetDisplacedEt.push_back(it->etMiss());
-    l1extra_.trackerMetDisplacedPhi.push_back(it->phi());
-    l1extra_.trackerMetDisplacedBx.push_back(it->bx());
-    l1extra_.nTrackerMetDisplaced++;
-  }
-}
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHTDisplaced(const edm::Handle<std::vector<l1t::EtSum> > trackerMHT) {
   l1extra_.trackerHTDisplaced = trackerMHT->begin()->hwPt() * l1tmhtemu::kStepPt;

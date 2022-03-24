@@ -32,9 +32,9 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    l1pfPhase1L1TJetMET  = cms.InputTag("Phase1L1TJetProducer9x9" ,   "UncalibratedPhase1L1TJetFromPfCandidatesMET"), #use the 9x9 case
    l1pfPhase1L1TJetSums  = cms.InputTag("Phase1L1TJetSumsProducer9x9" ,   "Sums"), #use the 9x9 case
 
-   caloJetToken = cms.InputTag("L1CaloJet","CaloJets"),
+   caloJetToken = cms.InputTag("L1CaloJet","L1CaloJetCollectionBXV"),
    caloJetHTTToken = cms.InputTag("L1CaloJetHTT","CaloJetHTT"),
-   caloTauToken = cms.InputTag("L1CaloJet","CaloTaus"),
+   caloTauToken = cms.InputTag("L1CaloJet","L1CaloTauCollectionBXV"),
    L1HPSPFTauToken = cms.InputTag("HPSPFTauProducerPF",""),
 
    l1PFMet = cms.InputTag("L1MetPfProducer",""), #emulator
@@ -52,7 +52,6 @@ l1PhaseIITree = cms.EDAnalyzer("L1PhaseIITreeStep1Producer",
    tkTrackerJetDisplacedToken = cms.InputTag("L1TrackJetsExtendedEmulation", "L1TrackJetsExtended"), #emulated
 	 
    tkMetToken = cms.InputTag("L1TrackerEmuEtMiss","L1TrackerEmuEtMiss"), #emulated
-   tkMetDisplacedToken = cms.InputTag("", ""), #("L1TrackerEtMissExtended","L1TrackerExtendedEtMiss"), #notemulated
 
    tkMhtToken = cms.InputTag("L1TrackerEmuHTMiss","L1TrackerEmuHTMiss"), #emulated
    tkMhtDisplacedToken = cms.InputTag("L1TrackerEmuHTMissExtended","L1TrackerEmuHTMissExtended"), #emulated

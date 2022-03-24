@@ -319,12 +319,6 @@ namespace L1Analysis {
       trackerMHTDisplaced = 0;
       trackerMHTPhiDisplaced = 0;
 
-      // TrackerMetDisplaced
-      nTrackerMetDisplaced = 0;
-      trackerMetDisplacedSumEt.clear();
-      trackerMetDisplacedEt.clear();
-      trackerMetDisplacedPhi.clear();
-      trackerMetDisplacedBx.clear();
     }
 
     //double z0Puppi;
@@ -628,11 +622,6 @@ namespace L1Analysis {
     double trackerMHTDisplaced;
     double trackerMHTPhiDisplaced;
 
-    unsigned int nTrackerMetDisplaced;
-    std::vector<double> trackerMetDisplacedSumEt;
-    std::vector<double> trackerMetDisplacedEt;
-    std::vector<double> trackerMetDisplacedPhi;
-    std::vector<double> trackerMetDisplacedBx;
   };
 }  // namespace L1Analysis
 #endif
