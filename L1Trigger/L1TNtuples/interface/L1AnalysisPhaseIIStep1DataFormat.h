@@ -16,7 +16,7 @@ namespace L1Analysis {
     ~L1AnalysisPhaseIIStep1DataFormat(){};
 
     void Reset() {
-      z0L1TkPV.clear();
+      z0L1TkPV = 0;
       z0L1TkAll.clear();
       nL1TkPVs = 0;
 
@@ -324,7 +324,7 @@ namespace L1Analysis {
     //double z0Puppi;
     unsigned short int nL1TkPVs;
     std::vector<double> z0L1TkAll;
-    std::vector<double> z0L1TkPV;
+    double z0L1TkPV;
     //std::vector<double> sumL1TkPV;
 
     unsigned short int nCaloTaus;
