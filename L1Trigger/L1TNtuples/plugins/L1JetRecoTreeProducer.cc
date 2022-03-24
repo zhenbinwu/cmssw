@@ -54,7 +54,7 @@
 // class declaration
 //
 
-class L1JetRecoTreeProducer : public edm::one::EDAnalyzer<> {
+class L1JetRecoTreeProducer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit L1JetRecoTreeProducer(const edm::ParameterSet&);
   ~L1JetRecoTreeProducer() override;
@@ -82,9 +82,6 @@ public:
   L1Analysis::L1AnalysisRecoMetDataFormat* met_data;
 
 private:
-  // output file
-  edm::Service<TFileService> fs_;
-
   // tree
   TTree* tree_;
 
@@ -150,6 +147,8 @@ L1JetRecoTreeProducer::L1JetRecoTreeProducer(const edm::ParameterSet& iConfig)
 
   muonToken_ = consumes<reco::MuonCollection>(iConfig.getUntrackedParameter("muonToken", edm::InputTag("muons")));
 
+  usesResource(TFileService::kSharedResource);
+
   jetptThreshold_ = iConfig.getParameter<double>("jetptThreshold");
   jetetaMax_ = iConfig.getParameter<double>("jetetaMax");
   maxJet_ = iConfig.getParameter<unsigned int>("maxJet");
@@ -158,6 +157,7 @@ L1JetRecoTreeProducer::L1JetRecoTreeProducer(const edm::ParameterSet& iConfig)
   met_data = new L1Analysis::L1AnalysisRecoMetDataFormat();
 
   // set up output
+  edm::Service<TFileService> fs_;
   tree_ = fs_->make<TTree>("JetRecoTree", "JetRecoTree");
   tree_->Branch("Jet", "L1Analysis::L1AnalysisRecoJetDataFormat", &jet_data, 32000, 3);
   tree_->Branch("Sums", "L1Analysis::L1AnalysisRecoMetDataFormat", &met_data, 32000, 3);
