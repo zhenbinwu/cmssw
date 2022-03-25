@@ -2,6 +2,7 @@
 #define FIRMWARE_dataformats_jets_h
 
 #include "datatypes.h"
+#include "gt_datatypes.h"
 #include "bit_encoding.h"
 #include <array>
 #include <cstdint>
@@ -68,6 +69,22 @@ namespace l1ct {
       // just one set while the word has fewer than 64 bits
       ap_uint<BITWIDTH> bits = src[0];
       return unpack_ap(bits);
+    }
+
+    inline static Jet unpack(long long unsigned int &src) {
+      // unpack from single 64b int
+      ap_uint<BITWIDTH> bits = src;
+      return unpack_ap(bits);
+    }
+
+    l1gt::Jet toGT() const {
+      l1gt::Jet j;
+      j.valid = hwPt != 0;
+      j.v3.pt = CTtoGT_pt(hwPt);
+      j.v3.phi = CTtoGT_phi(hwPhi);
+      j.v3.eta = CTtoGT_eta(hwEta);
+      j.z0 = 0;
+      return j;
     }
   };
 

@@ -79,7 +79,7 @@ namespace l1ct {
     //=== Configuration for bitwise accurate conversions ===
     void configPt(int lutBits);
 
-    void configEta(int lutBits, int preOffs, int shift, int postOffs, bool endcap);
+    void configEta(int lutBits, int preOffs, int shift, int postOffs, bool lutSigned, bool endcap);
 
     void configPhi(int bits);
 
@@ -87,6 +87,22 @@ namespace l1ct {
 
     //=== Track propagation to calo (float parametrization, no rounding) ===
     //
+    // barrel DEta propagation, in layer-1 units (float parameterization, no rounding)
+    float floatDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
+    // barrel DPhi propagation, in layer-1 units (float parameterization, no rounding)
+    float floatDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
+
+    void setDEtaBarrelParams(float pZ0) { dEtaBarrelParamZ0_ = pZ0; }
+    void setDPhiBarrelParams(float pC) { dPhiBarrelParamC_ = pC; }
+
+    //=== Track propagation to calo (bitwise accurate) ===
+    l1ct::tkdeta_t calcDEtaBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
+    l1ct::tkdphi_t calcDPhiBarrel(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
+
+    //=== Configuration of bitwise accurate propagation to calo ===
+    void configDEtaBarrel(int dEtaBarrelBits, int dEtaBarrelZ0PreShift, int dEtaBarrelZ0PostShift, float offs = 0);
+    void configDPhiBarrel(int dPhiBarrelBits, int dPhiBarrelRInvPreShift, int dPhiBarrelRInvPostShift, float offs = 0);
+
     // endcap DEta propagation, in layer-1 units (float parameterization, no rounding)
     float floatDEtaHGCal(ap_int<12> z0, ap_int<15> Rinv, ap_int<16> tanl) const;
     // endcap DPhi propagation, in layer-1 units (float parameterization, no rounding)
@@ -132,6 +148,8 @@ namespace l1ct {
     void setDebug(bool debug = true) { debug_ = debug; }
 
     // access to bare LUTs
+    //const std::vector<int> &dEtaBarrelLUT() const { return dEtaBarrelLUT_; }
+    //const std::vector<int> &dPhiBarrelTanlLUT() const { return dPhiBarrelTanlLUT_; }
     const std::vector<int> &dEtaHGCalLUT() const { return dEtaHGCalLUT_; }
     const std::vector<int> &dPhiHGCalTanlLUT() const { return dPhiHGCalTanlLUT_; }
     const std::vector<int> &tanlLUT() const { return tanlLUT_; }
@@ -165,6 +183,10 @@ namespace l1ct {
     float rInvToPt_, phiScale_, z0Scale_;
 
     /// Parameters for track propagation in floating point
+    float dEtaBarrelParamZ0_;
+    float dPhiBarrelParamC_;
+
+    /// Parameters for track propagation in floating point
     float dEtaHGCalParamZ0_, dEtaHGCalParamRInv2C_, dEtaHGCalParamRInv2ITanl1_, dEtaHGCalParamRInv2ITanl2_;
     float dPhiHGCalParamZ0_, dPhiHGCalParamC_;
 
@@ -173,6 +195,12 @@ namespace l1ct {
 
     // z0 conversion parameters
     int z0Mult_, z0OffsPos_, z0OffsNeg_, z0BitShift_;
+
+    // deta parameters in barrel region
+    int dEtaBarrelBits_, dEtaBarrelZ0PreShift_, dEtaBarrelZ0PostShift_, dEtaBarrelOffs_, dEtaBarrelZ0_;
+
+    // dphi parameters in barrel region
+    int dPhiBarrelBits_, dPhiBarrelRInvPreShift_, dPhiBarrelRInvPostShift_, dPhiBarrelOffs_, dPhiBarrelC_;
 
     // deta parameters in hgcal region
     int dEtaHGCalBits_, dEtaHGCalZ0PreShift_, dEtaHGCalZ0_, dEtaHGCalRInvPreShift_, dEtaHGCalTanlShift_,

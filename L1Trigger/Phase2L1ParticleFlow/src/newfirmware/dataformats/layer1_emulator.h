@@ -103,6 +103,7 @@ namespace l1ct {
 
     // global coordinates
     bool contains(float eta, float phi) const;
+    bool containsHw(glbeta_t glbeta, glbphi_t phi) const;
     float localEta(float globalEta) const;
     float localPhi(float globalPhi) const;
 
@@ -315,8 +316,21 @@ namespace l1ct {
     unsigned int nObj(ObjType type, bool puppi) const;
   };
 
+  struct OutputBoard {
+    float eta;
+    float phi;
+    // NOTE: region_index is not written to the dump file
+    std::vector<unsigned int> region_index;
+    std::vector<EGIsoObjEmu> egphoton;
+    std::vector<EGIsoEleObjEmu> egelectron;
+
+    bool read(std::fstream &from);
+    bool write(std::fstream &to) const;
+    void clear();
+  };
+
   struct Event {
-    enum { VERSION = 10 };
+    enum { VERSION = 11 };
     uint32_t run, lumi;
     uint64_t event;
     RawInputs raw;
@@ -325,6 +339,7 @@ namespace l1ct {
     std::vector<PVObjEmu> pvs;
     std::vector<ap_uint<64>> pvs_emu;
     std::vector<OutputRegion> out;
+    std::vector<OutputBoard> board_out;
 
     Event() : run(0), lumi(0), event(0) {}
 

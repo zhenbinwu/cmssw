@@ -43,6 +43,13 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
                                                                unsigned int outii,
                                                                bool useAlsoVtxCoords)
     : RegionizerEmulator(useAlsoVtxCoords),
+      NTK_SECTORS(9),
+      NCALO_SECTORS(3),
+      NTK_LINKS(2),
+      NCALO_LINKS(2),
+      HCAL_LINKS(0),
+      ECAL_LINKS(0),
+      NMU_LINKS(1),
       nendcaps_(nendcaps),
       nclocks_(nclocks),
       ntk_(ntk),
@@ -50,13 +57,14 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
       nem_(nem),
       nmu_(nmu),
       outii_(outii),
+      pauseii_(0),
       streaming_(streaming),
       emInterceptMode_(noIntercept),
       init_(false),
-      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, useAlsoVtxCoords),
-      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii),
-      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii),
-      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii) {
+      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, 0, useAlsoVtxCoords),
+      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii, 0),
+      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii, 0),
+      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii, 0) {
   // now we initialize the routes: track finder
   for (unsigned int ie = 0; ie < nendcaps && ntk > 0; ++ie) {
     for (unsigned int is = 0; is < NTK_SECTORS; ++is) {  // 9 tf sectors
@@ -85,9 +93,149 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
       }
     }
   }
+  emCaloRoutes_ = caloRoutes_;  // in the endcaps there's only one calo
   // mu
   for (unsigned int il = 0; il < NMU_LINKS && nmu > 0; ++il) {  // max clusters per sector per clock
     for (unsigned int j = 0; j < NTK_SECTORS * nendcaps; ++j) {
+      muRoutes_.emplace_back(0, il, j, il);
+    }
+  }
+}
+
+l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(BarrelSetup barrelSetup,
+                                                               unsigned int nHCalLinks,
+                                                               unsigned int nECalLinks,
+                                                               unsigned int nclocks,
+                                                               unsigned int ntk,
+                                                               unsigned int ncalo,
+                                                               unsigned int nem,
+                                                               unsigned int nmu,
+                                                               bool streaming,
+                                                               unsigned int outii,
+                                                               unsigned int pauseii,
+                                                               bool useAlsoVtxCoords)
+    : RegionizerEmulator(useAlsoVtxCoords),
+      NTK_SECTORS((barrelSetup == BarrelSetup::Phi18 || barrelSetup == BarrelSetup::Phi9) ? 5 : 9),
+      NCALO_SECTORS((barrelSetup == BarrelSetup::Phi18 || barrelSetup == BarrelSetup::Phi9) ? 2 : 3),
+      NTK_LINKS(2),
+      NCALO_LINKS(2),
+      HCAL_LINKS(nHCalLinks),
+      ECAL_LINKS(nECalLinks),
+      NMU_LINKS(1),
+      nendcaps_(0),
+      nclocks_(nclocks),
+      ntk_(ntk),
+      ncalo_(ncalo),
+      nem_(nem),
+      nmu_(nmu),
+      outii_(outii),
+      pauseii_(pauseii),
+      streaming_(streaming),
+      emInterceptMode_(noIntercept),
+      init_(false),
+      tkRegionizer_(ntk, streaming ? (ntk + outii - 1) / outii : ntk, streaming, outii, pauseii, useAlsoVtxCoords),
+      hadCaloRegionizer_(ncalo, streaming ? (ncalo + outii - 1) / outii : ncalo, streaming, outii, pauseii),
+      emCaloRegionizer_(nem, streaming ? (nem + outii - 1) / outii : nem, streaming, outii, pauseii),
+      muRegionizer_(nmu, streaming ? std::max(1u, (nmu + outii - 1) / outii) : nmu, streaming, outii, pauseii) {
+  unsigned int nendcaps = 2, etaslices = 0;
+  switch (barrelSetup) {
+    case BarrelSetup::Full54:
+      nregions_ = 54;
+      etaslices = 6;
+      break;
+    case BarrelSetup::Full27:
+      nregions_ = 27;
+      etaslices = 3;
+      break;
+    case BarrelSetup::Central18:
+      nregions_ = 18;
+      etaslices = 2;
+      break;
+    case BarrelSetup::Central9:
+      nregions_ = 9;
+      etaslices = 1;
+      break;
+    case BarrelSetup::Phi18:
+      nregions_ = 18;
+      etaslices = 6;
+      break;
+    case BarrelSetup::Phi9:
+      nregions_ = 9;
+      etaslices = 3;
+      break;
+  }
+  unsigned int phisectors = nregions_ / etaslices;
+  // now we initialize the routes: track finder
+  for (unsigned int ietaslice = 0; ietaslice < etaslices && ntk > 0; ++ietaslice) {
+    for (unsigned int ie = 0; ie < nendcaps; ++ie) {  // 0 = negative, 1 = positive
+      unsigned int nTFEtaSlices = 1;
+      if (etaslices == 3) {
+        if (ietaslice == 0 && ie == 1)
+          continue;
+        if (ietaslice == 2 && ie == 0)
+          continue;
+        if (ietaslice == 1)
+          nTFEtaSlices = 2;
+      } else if (etaslices == 6) {
+        if (ietaslice <= 1 && ie == 1)
+          continue;
+        if (ietaslice >= 4 && ie == 0)
+          continue;
+        if (ietaslice == 2 || ietaslice == 3)
+          nTFEtaSlices = 2;
+      } else if (barrelSetup == BarrelSetup::Central18 || barrelSetup == BarrelSetup::Central9) {
+        nTFEtaSlices = 2;
+      }
+      unsigned int ireg0 = phisectors * ietaslice, il0 = 6 * (nTFEtaSlices - 1) * ie;
+      if (barrelSetup == BarrelSetup::Phi18 || barrelSetup == BarrelSetup::Phi9) {
+        for (unsigned int iregphi = 0; iregphi < (nregions_ / etaslices); ++iregphi) {
+          for (unsigned int il = 0; il < NTK_LINKS; ++il) {
+            tkRoutes_.emplace_back((iregphi + 1) + NTK_SECTORS * ie, il, iregphi + ireg0, il0 + il);
+            tkRoutes_.emplace_back((iregphi + 0) + NTK_SECTORS * ie, il, iregphi + ireg0, il0 + il + 2);
+            tkRoutes_.emplace_back((iregphi + 2) + NTK_SECTORS * ie, il, iregphi + ireg0, il0 + il + 4);
+          }
+        }
+      } else {
+        for (unsigned int is = 0; is < NTK_SECTORS; ++is) {  // 9 tf sectors
+          for (unsigned int il = 0; il < NTK_LINKS; ++il) {  // max tracks per sector per clock
+            unsigned int isp = (is + 1) % NTK_SECTORS, ism = (is + NTK_SECTORS - 1) % NTK_SECTORS;
+            tkRoutes_.emplace_back(is + NTK_SECTORS * ie, il, is + ireg0, il0 + il);
+            tkRoutes_.emplace_back(is + NTK_SECTORS * ie, il, isp + ireg0, il0 + il + 2);
+            tkRoutes_.emplace_back(is + NTK_SECTORS * ie, il, ism + ireg0, il0 + il + 4);
+          }
+        }
+      }
+    }
+  }
+  // calo
+  unsigned int calo_sectors_to_loop = NCALO_SECTORS;
+  if (barrelSetup == BarrelSetup::Phi18 || barrelSetup == BarrelSetup::Phi9) {
+    calo_sectors_to_loop = 1;
+    assert(NCALO_SECTORS == 2 && NTK_SECTORS == 5);  // otherwise math below is broken, but it's hard to make it generic
+  } else {
+    assert(NCALO_SECTORS == 3 && NTK_SECTORS == 9);  // otherwise math below is broken, but it's hard to make it generic
+  }
+  for (unsigned int ie = 0; ie < etaslices; ++ie) {
+    for (unsigned int is = 0; is < calo_sectors_to_loop; ++is) {  // NCALO_SECTORS sectors
+      for (unsigned int j = 0; j < 3; ++j) {                      // 3 regions x sector
+        for (unsigned int il = 0; il < HCAL_LINKS; ++il) {
+          caloRoutes_.emplace_back(is, il, 3 * is + j + phisectors * ie, il);
+          if (j) {
+            caloRoutes_.emplace_back((is + 1) % 3, il, 3 * is + j + phisectors * ie, il + HCAL_LINKS);
+          }
+        }
+        for (unsigned int il = 0; il < ECAL_LINKS; ++il) {
+          emCaloRoutes_.emplace_back(is, il, 3 * is + j + phisectors * ie, il);
+          if (j) {
+            emCaloRoutes_.emplace_back((is + 1) % 3, il, 3 * is + j + phisectors * ie, il + ECAL_LINKS);
+          }
+        }
+      }
+    }
+  }
+  // mu
+  for (unsigned int il = 0; il < NMU_LINKS && nmu > 0; ++il) {
+    for (unsigned int j = 0; j < nregions_; ++j) {
       muRoutes_.emplace_back(0, il, j, il);
     }
   }
@@ -105,25 +253,29 @@ void l1ct::MultififoRegionizerEmulator::initSectorsAndRegions(const RegionizerDe
                                                               const std::vector<PFInputRegion>& out) {
   assert(!init_);
   init_ = true;
-  assert(out.size() == NTK_SECTORS * nendcaps_);
+  if (nendcaps_ > 0) {
+    assert(out.size() == NTK_SECTORS * nendcaps_);
+  } else {
+    assert(out.size() == nregions_);
+  }
   nregions_ = out.size();
   if (ntk_) {
-    assert(in.track.size() == NTK_SECTORS * nendcaps_);
+    assert(in.track.size() == NTK_SECTORS * (nendcaps_ ? nendcaps_ : 2));
     tkRegionizer_.initSectors(in.track);
     tkRegionizer_.initRegions(out);
     tkRegionizer_.initRouting(tkRoutes_);
   }
   if (ncalo_) {
-    assert(in.hadcalo.size() == NCALO_SECTORS * nendcaps_);
+    assert(in.hadcalo.size() == NCALO_SECTORS * (nendcaps_ ? nendcaps_ : 1));
     hadCaloRegionizer_.initSectors(in.hadcalo);
     hadCaloRegionizer_.initRegions(out);
     hadCaloRegionizer_.initRouting(caloRoutes_);
   }
   if (nem_) {
-    assert(in.emcalo.size() == NCALO_SECTORS * nendcaps_);
+    assert(in.emcalo.size() == NCALO_SECTORS * (nendcaps_ ? nendcaps_ : 1));
     emCaloRegionizer_.initSectors(in.emcalo);
     emCaloRegionizer_.initRegions(out);
-    emCaloRegionizer_.initRouting(caloRoutes_);
+    emCaloRegionizer_.initRouting(emCaloRoutes_);
   }
   if (nmu_) {
     muRegionizer_.initSectors(in.muon);
@@ -221,8 +373,8 @@ void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
                                                   std::vector<l1ct::TkObjEmu>& links) {
   if (ntk_ == 0)
     return;
-  links.resize(NTK_SECTORS * NTK_LINKS * nendcaps_);
-  for (unsigned int is = 0, idx = 0; is < NTK_SECTORS * nendcaps_; ++is) {  // tf sectors
+  links.resize(NTK_SECTORS * NTK_LINKS * (nendcaps_ ? nendcaps_ : 2));
+  for (unsigned int is = 0, idx = 0; is < NTK_SECTORS * (nendcaps_ ? nendcaps_ : 2); ++is) {  // tf sectors
     const l1ct::DetectorSector<l1ct::TkObjEmu>& sec = in.track[is];
     for (unsigned int il = 0; il < NTK_LINKS; ++il, ++idx) {
       unsigned int ioffs = iclock * NTK_LINKS + il;
@@ -239,10 +391,12 @@ template <typename T>
 void l1ct::MultififoRegionizerEmulator::fillCaloLinks_(unsigned int iclock,
                                                        const std::vector<DetectorSector<T>>& in,
                                                        std::vector<T>& links) {
-  links.resize(NCALO_SECTORS * NCALO_LINKS * nendcaps_);
-  for (unsigned int is = 0, idx = 0; is < NCALO_SECTORS * nendcaps_; ++is) {
-    for (unsigned int il = 0; il < NCALO_LINKS; ++il, ++idx) {
-      unsigned int ioffs = iclock * NCALO_LINKS + il;
+  unsigned int NLINKS =
+      (nendcaps_ ? NCALO_LINKS : (typeid(T) == typeid(l1ct::HadCaloObjEmu) ? HCAL_LINKS : ECAL_LINKS));
+  links.resize(NCALO_SECTORS * (nendcaps_ ? nendcaps_ : 1) * NLINKS);
+  for (unsigned int is = 0, idx = 0; is < NCALO_SECTORS * (nendcaps_ ? nendcaps_ : 1); ++is) {
+    for (unsigned int il = 0; il < NLINKS; ++il, ++idx) {
+      unsigned int ioffs = iclock * NLINKS + il;
       if (ioffs < in[is].size() && iclock < nclocks_ - 1) {
         links[idx] = in[is][ioffs];
       } else {
@@ -283,41 +437,43 @@ void l1ct::MultififoRegionizerEmulator::fillLinks(unsigned int iclock,
 }
 
 void l1ct::MultififoRegionizerEmulator::toFirmware(const std::vector<l1ct::TkObjEmu>& emu,
-                                                   TkObj fw[NTK_SECTORS][NTK_LINKS]) {
+                                                   TkObj fw[/*NTK_SECTORS][NTK_LINKS*/]) {
   if (ntk_ == 0)
     return;
-  assert(emu.size() == NTK_SECTORS * NTK_LINKS * nendcaps_);
-  for (unsigned int is = 0, idx = 0; is < NTK_SECTORS * nendcaps_; ++is) {  // tf sectors
+  assert(emu.size() == NTK_SECTORS * NTK_LINKS * (nendcaps_ ? nendcaps_ : 2));
+  for (unsigned int is = 0, idx = 0; is < NTK_SECTORS * (nendcaps_ ? nendcaps_ : 2); ++is) {  // tf sectors
     for (unsigned int il = 0; il < NTK_LINKS; ++il, ++idx) {
-      fw[is][il] = emu[idx];
+      fw[is * NTK_LINKS + il] = emu[idx];
     }
   }
 }
 void l1ct::MultififoRegionizerEmulator::toFirmware(const std::vector<l1ct::HadCaloObjEmu>& emu,
-                                                   HadCaloObj fw[NCALO_SECTORS][NCALO_LINKS]) {
+                                                   HadCaloObj fw[/*NCALO_SECTORS*NCALO_LINKS*/]) {
   if (ncalo_ == 0)
     return;
-  assert(emu.size() == NCALO_SECTORS * NCALO_LINKS * nendcaps_);
-  for (unsigned int is = 0, idx = 0; is < NCALO_SECTORS * nendcaps_; ++is) {  // tf sectors
-    for (unsigned int il = 0; il < NCALO_LINKS; ++il, ++idx) {
-      fw[is][il] = emu[idx];
+  unsigned int NLINKS = (nendcaps_ ? NCALO_LINKS * nendcaps_ : HCAL_LINKS);
+  assert(emu.size() == NCALO_SECTORS * NLINKS);
+  for (unsigned int is = 0, idx = 0; is < NCALO_SECTORS * (nendcaps_ ? nendcaps_ : 1); ++is) {  // calo sectors
+    for (unsigned int il = 0; il < NLINKS; ++il, ++idx) {
+      fw[is * NLINKS + il] = emu[idx];
     }
   }
 }
 
 void l1ct::MultififoRegionizerEmulator::toFirmware(const std::vector<l1ct::EmCaloObjEmu>& emu,
-                                                   EmCaloObj fw[NCALO_SECTORS][NCALO_LINKS]) {
+                                                   EmCaloObj fw[/*NCALO_SECTORS*NCALO_LINKS*/]) {
   if (nem_ == 0)
     return;
-  assert(emu.size() == NCALO_SECTORS * NCALO_LINKS * nendcaps_);
-  for (unsigned int is = 0, idx = 0; is < NCALO_SECTORS * nendcaps_; ++is) {  // tf sectors
-    for (unsigned int il = 0; il < NCALO_LINKS; ++il, ++idx) {
-      fw[is][il] = emu[idx];
+  unsigned int NLINKS = (nendcaps_ ? NCALO_LINKS * nendcaps_ : ECAL_LINKS);
+  assert(emu.size() == NCALO_SECTORS * NLINKS);
+  for (unsigned int is = 0, idx = 0; is < NCALO_SECTORS * (nendcaps_ ? nendcaps_ : 1); ++is) {  // calo sectors
+    for (unsigned int il = 0; il < NLINKS; ++il, ++idx) {
+      fw[is * NLINKS + il] = emu[idx];
     }
   }
 }
 
-void l1ct::MultififoRegionizerEmulator::toFirmware(const std::vector<l1ct::MuObjEmu>& emu, MuObj fw[NMU_LINKS]) {
+void l1ct::MultififoRegionizerEmulator::toFirmware(const std::vector<l1ct::MuObjEmu>& emu, MuObj fw[/*NMU_LINKS*/]) {
   if (nmu_ == 0)
     return;
   assert(emu.size() == NMU_LINKS);
@@ -381,7 +537,9 @@ void l1ct::MultififoRegionizerEmulator::run(const RegionizerDecodedInputs& in, s
     bool newevt = (iclock == 0), mux = true;
     step(newevt, tk_links_in, calo_links_in, em_links_in, mu_links_in, tk_out, calo_out, em_out, mu_out, mux);
 
-    unsigned int ireg = iclock / outii_;
+    unsigned int ireg = iclock / (outii_ + pauseii_);
+    if ((iclock % (outii_ + pauseii_)) >= outii_)
+      continue;
     if (ireg >= nregions_)
       break;
 

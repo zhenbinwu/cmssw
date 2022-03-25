@@ -67,13 +67,13 @@ namespace l1ct {
       bool useAlsoVtxCoords_;
       l1ct::PFRegionEmu region_;
       std::vector<std::list<T>> fifos_;
-      std::vector<T> staging_area_, queue_, staging_area2_, queue2_;
+      std::vector<std::pair<std::vector<T>, std::vector<T>>> queues_;
 
       T pop_next_trivial_();
-      T pop_next_6to1_();
-      T pop_next_8to1_();
-      void stage_to_queue_();
-      void pop_queue_(std::vector<T>& queue, T& ret);
+      void fifos_to_stage_(std::vector<T>& staging_area);
+      void queue_to_stage_(std::vector<T>& queue, std::vector<T>& staging_area);
+      void stage_to_queue_(std::vector<T>& staging_area, std::vector<T>& queue);
+      T pop_queue_(std::vector<T>& queue);
     };
 
     // forward decl for later
@@ -97,11 +97,17 @@ namespace l1ct {
     class RegionMux {
     public:
       RegionMux() : nregions_(0) {}
-      RegionMux(unsigned int nregions, unsigned int nsort, unsigned int nout, bool streaming, unsigned int outii = 0)
+      RegionMux(unsigned int nregions,
+                unsigned int nsort,
+                unsigned int nout,
+                bool streaming,
+                unsigned int outii = 0,
+                unsigned int pauseii = 0)
           : nregions_(nregions),
             nsort_(nsort),
             nout_(nout),
             outii_(outii),
+            pauseii_(pauseii),
             streaming_(streaming),
             buffer_(nregions * nsort),
             iter_(0),
@@ -114,7 +120,7 @@ namespace l1ct {
       bool stream(bool newevt, std::vector<T>& out);
 
     private:
-      unsigned int nregions_, nsort_, nout_, outii_;
+      unsigned int nregions_, nsort_, nout_, outii_, pauseii_;
       bool streaming_;
       std::vector<T> buffer_;
       unsigned int iter_, ireg_;
@@ -138,11 +144,12 @@ namespace l1ct {
                  unsigned int nout,
                  bool streaming,
                  unsigned int outii = 0,
+                 unsigned int pauseii = 0,
                  bool useAlsoVtxCoords = false);
       void initSectors(const std::vector<DetectorSector<T>>& sectors);
       void initSectors(const DetectorSector<T>& sector);
       void initRegions(const std::vector<PFInputRegion>& regions);
-      void initRouting(const std::vector<Route> routes);
+      void initRouting(const std::vector<Route> routes, bool validateRoutes = true);
 
       void reset() {
         flush();
@@ -158,7 +165,7 @@ namespace l1ct {
       void destream(int iclock, const std::vector<T>& streams, std::vector<T>& out);
 
     private:
-      unsigned int nsectors_, nregions_, nsorted_, nout_, outii_;
+      unsigned int nsectors_, nregions_, nsorted_, nout_, outii_, pauseii_;
       bool streaming_, useAlsoVtxCoords_;
       std::vector<l1ct::PFRegionEmu> sectors_;
       std::vector<RegionBuffer<T>> buffers_;

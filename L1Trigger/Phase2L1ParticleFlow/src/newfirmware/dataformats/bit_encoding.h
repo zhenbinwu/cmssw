@@ -30,6 +30,10 @@ inline void _unpack_bool_from_bits(const U& u, unsigned int& start, bool& data) 
 
 template <unsigned int N, unsigned int OFFS = 0, typename T, int NB>
 inline void l1pf_pattern_pack(const T objs[N], ap_uint<NB> data[]) {
+#ifdef __SYNTHESIS__
+#pragma HLS inline
+#pragma HLS inline region recursive
+#endif
   assert(T::BITWIDTH <= NB);
   for (unsigned int i = 0; i < N; ++i) {
 #ifdef __SYNTHESIS__
@@ -41,6 +45,10 @@ inline void l1pf_pattern_pack(const T objs[N], ap_uint<NB> data[]) {
 
 template <unsigned int N, unsigned int OFFS = 0, typename T, int NB>
 inline void l1pf_pattern_unpack(const ap_uint<NB> data[], T objs[N]) {
+#ifdef __SYNTHESIS__
+#pragma HLS inline
+#pragma HLS inline region recursive
+#endif
   assert(T::BITWIDTH <= NB);
   for (unsigned int i = 0; i < N; ++i) {
 #ifdef __SYNTHESIS__
