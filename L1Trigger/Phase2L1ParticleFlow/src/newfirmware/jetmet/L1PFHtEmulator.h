@@ -1,16 +1,12 @@
 #ifndef L1Trigger_Phase2L1ParticleFlow_HTMHT_h
 #define L1Trigger_Phase2L1ParticleFlow_HTMHT_h
 
-#ifdef CMSSW_GIT_HASH
-#include "../dataformats/jets.h"
-#include "../dataformats/sums.h"
-#include "./L1SeedConePFJetEmulator.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/jets.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/sums.h"
+#include "L1SeedConePFJetEmulator.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
-#else
-#include "../../../dataformats/jets.h"
-#include "../../../dataformats/sums.h"
-#include "../../seededcone/ref/L1SeedConePFJetEmulator.h"
-#include "../../../utils/dbgPrintf.h"
+
+#ifndef CMSSW_GIT_HASH
 #include "hls_math.h"
 #endif
 

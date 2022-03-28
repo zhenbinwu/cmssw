@@ -76,4 +76,4 @@ process.pfClustersFromCombinedCaloHCal.phase2barrelCaloTowers = [cms.InputTag("L
 
 for det in "Barrel", "Barrel9", "HGCal", "HGCalNoTK", "HF":
     l1pf = getattr(process, 'l1ctLayer1'+det)
-    l1pf.dumpFileName = cms.untracked.string("TTbar_PU200_110X_"+det+".dump")
+    l1pf.dumpFileName = cms.untracked.string("TTbar_PU200_"+det+".dump")
