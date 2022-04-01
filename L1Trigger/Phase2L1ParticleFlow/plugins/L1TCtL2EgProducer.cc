@@ -49,7 +49,7 @@ private:
 
     BXVector<edm::Ref<BXVector<l1t::EGamma>>> oldRefs;
     std::map<edm::Ref<BXVector<l1t::EGamma>>, edm::Ref<BXVector<l1t::EGamma>>> old2newRefMap;
-    std::vector<std::pair<const edm::Ref<l1t::EGammaBxCollection> &, edm::Ptr<L1TTTrackType>>> origRefAndPtr;
+    std::vector<std::pair<edm::Ref<l1t::EGammaBxCollection>, edm::Ptr<L1TTTrackType>>> origRefAndPtr;
   };
 
   void convertToEmu(const l1t::TkElectron &tkele, RefRemapper &refRemapper, l1ct::OutputBoard &boarOut) const;
