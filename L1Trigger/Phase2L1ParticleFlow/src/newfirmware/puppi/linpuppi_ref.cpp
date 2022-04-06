@@ -157,6 +157,8 @@ l1ct::LinPuppiEmulator::LinPuppiEmulator(const edm::ParameterSet &iConfig)
     finalSortAlgo_ = SortAlgo::BitonicHLS;
   else if (sortAlgo == "Hybrid")
     finalSortAlgo_ = SortAlgo::Hybrid;
+  else if (sortAlgo == "FoldedHybrid")
+    finalSortAlgo_ = SortAlgo::FoldedHybrid;
   else
     throw cms::Exception("Configuration", "unsupported finalSortAlgo '" + sortAlgo + "'");
 }
@@ -188,6 +190,8 @@ void l1ct::LinPuppiEmulator::puppisort_and_crop_ref(unsigned int nOutMax,
     bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0]);
   } else if (sortAlgo == SortAlgo::BitonicHLS || sortAlgo == SortAlgo::Hybrid) {
     hybrid_bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0], sortAlgo == SortAlgo::Hybrid);
+  } else if (sortAlgo == SortAlgo::FoldedHybrid) {
+    folded_hybrid_bitonic_sort_and_crop_ref(in.size(), nOut, &in[0], &out[0], true);
   }
 }
 

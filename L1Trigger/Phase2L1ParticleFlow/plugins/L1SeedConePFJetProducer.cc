@@ -16,6 +16,7 @@
 // bitwise emulation headers
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/jetmet/L1SeedConePFJetEmulator.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/jetmet/L1SeedConePFJetEmulator.cc"
+#include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/dataformats/gt_datatypes.h"
 
 class L1SeedConePFJetProducer : public edm::global::EDProducer<> {
 public:
@@ -185,7 +186,8 @@ std::vector<l1t::PFJet> L1SeedConePFJetProducer::convertHWToEDM(
     std::for_each(jet.constituents.begin(), jet.constituents.end(), [&](auto constituent) {
       edmJet.addConstituent(constituentMap[constituent.srcCand]);
     });
-    edmJet.setEncodedJet(jet.pack());
+    l1gt::Jet gtJet = jet.toGT();
+    edmJet.setEncodedJet(jet.toGT().pack());
     edmJets.push_back(edmJet);
   });
   return edmJets;

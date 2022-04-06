@@ -18,13 +18,16 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
     for (const auto& tk : sec) {
       if (tk.hwPt == 0)
         continue;
-      float glbEta = sec.region.floatGlbEtaOf(tk), glbPhi = sec.region.floatGlbPhiOf(tk);
-      float glbEtaV = sec.region.floatGlbEta(tk.hwVtxEta()), glbPhiV = sec.region.floatGlbPhi(tk.hwVtxPhi());
+      float fglbEta = sec.region.floatGlbEtaOf(tk), fglbPhi = sec.region.floatGlbPhiOf(tk);
+      glbeta_t glbEta = sec.region.hwGlbEtaOf(tk);
+      glbphi_t glbPhi = sec.region.hwGlbPhiOf(tk);
+      glbeta_t glbEtaV = sec.region.hwGlbEta(tk.hwVtxEta());
+      glbphi_t glbPhiV = sec.region.hwGlbPhi(tk.hwVtxPhi());
       for (auto& r : out) {
-        if (r.region.contains(glbEta, glbPhi) || (useAlsoVtxCoords_ && r.region.contains(glbEtaV, glbPhiV))) {
+        if (r.region.containsHw(glbEta, glbPhi) || (useAlsoVtxCoords_ && r.region.containsHw(glbEtaV, glbPhiV))) {
           r.track.push_back(tk);
-          r.track.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(glbEta));
-          r.track.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(glbPhi));
+          r.track.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(fglbEta));
+          r.track.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(fglbPhi));
         }
       }
     }
@@ -34,12 +37,14 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
     for (const auto& c : sec) {
       if (c.hwPt == 0)
         continue;
-      float glbEta = sec.region.floatGlbEtaOf(c), glbPhi = sec.region.floatGlbPhiOf(c);
+      float fglbEta = sec.region.floatGlbEtaOf(c), fglbPhi = sec.region.floatGlbPhiOf(c);
+      glbeta_t glbEta = sec.region.hwGlbEtaOf(c);
+      glbphi_t glbPhi = sec.region.hwGlbPhiOf(c);
       for (auto& r : out) {
-        if (r.region.contains(glbEta, glbPhi)) {
+        if (r.region.containsHw(glbEta, glbPhi)) {
           r.hadcalo.push_back(c);
-          r.hadcalo.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(glbEta));
-          r.hadcalo.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(glbPhi));
+          r.hadcalo.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(fglbEta));
+          r.hadcalo.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(fglbPhi));
         }
       }
     }
@@ -49,12 +54,14 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
     for (const auto& c : sec) {
       if (c.hwPt == 0)
         continue;
-      float glbEta = sec.region.floatGlbEtaOf(c), glbPhi = sec.region.floatGlbPhiOf(c);
+      float fglbEta = sec.region.floatGlbEtaOf(c), fglbPhi = sec.region.floatGlbPhiOf(c);
+      glbeta_t glbEta = sec.region.hwGlbEtaOf(c);
+      glbphi_t glbPhi = sec.region.hwGlbPhiOf(c);
       for (auto& r : out) {
-        if (r.region.contains(glbEta, glbPhi)) {
+        if (r.region.containsHw(glbEta, glbPhi)) {
           r.emcalo.push_back(c);
-          r.emcalo.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(glbEta));
-          r.emcalo.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(glbPhi));
+          r.emcalo.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(fglbEta));
+          r.emcalo.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(fglbPhi));
         }
       }
     }
@@ -65,7 +72,7 @@ void l1ct::RegionizerEmulator::run(const RegionizerDecodedInputs& in, std::vecto
       continue;
     float glbEta = mu.floatEta(), glbPhi = mu.floatPhi();
     for (auto& r : out) {
-      if (r.region.contains(glbEta, glbPhi)) {
+      if (r.region.containsHw(mu.hwEta, mu.hwPhi)) {
         r.muon.push_back(mu);
         r.muon.back().hwEta = l1ct::Scales::makeEta(r.region.localEta(glbEta));
         r.muon.back().hwPhi = l1ct::Scales::makePhi(r.region.localPhi(glbPhi));

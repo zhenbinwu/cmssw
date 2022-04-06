@@ -123,10 +123,20 @@ l1ct::PFRegionEmu::PFRegionEmu(
 }
 
 bool l1ct::PFRegionEmu::contains(float eta, float phi) const {
-  float dphi = reco::deltaPhi(floatPhiCenter(), phi);
-  return (floatEtaMinExtra() < eta && eta <= floatEtaMaxExtra() && -floatPhiHalfWidthExtra() < dphi &&
+  float dphi = reco::deltaPhi(phi, floatPhiCenter());
+  return (floatEtaMinExtra() <= eta && eta <= floatEtaMaxExtra() && -floatPhiHalfWidthExtra() <= dphi &&
           dphi <= floatPhiHalfWidthExtra());
 }
+bool l1ct::PFRegionEmu::containsHw(glbeta_t glbeta, glbphi_t glbphi) const {
+  glbeta_t loceta = glbeta - hwEtaCenter;
+  ap_int<glbphi_t::width + 1> locphi = glbphi - hwPhiCenter;
+  if (locphi > Scales::INTPHI_PI)
+    locphi -= Scales::INTPHI_TWOPI;
+  else if (locphi <= -Scales::INTPHI_PI)
+    locphi += Scales::INTPHI_TWOPI;
+  return isInside(loceta, locphi);
+}
+
 float l1ct::PFRegionEmu::localEta(float globalEta) const { return globalEta - floatEtaCenter(); }
 float l1ct::PFRegionEmu::localPhi(float globalPhi) const { return reco::deltaPhi(globalPhi, floatPhiCenter()); }
 
@@ -380,6 +390,18 @@ unsigned int l1ct::OutputRegion::nObj(ObjType type, bool usePuppi) const {
   }
 }
 
+bool l1ct::OutputBoard::read(std::fstream& from) {
+  return readVar(from, eta) && readVar(from, phi) && readMany(from, egphoton) && readMany(from, egelectron);
+}
+bool l1ct::OutputBoard::write(std::fstream& to) const {
+  return writeVar(eta, to) && writeVar(phi, to) && writeMany(egphoton, to) && writeMany(egelectron, to);
+}
+
+void l1ct::OutputBoard::clear() {
+  egphoton.clear();
+  egelectron.clear();
+}
+
 bool l1ct::Event::read(std::fstream& from) {
   uint32_t version;
   if (!readVar(from, version))
@@ -392,13 +414,14 @@ bool l1ct::Event::read(std::fstream& from) {
     abort();
   }
   return readVar(from, run) && readVar(from, lumi) && readVar(from, event) && raw.read(from) && decoded.read(from) &&
-         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, pvs_emu) && readMany(from, out);
+         readMany(from, pfinputs) && readMany(from, pvs) && readMany(from, pvs_emu) && readMany(from, out) &&
+         readMany(from, board_out);
 }
 bool l1ct::Event::write(std::fstream& to) const {
   uint32_t version = VERSION;
   return writeVar(version, to) && writeVar(run, to) && writeVar(lumi, to) && writeVar(event, to) && raw.write(to) &&
          decoded.write(to) && writeMany(pfinputs, to) && writeMany(pvs, to) && writeMany(pvs_emu, to) &&
-         writeMany(out, to);
+         writeMany(out, to) && writeMany(board_out, to);
 }
 void l1ct::Event::init(uint32_t arun, uint32_t alumi, uint64_t anevent) {
   clear();
@@ -417,5 +440,7 @@ void l1ct::Event::clear() {
   pvs.clear();
   pvs_emu.clear();
   for (auto& i : out)
+    i.clear();
+  for (auto& i : board_out)
     i.clear();
 }

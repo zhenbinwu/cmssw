@@ -63,7 +63,7 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetHPSPFTaus(const edm::Handle<l1t::HPS
     l1extra_.hpsTauPassTightRelIso.push_back(l1HPSPFTaus->at(i).passTightRelIso());
     bool hpsTauPassTightRelIsoMenuVar = (l1HPSPFTaus->at(i).sumChargedIso() / l1HPSPFTaus->at(i).pt()) < 0.05;
     l1extra_.hpsTauPassTightRelIsoMenu.push_back(hpsTauPassTightRelIsoMenuVar);
-    l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).Z());
+    l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).z());
     //if (!l1HPSPFTaus->at(i).leadChargedPFCand().isNull()){
     //    l1extra_.hpsTauZ0.push_back(l1HPSPFTaus->at(i).leadChargedPFCand()->pfTrack()->vertex().z());
     //}else{
