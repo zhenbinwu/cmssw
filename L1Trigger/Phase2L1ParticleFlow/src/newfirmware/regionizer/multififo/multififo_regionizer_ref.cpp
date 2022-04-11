@@ -81,8 +81,7 @@ l1ct::MultififoRegionizerEmulator::MultififoRegionizerEmulator(unsigned int nend
           if (j == 0 || j == 2) {
             int other = (j == 0) ? 2 : 1;  // pf region 0, takes from prev. pf region 2 takes from next
             //                       from sector      , from link, to region, to fifo
-            caloRoutes_.emplace_back(
-                (is + other) % 3 + 3 * ie, il, 3 * is + j + 9 * ie, il + NCALO_LINKS);
+            caloRoutes_.emplace_back((is + other) % 3 + 3 * ie, il, 3 * is + j + 9 * ie, il + NCALO_LINKS);
           }
         }
       }
