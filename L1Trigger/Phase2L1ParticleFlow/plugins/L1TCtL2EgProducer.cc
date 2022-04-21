@@ -362,7 +362,7 @@ void L1TCtL2EgProducer::convertToEmu(const l1t::TkEm &tkem,
 
 l1t::TkEm L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso, const RefRemapper &refRemapper) const {
   // std::cout << "[convertFromEmu] TkEm pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi << " staidx: " << egiso.sta_idx << std::endl;
-
+  // NOTE: the TkEM object is created with accuracy as in EGIsoObjEmu data-format not the GT one!
   reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.floatEta(), egiso.floatPhi(), 0.);
   l1t::TkEm tkem(reco::Candidate::LorentzVector(mom),
                  refRemapper.origRefAndPtr[egiso.sta_idx].first,
@@ -379,8 +379,8 @@ l1t::TkEm L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso, cons
 l1t::TkElectron L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoEleObjEmu &egele,
                                                   const RefRemapper &refRemapper) const {
   // std::cout << "[convertFromEmu] TkEle pt: " << egele.hwPt << " eta: " << egele.hwEta << " phi: " << egele.hwPhi << " staidx: " << egele.sta_idx << std::endl;
-
-  reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta, egele.hwPhi, 0.);
+  // NOTE: the TkElectron object is created with accuracy as in EGIsoObjEmu data-format not the GT one!
+  reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.floatEta(), egele.floatPhi(), 0.);
 
   l1t::TkElectron tkele(reco::Candidate::LorentzVector(mom),
                         refRemapper.origRefAndPtr[egele.sta_idx].first,
