@@ -44,6 +44,7 @@
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo_common_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/pf/pfalgo_common_ref.cpp"
 #include "L1Trigger/Phase2L1ParticleFlow/src/newfirmware/egamma/pftkegsorter_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/src/L1TCorrelatorLayer1PatternFileWriter.h"
 
 #include "DataFormats/L1TCorrelator/interface/TkElectron.h"
 #include "DataFormats/L1TCorrelator/interface/TkElectronFwd.h"
@@ -90,6 +91,8 @@ private:
   const std::string regionDumpName_;
   bool writeRawHgcalCluster_;
   std::fstream fRegionDump_;
+  std::vector<edm::ParameterSet> patternWriterConfigs_;
+  std::vector<std::unique_ptr<L1TCorrelatorLayer1PatternFileWriter>> patternWriters_;
 
   // region of interest debugging
   float debugEta_, debugPhi_, debugR_;
@@ -101,6 +104,7 @@ private:
 
   // main methods
   void beginStream(edm::StreamID) override;
+  void endStream() override;
   void produce(edm::Event &, const edm::EventSetup &) override;
   void addUInt(unsigned int value, std::string iLabel, edm::Event &iEvent);
 
@@ -171,6 +175,8 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
       l1tkegsorter_(nullptr),
       regionDumpName_(iConfig.getUntrackedParameter<std::string>("dumpFileName", "")),
       writeRawHgcalCluster_(iConfig.getUntrackedParameter<bool>("writeRawHgcalCluster", false)),
+      patternWriterConfigs_(iConfig.getUntrackedParameter<std::vector<edm::ParameterSet>>(
+          "patternWriters", std::vector<edm::ParameterSet>())),
       debugEta_(iConfig.getUntrackedParameter<double>("debugEta", 0)),
       debugPhi_(iConfig.getUntrackedParameter<double>("debugPhi", 0)),
       debugR_(iConfig.getUntrackedParameter<double>("debugR", -1)) {
@@ -289,6 +295,22 @@ void L1TCorrelatorLayer1Producer::beginStream(edm::StreamID id) {
       edm::LogWarning("L1TCorrelatorLayer1Producer")
           << "Job running with multiple streams, but dump file will have only events on stream zero.";
     }
+  }
+  if (!patternWriterConfigs_.empty()) {
+    if (id == 0) {
+      for (const auto &pset : patternWriterConfigs_) {
+        patternWriters_.emplace_back(std::make_unique<L1TCorrelatorLayer1PatternFileWriter>(pset, event_));
+      }
+    } else {
+      edm::LogWarning("L1TCorrelatorLayer1Producer")
+          << "Job running with multiple streams, but pattern files will be written only on stream zero.";
+    }
+  }
+}
+
+void L1TCorrelatorLayer1Producer::endStream() {
+  for (auto &writer : patternWriters_) {
+    writer->flush();
   }
 }
 
@@ -472,6 +494,9 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
 
   if (fRegionDump_.is_open()) {
     event_.write(fRegionDump_);
+  }
+  for (auto &writer : patternWriters_) {
+    writer->write(event_);
   }
 
   // finally clear the regions
