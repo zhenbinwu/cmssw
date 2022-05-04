@@ -141,12 +141,12 @@ _hgcalSectors = cms.VPSet(
     cms.PSet( 
         etaBoundaries = cms.vdouble(-3.0, -1.5),
         phiSlices     = cms.uint32(3),
-        phiZero       = cms.double(math.pi/6) # L1 TrackFinder phi sector and HGCal sectors shifted by 30deg,
+        phiZero       = cms.double(math.pi/2) # The edge of the 0th HGCal sectors is at 30 deg, the center at 30+120/2=90 = pi/2
     ),
     cms.PSet( 
         etaBoundaries = cms.vdouble(+1.5, +3.0),
         phiSlices     = cms.uint32(3),
-        phiZero       = cms.double(math.pi/6) # L1 TrackFinder phi sector and HGCal sectors shifted by 30deg,
+        phiZero       = cms.double(math.pi/2) # As above
     )
 
 )
