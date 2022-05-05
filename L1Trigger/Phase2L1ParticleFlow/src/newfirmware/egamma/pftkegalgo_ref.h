@@ -50,6 +50,7 @@ namespace l1ct {
     IsoParameters pfIsoParams_tkEm;
     bool doTkIso;
     bool doPfIso;
+    bool doEndcapHwQual;
     EGIsoEleObjEmu::IsoType hwIsoTypeTkEle;
     EGIsoObjEmu::IsoType hwIsoTypeTkEm;
     int debug = 0;
@@ -77,8 +78,10 @@ namespace l1ct {
                         const IsoParameters &pfIsoParams_tkEm = {1., 0.6, 0.07, 0.3},
                         bool doTkIso = true,
                         bool doPfIso = false,
+                        bool doEndcapHwQual = false,
                         EGIsoEleObjEmu::IsoType hwIsoTypeTkEle = EGIsoEleObjEmu::IsoType::TkIso,
-                        EGIsoObjEmu::IsoType hwIsoTypeTkEm = EGIsoObjEmu::IsoType::TkIsoPV)
+                        EGIsoObjEmu::IsoType hwIsoTypeTkEm = EGIsoObjEmu::IsoType::TkIsoPV,
+                        int debug = 0)
 
         : nTRACK(nTrack),
           nTRACK_EGIN(nTrack_in),
@@ -105,8 +108,10 @@ namespace l1ct {
           pfIsoParams_tkEm(pfIsoParams_tkEm),
           doTkIso(doTkIso),
           doPfIso(doPfIso),
+          doEndcapHwQual(doEndcapHwQual),
           hwIsoTypeTkEle(hwIsoTypeTkEle),
-          hwIsoTypeTkEm(hwIsoTypeTkEm) {}
+          hwIsoTypeTkEm(hwIsoTypeTkEm),
+          debug(debug) {}
   };
 
   class PFTkEGAlgoEmulator {
@@ -160,26 +165,26 @@ namespace l1ct {
                        const std::vector<EmCaloObjEmu> &emcalo,
                        const std::vector<TkObjEmu> &track,
                        const int calo_idx,
-                       const int hwQual,
+                       const unsigned int hwQual,
                        const pt_t ptCorr,
                        const int tk_idx,
                        const std::vector<unsigned int> &components = {}) const;
 
     EGObjEmu &addEGStaToPF(std::vector<EGObjEmu> &egobjs,
                            const EmCaloObjEmu &calo,
-                           const int hwQual,
+                           const unsigned int hwQual,
                            const pt_t ptCorr,
                            const std::vector<unsigned int> &components) const;
 
     EGIsoObjEmu &addEGIsoToPF(std::vector<EGIsoObjEmu> &egobjs,
                               const EmCaloObjEmu &calo,
-                              const int hwQual,
+                              const unsigned int hwQual,
                               const pt_t ptCorr) const;
 
     EGIsoEleObjEmu &addEGIsoEleToPF(std::vector<EGIsoEleObjEmu> &egobjs,
                                     const EmCaloObjEmu &calo,
                                     const TkObjEmu &track,
-                                    const int hwQual,
+                                    const unsigned int hwQual,
                                     const pt_t ptCorr) const;
 
     // FIXME: reimplemented from PFAlgoEmulatorBase

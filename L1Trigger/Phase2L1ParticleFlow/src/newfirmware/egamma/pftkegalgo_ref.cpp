@@ -36,6 +36,7 @@ l1ct::PFTkEGAlgoEmuConfig::PFTkEGAlgoEmuConfig(const edm::ParameterSet &pset)
       pfIsoParams_tkEm(pset.getParameter<edm::ParameterSet>("pfIsoParametersTkEm")),
       doTkIso(pset.getParameter<bool>("doTkIso")),
       doPfIso(pset.getParameter<bool>("doPfIso")),
+      doEndcapHwQual(pset.getParameter<bool>("doEndcapHwQual")),
       hwIsoTypeTkEle(static_cast<EGIsoEleObjEmu::IsoType>(pset.getParameter<uint32_t>("hwIsoTypeTkEle"))),
       hwIsoTypeTkEm(static_cast<EGIsoObjEmu::IsoType>(pset.getParameter<uint32_t>("hwIsoTypeTkEm"))),
       debug(pset.getUntrackedParameter<uint32_t>("debug", 0)) {}
@@ -166,7 +167,8 @@ void PFTkEGAlgoEmulator::run(const PFInputRegion &in, OutputRegion &out) const {
       if (calo.hwPt > 0)
         dbgCout() << "[REF] IN calo[" << ic << "] pt: " << calo.hwPt << " eta: " << calo.hwEta
                   << " (glb eta: " << in.region.floatGlbEta(calo.hwEta) << ") phi: " << calo.hwPhi
-                  << "(glb phi: " << in.region.floatGlbPhi(calo.hwPhi) << ") qual: " << calo.hwEmID << std::endl;
+                  << "(glb phi: " << in.region.floatGlbPhi(calo.hwPhi) << ") qual: " << std::bitset<4>(calo.hwEmID)
+                  << std::endl;
     }
   }
 
@@ -222,7 +224,8 @@ void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu &region,
     // check if brem recovery is on
     if (!cfg.doBremRecovery || cfg.writeBeforeBremRecovery) {
       // 1. create EG objects before brem recovery
-      addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID, calo.hwPt, itk);
+      // bit 3 is used for the brem-recovery bit: if set = no recovery (for consistency with the barrel hwQual)
+      addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID | 0x8, calo.hwPt, itk);
     }
 
     if (!cfg.doBremRecovery)
@@ -245,13 +248,13 @@ void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu &region,
 
     // 2. create EG objects with brem recovery
     // NOTE: duplicating the object is suboptimal but this is done for keeping things as in TDR code...
-    addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID + 2, ptBremReco, itk, components);
+    addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID, ptBremReco, itk, components);
   }
 }
 
 EGObjEmu &PFTkEGAlgoEmulator::addEGStaToPF(std::vector<EGObjEmu> &egobjs,
                                            const EmCaloObjEmu &calo,
-                                           const int hwQual,
+                                           const unsigned int hwQual,
                                            const pt_t ptCorr,
                                            const std::vector<unsigned int> &components) const {
   EGObjEmu egsta;
@@ -261,25 +264,36 @@ EGObjEmu &PFTkEGAlgoEmulator::addEGStaToPF(std::vector<EGObjEmu> &egobjs,
   egsta.hwPhi = calo.hwPhi;
   egsta.hwQual = hwQual;
   egobjs.push_back(egsta);
+
+  if (debug_ > 2)
+    dbgCout() << "[REF] EGSta pt: " << egsta.hwPt << " eta: " << egsta.hwEta << " phi: " << egsta.hwPhi
+              << " qual: " << std::bitset<4>(egsta.hwQual) << " packed: " << egsta.pack().to_string(16) << std::endl;
+
   return egobjs.back();
 }
 
 EGIsoObjEmu &PFTkEGAlgoEmulator::addEGIsoToPF(std::vector<EGIsoObjEmu> &egobjs,
                                               const EmCaloObjEmu &calo,
-                                              const int hwQual,
+                                              const unsigned int hwQual,
                                               const pt_t ptCorr) const {
   EGIsoObjEmu egiso;
   egiso.clear();
   egiso.hwPt = ptCorr;
   egiso.hwEta = calo.hwEta;
   egiso.hwPhi = calo.hwPhi;
-  egiso.hwQual = hwQual;
+  unsigned int egHwQual = hwQual;
+  if (cfg.doEndcapHwQual) {
+    // 1. zero-suppress the loose EG-ID (bit 1)
+    // 2. for now use the standalone tight definition (bit 0) to set the tight point for photons (bit 2)
+    egHwQual = (hwQual & 0x9) | (hwQual & 0x1) << 2;
+  }
+  egiso.hwQual = egHwQual;
   egiso.srcCluster = calo.src;
   egobjs.push_back(egiso);
 
   if (debug_ > 2)
     dbgCout() << "[REF] EGIsoObjEmu pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi
-              << " qual: " << egiso.hwQual << " packed: " << egiso.pack().to_string(16) << std::endl;
+              << " qual: " << std::bitset<4>(egiso.hwQual) << " packed: " << egiso.pack().to_string(16) << std::endl;
 
   return egobjs.back();
 }
@@ -287,14 +301,20 @@ EGIsoObjEmu &PFTkEGAlgoEmulator::addEGIsoToPF(std::vector<EGIsoObjEmu> &egobjs,
 EGIsoEleObjEmu &PFTkEGAlgoEmulator::addEGIsoEleToPF(std::vector<EGIsoEleObjEmu> &egobjs,
                                                     const EmCaloObjEmu &calo,
                                                     const TkObjEmu &track,
-                                                    const int hwQual,
+                                                    const unsigned int hwQual,
                                                     const pt_t ptCorr) const {
   EGIsoEleObjEmu egiso;
   egiso.clear();
   egiso.hwPt = ptCorr;
   egiso.hwEta = calo.hwEta;
   egiso.hwPhi = calo.hwPhi;
-  egiso.hwQual = hwQual;
+  unsigned int egHwQual = hwQual;
+  if (cfg.doEndcapHwQual) {
+    // 1. zero-suppress the loose EG-ID (bit 1)
+    // 2. for now use the standalone tight definition (bit 0) to set the tight point for eles (bit 1)
+    egHwQual = (hwQual & 0x9) | (hwQual & 0x1) << 1;
+  }
+  egiso.hwQual = egHwQual;
   egiso.hwDEta = track.hwVtxEta() - egiso.hwEta;
   egiso.hwDPhi = abs(track.hwVtxPhi() - egiso.hwPhi);
   egiso.hwZ0 = track.hwZ0;
@@ -305,7 +325,7 @@ EGIsoEleObjEmu &PFTkEGAlgoEmulator::addEGIsoEleToPF(std::vector<EGIsoEleObjEmu> 
 
   if (debug_ > 2)
     dbgCout() << "[REF] EGIsoEleObjEmu pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi
-              << " qual: " << egiso.hwQual << " packed: " << egiso.pack().to_string(16) << std::endl;
+              << " qual: " << std::bitset<4>(egiso.hwQual) << " packed: " << egiso.pack().to_string(16) << std::endl;
 
   return egobjs.back();
 }
@@ -316,7 +336,7 @@ void PFTkEGAlgoEmulator::addEgObjsToPF(std::vector<EGObjEmu> &egstas,
                                        const std::vector<EmCaloObjEmu> &emcalo,
                                        const std::vector<TkObjEmu> &track,
                                        const int calo_idx,
-                                       const int hwQual,
+                                       const unsigned int hwQual,
                                        const pt_t ptCorr,
                                        const int tk_idx,
                                        const std::vector<unsigned int> &components) const {
