@@ -38,10 +38,14 @@ ak4PFL1PuppiCorrected = _correctedJets.clone(jets = 'ak4PFL1Puppi', correctorDir
 
 scPFL1PuppiCorrectedEmulator = _correctedJets.clone(jets = 'scPFL1PuppiEmulator', correctorDir = 'L1PuppiSC4EmuDeregJets')
 
+from L1Trigger.Phase2L1ParticleFlow.L1MhtPfProducer_cfi import L1MhtPfProducer
+scPFL1PuppiCorrectedEmulatorMHT = L1MhtPfProducer.clone() #(jets = cms.InputTag("scPFL1PuppiCorrectedEmulator"))
+
+
 l1PFJetsTask = cms.Task(
     ak4PFL1Calo, ak4PFL1PF, ak4PFL1Puppi,
     ak4PFL1CaloCorrected, ak4PFL1PFCorrected, ak4PFL1PuppiCorrected,
-    l1ctLayer2Deregionizer, scPFL1PF, scPFL1Puppi, scPFL1PuppiEmulator, scPFL1PuppiCorrectedEmulator
+    l1ctLayer2Deregionizer, scPFL1PF, scPFL1Puppi, scPFL1PuppiEmulator, scPFL1PuppiCorrectedEmulator, scPFL1PuppiCorrectedEmulatorMHT
 )
 
 
