@@ -22,6 +22,7 @@ l1ct::PFTkEGAlgoEmuConfig::PFTkEGAlgoEmuConfig(const edm::ParameterSet &pset)
       doBremRecovery(pset.getParameter<bool>("doBremRecovery")),
       writeBeforeBremRecovery(pset.getParameter<bool>("writeBeforeBremRecovery")),
       caloHwQual(pset.getParameter<int>("caloHwQual")),
+      doEndcapHwQual(pset.getParameter<bool>("doEndcapHwQual")),
       emClusterPtMin(pset.getParameter<double>("caloEtMin")),
       dEtaMaxBrem(pset.getParameter<double>("dEtaMaxBrem")),
       dPhiMaxBrem(pset.getParameter<double>("dPhiMaxBrem")),
@@ -36,7 +37,6 @@ l1ct::PFTkEGAlgoEmuConfig::PFTkEGAlgoEmuConfig(const edm::ParameterSet &pset)
       pfIsoParams_tkEm(pset.getParameter<edm::ParameterSet>("pfIsoParametersTkEm")),
       doTkIso(pset.getParameter<bool>("doTkIso")),
       doPfIso(pset.getParameter<bool>("doPfIso")),
-      doEndcapHwQual(pset.getParameter<bool>("doEndcapHwQual")),
       hwIsoTypeTkEle(static_cast<EGIsoEleObjEmu::IsoType>(pset.getParameter<uint32_t>("hwIsoTypeTkEle"))),
       hwIsoTypeTkEm(static_cast<EGIsoObjEmu::IsoType>(pset.getParameter<uint32_t>("hwIsoTypeTkEm"))),
       debug(pset.getUntrackedParameter<uint32_t>("debug", 0)) {}

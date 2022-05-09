@@ -64,6 +64,7 @@ namespace l1ct {
                         bool doBremRecovery,
                         bool writeBeforeBremRecovery = false,
                         int caloHwQual = 4,
+                        bool doEndcapHwQual = false,
                         float emClusterPtMin = 2.,
                         float dEtaMaxBrem = 0.02,
                         float dPhiMaxBrem = 0.1,
@@ -78,7 +79,6 @@ namespace l1ct {
                         const IsoParameters &pfIsoParams_tkEm = {1., 0.6, 0.07, 0.3},
                         bool doTkIso = true,
                         bool doPfIso = false,
-                        bool doEndcapHwQual = false,
                         EGIsoEleObjEmu::IsoType hwIsoTypeTkEle = EGIsoEleObjEmu::IsoType::TkIso,
                         EGIsoObjEmu::IsoType hwIsoTypeTkEm = EGIsoObjEmu::IsoType::TkIsoPV,
                         int debug = 0)
@@ -91,6 +91,7 @@ namespace l1ct {
           doBremRecovery(doBremRecovery),
           writeBeforeBremRecovery(writeBeforeBremRecovery),
           caloHwQual(caloHwQual),
+          doEndcapHwQual(doEndcapHwQual),
           emClusterPtMin(emClusterPtMin),
           dEtaMaxBrem(dEtaMaxBrem),
           dPhiMaxBrem(dPhiMaxBrem),
@@ -108,7 +109,6 @@ namespace l1ct {
           pfIsoParams_tkEm(pfIsoParams_tkEm),
           doTkIso(doTkIso),
           doPfIso(doPfIso),
-          doEndcapHwQual(doEndcapHwQual),
           hwIsoTypeTkEle(hwIsoTypeTkEle),
           hwIsoTypeTkEm(hwIsoTypeTkEm),
           debug(debug) {}
