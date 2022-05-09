@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
+#include <bitset>
 
 #include "L1Trigger/Phase2L1ParticleFlow/src/dbgPrintf.h"
 
@@ -224,8 +225,15 @@ void PFTkEGAlgoEmulator::eg_algo(const PFRegionEmu &region,
     // check if brem recovery is on
     if (!cfg.doBremRecovery || cfg.writeBeforeBremRecovery) {
       // 1. create EG objects before brem recovery
-      // bit 3 is used for the brem-recovery bit: if set = no recovery (for consistency with the barrel hwQual)
-      addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, calo.hwEmID | 0x8, calo.hwPt, itk);
+      unsigned int egQual = calo.hwEmID;
+      // If we write both objects with and without brem-recovery
+      // bit 3 is used for the brem-recovery bit: if set = no recovery
+      // (for consistency with the barrel hwQual where by default the brem recovery is done upstream)
+      if (cfg.writeBeforeBremRecovery && cfg.doBremRecovery) {
+        egQual = calo.hwEmID | 0x8;
+      }
+
+      addEgObjsToPF(egstas, egobjs, egeleobjs, emcalo, track, ic, egQual, calo.hwPt, itk);
     }
 
     if (!cfg.doBremRecovery)
