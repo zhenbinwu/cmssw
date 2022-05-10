@@ -21,6 +21,7 @@ namespace l1ct {
     bool doBremRecovery;
     bool writeBeforeBremRecovery;
     int caloHwQual;
+    bool doEndcapHwQual;
     float emClusterPtMin;  // GeV
     float dEtaMaxBrem;
     float dPhiMaxBrem;
@@ -50,7 +51,6 @@ namespace l1ct {
     IsoParameters pfIsoParams_tkEm;
     bool doTkIso;
     bool doPfIso;
-    bool doEndcapHwQual;
     EGIsoEleObjEmu::IsoType hwIsoTypeTkEle;
     EGIsoObjEmu::IsoType hwIsoTypeTkEm;
     int debug = 0;
