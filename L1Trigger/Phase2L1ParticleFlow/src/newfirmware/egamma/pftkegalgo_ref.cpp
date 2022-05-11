@@ -293,7 +293,7 @@ EGIsoObjEmu &PFTkEGAlgoEmulator::addEGIsoToPF(std::vector<EGIsoObjEmu> &egobjs,
   if (cfg.doEndcapHwQual) {
     // 1. zero-suppress the loose EG-ID (bit 1)
     // 2. for now use the standalone tight definition (bit 0) to set the tight point for photons (bit 2)
-    egHwQual = (hwQual & 0x9) | (hwQual & 0x1) << 2;
+    egHwQual = (hwQual & 0x9) | ((hwQual & 0x1) << 2);
   }
   egiso.hwQual = egHwQual;
   egiso.srcCluster = calo.src;
@@ -320,7 +320,7 @@ EGIsoEleObjEmu &PFTkEGAlgoEmulator::addEGIsoEleToPF(std::vector<EGIsoEleObjEmu> 
   if (cfg.doEndcapHwQual) {
     // 1. zero-suppress the loose EG-ID (bit 1)
     // 2. for now use the standalone tight definition (bit 0) to set the tight point for eles (bit 1)
-    egHwQual = (hwQual & 0x9) | (hwQual & 0x1) << 1;
+    egHwQual = (hwQual & 0x9) | ((hwQual & 0x1) << 1);
   }
   egiso.hwQual = egHwQual;
   egiso.hwDEta = track.hwVtxEta() - egiso.hwEta;

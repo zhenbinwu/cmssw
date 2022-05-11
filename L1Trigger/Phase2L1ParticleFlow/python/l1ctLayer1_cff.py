@@ -426,7 +426,6 @@ l1ctLayer1HF = cms.EDProducer("L1TCorrelatorLayer1Producer",
         nEMCALO_EGIN = 5,  # to be defined
         nEM_EGOUT = 5,        # to be defined
         doBremRecovery=True,
-        doEndcapHwQual=True,
         writeEGSta=True),
     tkEgSorterParameters=tkEgSorterParameters.clone(),
     caloSectors = cms.VPSet(
