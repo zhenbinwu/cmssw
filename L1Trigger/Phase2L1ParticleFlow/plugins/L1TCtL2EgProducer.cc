@@ -49,7 +49,7 @@ private:
 
     BXVector<edm::Ref<BXVector<l1t::EGamma>>> oldRefs;
     std::map<edm::Ref<BXVector<l1t::EGamma>>, edm::Ref<BXVector<l1t::EGamma>>> old2newRefMap;
-    std::vector<std::pair<const edm::Ref<l1t::EGammaBxCollection> &, edm::Ptr<L1TTTrackType>>> origRefAndPtr;
+    std::vector<std::pair<edm::Ref<l1t::EGammaBxCollection>, edm::Ptr<L1TTTrackType>>> origRefAndPtr;
   };
 
   void convertToEmu(const l1t::TkElectron &tkele, RefRemapper &refRemapper, l1ct::OutputBoard &boarOut) const;
@@ -362,34 +362,36 @@ void L1TCtL2EgProducer::convertToEmu(const l1t::TkEm &tkem,
 
 l1t::TkEm L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoObjEmu &egiso, const RefRemapper &refRemapper) const {
   // std::cout << "[convertFromEmu] TkEm pt: " << egiso.hwPt << " eta: " << egiso.hwEta << " phi: " << egiso.hwPhi << " staidx: " << egiso.sta_idx << std::endl;
-
-  reco::Candidate::PolarLorentzVector mom(egiso.floatPt(), egiso.floatEta(), egiso.floatPhi(), 0.);
+  // NOTE: the TkEM object is created with the accuracy as in GT object (not the Correlator internal one)!
+  const auto gteg = egiso.toGT();
+  reco::Candidate::PolarLorentzVector mom(
+      l1gt::Scales::floatPt(gteg.v3.pt), l1gt::Scales::floatEta(gteg.v3.eta), l1gt::Scales::floatPhi(gteg.v3.phi), 0.);
   l1t::TkEm tkem(reco::Candidate::LorentzVector(mom),
                  refRemapper.origRefAndPtr[egiso.sta_idx].first,
                  egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIso),
                  egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::TkIsoPV));
-  // FIXME: need to define a global quality (barrel+endcap) or add a bit to distibguish them?
-  tkem.setHwQual(egiso.hwQual);
+  tkem.setHwQual(gteg.quality);
   tkem.setPFIsol(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIso));
   tkem.setPFIsolPV(egiso.floatRelIso(l1ct::EGIsoObjEmu::IsoType::PfIsoPV));
-  tkem.setEgBinaryWord(egiso.toGT().pack());
+  tkem.setEgBinaryWord(gteg.pack());
   return tkem;
 }
 
 l1t::TkElectron L1TCtL2EgProducer::convertFromEmu(const l1ct::EGIsoEleObjEmu &egele,
                                                   const RefRemapper &refRemapper) const {
   // std::cout << "[convertFromEmu] TkEle pt: " << egele.hwPt << " eta: " << egele.hwEta << " phi: " << egele.hwPhi << " staidx: " << egele.sta_idx << std::endl;
-
-  reco::Candidate::PolarLorentzVector mom(egele.floatPt(), egele.hwEta, egele.hwPhi, 0.);
+  // NOTE: the TkElectron object is created with the accuracy as in GT object (not the Correlator internal one)!
+  const auto gteg = egele.toGT();
+  reco::Candidate::PolarLorentzVector mom(
+      l1gt::Scales::floatPt(gteg.v3.pt), l1gt::Scales::floatEta(gteg.v3.eta), l1gt::Scales::floatPhi(gteg.v3.phi), 0.);
 
   l1t::TkElectron tkele(reco::Candidate::LorentzVector(mom),
                         refRemapper.origRefAndPtr[egele.sta_idx].first,
                         refRemapper.origRefAndPtr[egele.sta_idx].second,
                         egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::TkIso));
-  // FIXME: need to define a global quality (barrel+endcap)?
-  tkele.setHwQual(egele.hwQual);
+  tkele.setHwQual(gteg.quality);
   tkele.setPFIsol(egele.floatRelIso(l1ct::EGIsoEleObjEmu::IsoType::PfIso));
-  tkele.setEgBinaryWord(egele.toGT().pack());
+  tkele.setEgBinaryWord(gteg.pack());
   return tkele;
 }
 
