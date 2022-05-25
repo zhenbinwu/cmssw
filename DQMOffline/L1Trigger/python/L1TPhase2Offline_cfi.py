@@ -93,9 +93,9 @@ l1tPhase2CorrelatorOfflineDQM = DQMEDAnalyzer(
     genParticlesInputTag = cms.untracked.InputTag("genParticles"),
     isParticleGun = cms.bool(False),
     objects = cms.PSet(
-        L1PF = cms.VInputTag("l1pfCandidates:PF",),
+        L1PF = cms.VInputTag("l1ctLayer1:PF",),
         L1PF_sel = cms.string("pt > 0"),
-        L1Puppi = cms.VInputTag("l1pfCandidates:Puppi",),
+        L1Puppi = cms.VInputTag("l1ctLayer1:Puppi",),
         L1Puppi_sel = cms.string("pt > 0"),
     ),
 
@@ -131,10 +131,12 @@ l1tPhase2CorrelatorOfflineDQM = DQMEDAnalyzer(
             xmax=cms.untracked.double(5.),
         ),
     ),
-
 )
+
+from DQMOffline.L1Trigger.L1TPhase2MuonOffline_cfi import *
 
 l1tPhase2OfflineDQM = cms.Sequence(
                           l1tPhase2CorrelatorOfflineDQM +
-                          OuterTrackerTkMET
+                          OuterTrackerTkMET +
+                          l1tPhase2MuonOffline
                           )
