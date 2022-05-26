@@ -1,7 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
 from L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff import l1ctLayer1Barrel,l1ctLayer1HGCal,l1ctLayer1
-from L1Trigger.Phase2L1ParticleFlow.l1pfProducer_cfi import l1pfProducer
 
 #from L1Trigger.Phase2L1ParticleFlow.L1NNTauProducer_cfi import *
 
@@ -55,14 +54,4 @@ tau2VtxTaskHW = cms.Task(
     l1ctLayer1HGCal2Vtx,
     l1ctLayer12Vtx,
     L1NNTauProducerPuppi2Vtx
-)
-
-l1pfProducer2VtxSW         = l1pfProducer.clone()
-l1pfProducer2VtxSW.nVtx    = 2
-L1NNTauProducerPuppi2VtxSW = L1NNTauProducerPuppi.clone()
-L1NNTauProducerPuppi2VtxSW.HW = False
-L1NNTauProducerPuppi2VtxSW.L1PFObjects =  cms.InputTag("l1ctLayer12Vtx:Puppi")
-tau2VtxTaskSW = cms.Task(
-    l1pfProducer2VtxSW,
-    L1NNTauProducerPuppi2VtxSW
 )
