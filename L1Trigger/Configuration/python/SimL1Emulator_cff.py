@@ -193,8 +193,6 @@ _phase2_siml1emulator.add(L1TrackerEmuHTMissExtended)
 
 # PF Candidates
 # ########################################################################
-from L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff import *
-_phase2_siml1emulator.add(l1ParticleFlowTask)
 from L1Trigger.Phase2L1ParticleFlow.l1ctLayer1_cff import *
 from L1Trigger.Phase2L1ParticleFlow.l1ctLayer2EG_cff import *
 _phase2_siml1emulator.add(l1ctLayer1TaskInputsTask, l1ctLayer1Task, l1ctLayer2EGTask)
@@ -222,7 +220,6 @@ _phase2_siml1emulator.add(l1PFJetsPhase1Task_9x9)
 # ########################################################################
 from L1Trigger.Phase2L1ParticleFlow.l1pfJetMet_cff import *
 _phase2_siml1emulator.add(l1PFJetsTask)
-_phase2_siml1emulator.add(l1PFMetsTask)
 
 from L1Trigger.Phase2L1ParticleFlow.L1MetPfProducer_cfi import *
 _phase2_siml1emulator.add(L1MetPfProducer)
