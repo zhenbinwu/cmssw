@@ -175,6 +175,10 @@ from L1Trigger.L1TTrackMatch.L1TrackJetEmulationProducer_cfi import *
 _phase2_siml1emulator.add(L1TrackJetsEmulation)
 _phase2_siml1emulator.add(L1TrackJetsExtendedEmulation)
 
+from L1Trigger.L1TTrackMatch.L1TrackSelectionProducer_cfi import L1TrackSelectionProducer, L1TrackSelectionProducerExtended
+_phase2_siml1emulator.add(L1TrackSelectionProducer)
+_phase2_siml1emulator.add(L1TrackSelectionProducerExtended)
+
 from L1Trigger.L1TTrackMatch.L1TrackerEtMissEmulatorProducer_cfi import *
 L1TrackerEmuEtMiss.L1VertexInputTag = cms.InputTag("L1VertexFinderEmulator","l1verticesEmulation")
 _phase2_siml1emulator.add(L1TrackerEmuEtMiss)
