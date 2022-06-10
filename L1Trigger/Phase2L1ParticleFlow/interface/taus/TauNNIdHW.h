@@ -33,6 +33,8 @@ namespace L1TauEmu {
   //This way, the least significant bit of etaphi_t is exactly 0.01
   //Even though 0.01 is not a power of 2
   static float etaphi_base = 100. / 64;
+  static float z0_base = 0.05;
+  static float dxy_base = 0.05;
   typedef ap_ufixed<16, 14> pt_t;        // 1 unit = 0.25 GeV;
   typedef ap_fixed<10, 4> etaphi_t;      // 1 unit = 0.01;
   typedef ap_fixed<12, 6> detaphi_t;     // type for the difference between etas or phis
