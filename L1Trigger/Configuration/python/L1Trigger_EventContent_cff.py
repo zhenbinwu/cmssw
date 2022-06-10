@@ -178,7 +178,6 @@ def _appendPhase2Digis(obj):
         'keep *_L1EGammaClusterEmuProducer_*_*',
         'keep *_L1VertexFinder_*_*',
         'keep *_L1VertexFinderEmulator_*_*',
-        'keep *_L1TkPrimaryVertex_*_*',
         'keep *_L1TowerCalibration_*_*',
         'keep *_L1CaloJet_*_*',
         'keep *_L1CaloJetHTT_*_*',
