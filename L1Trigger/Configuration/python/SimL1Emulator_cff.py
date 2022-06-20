@@ -131,13 +131,6 @@ _phase2_siml1emulator.add(L1GTTInputProducer)
 _phase2_siml1emulator.add(L1GTTInputProducerExtended)
 _phase2_siml1emulator.add(L1VertexFinderEmulator)
 
-# Tk + StandaloneObj, including L1TkPrimaryVertex
-# ########################################################################
-
-from L1Trigger.L1TTrackMatch.L1TkPrimaryVertexProducer_cfi import L1TkPrimaryVertex
-_phase2_siml1emulator.add(L1TkPrimaryVertex)
-
-
 # Emulated GMT Muons (Tk + Stub, Tk + MuonTFT, StandaloneMuon)
 # ########################################################################
 from L1Trigger.Phase2L1GMT.gmt_cfi  import *
