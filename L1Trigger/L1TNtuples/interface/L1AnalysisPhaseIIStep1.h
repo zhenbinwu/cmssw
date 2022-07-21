@@ -108,6 +108,7 @@ namespace L1Analysis {
                  const edm::Handle<l1t::TkEmCollection> tkEMHGC,
                  unsigned maxL1Extra);
 
+/*
     void SetMuonKF(const edm::Handle<l1t::RegionalMuonCandBxCollection> muonKF,
                    unsigned maxL1Extra,
                    unsigned int muonDetector);
@@ -119,6 +120,7 @@ namespace L1Analysis {
 
     void SetMuon(const edm::Handle<l1t::MuonBxCollection> muon, unsigned maxL1Extra);
     void SetTkGlbMuon(const edm::Handle<l1t::TkGlbMuonCollection> TkGlbMuon, unsigned maxL1Extra);
+*/
 
     void SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon>> gmtMuon, unsigned maxL1Extra);
     void SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon>> gmtTkMuon, unsigned maxL1Extra);
