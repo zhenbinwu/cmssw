@@ -277,6 +277,7 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkEM(const edm::Handle<l1t::TkEmColl
   }
 }
 
+/*
 void L1Analysis::L1AnalysisPhaseIIStep1::SetMuonKF(const edm::Handle<l1t::RegionalMuonCandBxCollection> standaloneMuon,
                                                    unsigned maxL1Extra,
                                                    unsigned int muonDetector) {
@@ -414,6 +415,9 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkGlbMuon(const edm::Handle<l1t::TkG
     l1extra_.nTkGlbMuons++;
   }
 }
+*/
+
+
 
 void L1Analysis::L1AnalysisPhaseIIStep1::SetL1PfPhase1L1TJet(
     const edm::Handle<std::vector<reco::CaloJet> > l1L1PFPhase1L1Jet, unsigned maxL1Extra) {
@@ -658,6 +662,12 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vec
 
   for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
     if (lsb_pt * gmtTkMuon->at(i).hwPt() > 0) {
+
+      /*std::cout<<Phase2L1GMT::LSBpt<<"  "<<lsb_pt * gmtTkMuon->at(i).hwPt()<<"   "<< gmtTkMuon->at(i).p4().pt()<<"    "<<gmtTkMuon->at(i).pt()<<std::endl;
+      std::cout<<Phase2L1GMT::LSBeta<<"  "<<lsb_eta * gmtTkMuon->at(i).hwEta()<<"   "<< gmtTkMuon->at(i).p4().eta()<<"    "<<gmtTkMuon->at(i).eta()<<std::endl;
+      std::cout<<Phase2L1GMT::LSBphi<<"  "<<lsb_phi * gmtTkMuon->at(i).hwPhi()<<"   "<< gmtTkMuon->at(i).p4().phi()<<"    "<<gmtTkMuon->at(i).phi()<<std::endl;
+      */
+
       l1extra_.gmtTkMuonPt.push_back(lsb_pt * gmtTkMuon->at(i).hwPt());  //use pT
       l1extra_.gmtTkMuonEta.push_back(lsb_eta * gmtTkMuon->at(i).hwEta());
       l1extra_.gmtTkMuonPhi.push_back(lsb_phi * gmtTkMuon->at(i).hwPhi());
