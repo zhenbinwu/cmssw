@@ -619,17 +619,23 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetTkMHTDisplaced(const edm::Handle<std
 //gmt muons
 void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vector<l1t::SAMuon> > gmtMuon,
                                                     unsigned maxL1Extra) {
-  const float lsb_pt = Phase2L1GMT::LSBpt;
-  const float lsb_phi = Phase2L1GMT::LSBphi;
-  const float lsb_eta = Phase2L1GMT::LSBeta;
-  const float lsb_z0 = Phase2L1GMT::LSBSAz0;
-  const float lsb_d0 = Phase2L1GMT::LSBSAd0;
 
   for (unsigned int i = 0; i < gmtMuon->size() && l1extra_.nGmtMuons < maxL1Extra; i++) {
     if (lsb_pt * gmtMuon->at(i).hwPt() > 0) {
-      l1extra_.gmtMuonPt.push_back(lsb_pt * gmtMuon->at(i).hwPt());  //use pT
+
+/*std::cout<<Phase2L1GMT::LSBpt<<"  "<<lsb_pt * gmtMuon->at(i).hwPt()<<"   "<< gmtMuon->at(i).p4().pt()<<"    "<<gmtMuon->at(i).pt()<<std::endl;
+std::cout<<Phase2L1GMT::LSBeta<<"  "<<lsb_eta * gmtMuon->at(i).hwEta()<<"   "<< gmtMuon->at(i).p4().eta()<<"    "<<gmtMuon->at(i).eta()<<std::endl;
+std::cout<<Phase2L1GMT::LSBphi<<"  "<<lsb_phi * gmtMuon->at(i).hwPhi()<<"   "<< gmtMuon->at(i).p4().phi()<<"    "<<gmtMuon->at(i).phi()<<std::endl;
+*/
+
+/*      l1extra_.gmtMuonPt.push_back(lsb_pt * gmtMuon->at(i).hwPt());  //use pT
       l1extra_.gmtMuonEta.push_back(lsb_eta * gmtMuon->at(i).hwEta());
       l1extra_.gmtMuonPhi.push_back(lsb_phi * gmtMuon->at(i).hwPhi());
+*/
+      l1extra_.gmtMuonPt.push_back(gmtMuon->at(i).pt());
+      l1extra_.gmtMuonEta.push_back(gmtMuon->at(i).eta());
+      l1extra_.gmtMuonPhi.push_back(gmtMuon->at(i).phi());
+
       l1extra_.gmtMuonZ0.push_back(lsb_z0 * gmtMuon->at(i).hwZ0());
       l1extra_.gmtMuonD0.push_back(lsb_d0 * gmtMuon->at(i).hwD0());
 
@@ -653,12 +659,15 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtMuon(const edm::Handle<std::vecto
 
 //tkmuon gmt
 void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vector<l1t::TrackerMuon> > gmtTkMuon,
-                                                      unsigned maxL1Extra) {
-  const float lsb_pt = Phase2L1GMT::LSBpt;
+  
+                                                    unsigned maxL1Extra) {
+
+/*  const float lsb_pt = Phase2L1GMT::LSBpt;
   const float lsb_phi = Phase2L1GMT::LSBphi;
   const float lsb_eta = Phase2L1GMT::LSBeta;
   const float lsb_z0 = Phase2L1GMT::LSBGTz0;
   const float lsb_d0 = Phase2L1GMT::LSBGTd0;
+*/
 
   for (unsigned int i = 0; i < gmtTkMuon->size() && l1extra_.nGmtTkMuons < maxL1Extra; i++) {
     if (lsb_pt * gmtTkMuon->at(i).hwPt() > 0) {
@@ -668,9 +677,10 @@ void L1Analysis::L1AnalysisPhaseIIStep1::SetGmtTkMuon(const edm::Handle<std::vec
       std::cout<<Phase2L1GMT::LSBphi<<"  "<<lsb_phi * gmtTkMuon->at(i).hwPhi()<<"   "<< gmtTkMuon->at(i).p4().phi()<<"    "<<gmtTkMuon->at(i).phi()<<std::endl;
       */
 
-      l1extra_.gmtTkMuonPt.push_back(lsb_pt * gmtTkMuon->at(i).hwPt());  //use pT
-      l1extra_.gmtTkMuonEta.push_back(lsb_eta * gmtTkMuon->at(i).hwEta());
-      l1extra_.gmtTkMuonPhi.push_back(lsb_phi * gmtTkMuon->at(i).hwPhi());
+      l1extra_.gmtTkMuonPt.push_back(gmtTkMuon->at(i).pt());
+      l1extra_.gmtTkMuonEta.push_back(gmtTkMuon->at(i).eta());
+      l1extra_.gmtTkMuonPhi.push_back(gmtTkMuon->at(i).phi());
+
       l1extra_.gmtTkMuonZ0.push_back(lsb_z0 * gmtTkMuon->at(i).hwZ0());
       l1extra_.gmtTkMuonD0.push_back(lsb_d0 * gmtTkMuon->at(i).hwD0());
 
