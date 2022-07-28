@@ -184,7 +184,8 @@ namespace L1Analysis {
     const float lsb_eta = Phase2L1GMT::LSBeta;
     const float lsb_z0 = Phase2L1GMT::LSBGTz0;
     const float lsb_d0 = Phase2L1GMT::LSBGTd0;
-
+    const float lsb_SA_z0 = Phase2L1GMT::LSBSAz0;
+    const float lsb_SA_d0 = Phase2L1GMT::LSBSAd0;
 
   };
 }  // namespace L1Analysis
