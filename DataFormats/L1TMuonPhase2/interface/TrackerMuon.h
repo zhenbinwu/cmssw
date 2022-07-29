@@ -51,6 +51,7 @@ namespace l1t {
     const double phPt() const { return Phase2L1GMT::LSBpt*hwPt();}
     const double phEta() const { return Phase2L1GMT::LSBeta*hwEta();}
     const double phPhi() const { return Phase2L1GMT::LSBphi*hwPhi();}
+    const int    phCharge() const {return pow(-1,hwCharge_); }
 
     const std::array<uint64_t, 2> word() const { return word_; }
     void setWord(std::array<uint64_t, 2> word) { word_ = word; }

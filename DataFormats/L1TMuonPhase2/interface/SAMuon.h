@@ -38,6 +38,7 @@ namespace l1t {
     const double phPt() const { return Phase2L1GMT::LSBpt*hwPt();}
     const double phEta() const { return Phase2L1GMT::LSBeta*hwEta();}
     const double phPhi() const { return Phase2L1GMT::LSBphi*hwPhi();}
+    const int    phCharge() const {return pow(-1,hwCharge_); } 
 
     const uint64_t word() const { return word_; }
     void setWord(uint64_t word) { word_ = word; }
