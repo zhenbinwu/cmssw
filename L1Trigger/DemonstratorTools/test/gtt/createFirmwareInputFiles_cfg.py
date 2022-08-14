@@ -64,6 +64,10 @@ process.options = cms.untracked.PSet(
 
 process.load('L1Trigger.L1TTrackMatch.L1GTTInputProducer_cfi')
 process.load('L1Trigger.VertexFinder.VertexProducer_cff')
+process.load("L1Trigger.L1TTrackMatch.L1TrackSelectionProducer_cfi")
+process.load("L1Trigger.L1TTrackMatch.L1TrackJetEmulationProducer_cfi")
+process.load("L1Trigger.L1TTrackMatch.L1TkHTMissEmulatorProducer_cfi")
+process.load("L1Trigger.L1TTrackMatch.L1TrackerEtMissEmulatorProducer_cfi")
 process.load('L1Trigger.DemonstratorTools.GTTFileWriter_cff')
 
 process.L1GTTInputProducer.debug = cms.int32(options.debug)
@@ -71,6 +75,11 @@ process.VertexProducer.l1TracksInputTag = cms.InputTag("L1GTTInputProducer","Lev
 process.VertexProducer.VertexReconstruction.Algorithm = cms.string("fastHistoEmulation")
 process.VertexProducer.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
 process.VertexProducer.debug = options.debug
+process.L1TrackSelectionProducer.processSimulatedTracks = cms.bool(False)
+process.L1TrackSelectionProducer.l1VerticesEmulationInputTag = cms.InputTag("VertexProducer", "l1verticesEmulation")
+process.L1TrackJetsEmulation.VertexInputTag = cms.InputTag("VertexProducer", "l1verticesEmulation")
+process.L1TrackerEmuEtMiss.L1VertexInputTag = cms.InputTag("VertexProducer", "l1verticesEmulation")
+
 if options.debug:
     process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(1000000000)
 
@@ -80,4 +89,4 @@ process.GTTFileWriter.format = cms.untracked.string(options.format)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
-process.p = cms.Path(process.L1GTTInputProducer * process.VertexProducer * process.GTTFileWriter)
+process.p = cms.Path(process.L1GTTInputProducer * process.VertexProducer * process.L1TrackSelectionProducer * process.L1TrackJetsEmulation * process.L1TrackerEmuHTMiss * process.L1TrackerEmuEtMiss * process.GTTFileWriter)
