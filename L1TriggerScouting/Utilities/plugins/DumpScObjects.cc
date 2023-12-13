@@ -177,46 +177,51 @@ void DumpScObjects::analyze(const edm::Event& iEvent, const edm::EventSetup& evS
 void DumpScObjects::printBx(unsigned bx){
   std::cout << "BX = " << bx <<" ****" << std::endl;
 
-  if(checkMuons_ && muonHandle_.isValid()){
-    int i=0;
-    for (auto muon = muonHandle_->begin(bx); muon!=muonHandle_->end(bx); muon++){
-      std::cout  <<  "--- Muon " << i << " ---\n";
-      printScMuon(*muon);
+  if (checkMuons_ && muonHandle_.isValid()) {
+    int i = 0;
+    const auto &muons = muonHandle_->bxIterator(bx);
+    for (const auto& muon: muons){
+      std::cout << "--- Muon " << i << " ---\n";
+      printScMuon(muon);
       i++;
     }
   }
 
-  if(checkJets_ && jetHandle_.isValid()){
-    int i=0;
-    for (auto jet = jetHandle_->begin(bx); jet!=jetHandle_->end(bx); jet++){
-      std::cout  <<  "--- Jet " << i << " ---\n";
-      printScJet(*jet);
+  if (checkJets_ && jetHandle_.isValid()) {
+    int i = 0;
+    const auto &jets = jetHandle_->bxIterator(bx);
+    for (const auto& jet: jets){
+      std::cout << "--- Jet " << i << " ---\n";
+      printScJet(jet);
       i++;
     }
   }
 
-  if(checkEGammas_ && jetHandle_.isValid()){
-    int i=0;
-    for (auto egamma = eGammaHandle_->begin(bx); egamma!=eGammaHandle_->end(bx); egamma++){
-      std::cout  <<  "--- E/Gamma " << i << " ---\n";
-      printScEGamma(*egamma);
+  if (checkEGammas_ && jetHandle_.isValid()) {
+    int i = 0;
+    const auto &eGammas = eGammaHandle_->bxIterator(bx);
+    for (const auto& egamma: eGammas){
+      std::cout << "--- E/Gamma " << i << " ---\n";
+      printScEGamma(egamma);
       i++;
     }
   }
 
-  if(checkTaus_ && tauHandle_.isValid()){
-    int i=0;
-    for (auto tau = tauHandle_->begin(bx); tau!=tauHandle_->end(bx); tau++){
-      std::cout  <<  "--- Tau " << i << " ---\n";
-      printScTau(*tau);
+  if (checkTaus_ && tauHandle_.isValid()) {
+    int i = 0;
+    const auto &taus = tauHandle_->bxIterator(bx);
+    for (const auto& tau: taus){
+      std::cout << "--- Tau " << i << " ---\n";
+      printScTau(tau);
       i++;
     }
   }
 
   if (checkEtSums_ && etSumHandle_.isValid()) {
-    for (auto sum = etSumHandle_->begin(bx); sum != etSumHandle_->end(bx); sum++) {
+    const auto &sums = etSumHandle_->bxIterator(bx);
+    for (const auto& sum: sums){
       std::cout << "--- Calo Sums ---\n";
-      printScBxSums(*sum);
+      printScBxSums(sum);
     }
   }
 

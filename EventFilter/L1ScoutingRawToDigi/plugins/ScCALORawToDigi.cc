@@ -14,13 +14,8 @@ ScCaloRawToDigi::ScCaloRawToDigi(const edm::ParameterSet& iConfig) {
 
   nJetsOrbit_=0; nEGammasOrbit_=0; nTausOrbit_=0; nEtSumsOrbit_=0;
 
-  produces<ScJetOrbitCollection>().setBranchAlias( "ScJetOrbitCollection" );
-  produces<ScTauOrbitCollection>().setBranchAlias( "ScTauOrbitCollection" );
-  produces<ScEGammaOrbitCollection>().setBranchAlias( "ScEGammaOrbitCollection" );
-  produces<ScBxSumsOrbitCollection>().setBranchAlias( "ScBxSumsOrbitCollection" );
-  
-  rawToken = consumes<SRDCollection>(srcInputTag);
-  }
+  rawToken = consumes<SDSRawDataCollection>(srcInputTag);
+}
 
 ScCaloRawToDigi::~ScCaloRawToDigi() {};
 
@@ -28,8 +23,8 @@ void ScCaloRawToDigi::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   using namespace edm;
   using namespace l1ScoutingRun3;
 
-  Handle<SRDCollection> ScoutingRawDataCollection;
-  iEvent.getByToken( rawToken, ScoutingRawDataCollection );
+  Handle<SDSRawDataCollection> ScoutingRawDataCollection;
+  iEvent.getByToken(rawToken, ScoutingRawDataCollection);
 
   const FEDRawData& sourceRawData = ScoutingRawDataCollection->FEDData(SDSNumbering::CaloSDSID);
   size_t orbitSize = sourceRawData.size();

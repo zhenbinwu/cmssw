@@ -12,8 +12,8 @@ ScGMTRawToDigi::ScGMTRawToDigi(const edm::ParameterSet& iConfig) {
   }
   nMuonsOrbit_ = 0;
 
-  produces<l1ScoutingRun3::ScMuonOrbitCollection>().setBranchAlias( "ScMuonOrbitCollection" );
-  rawToken = consumes<SRDCollection>(srcInputTag);
+  produces<l1ScoutingRun3::ScMuonOrbitCollection>().setBranchAlias("ScMuonOrbitCollection");
+  rawToken = consumes<SDSRawDataCollection>(srcInputTag);
 }
 
 ScGMTRawToDigi::~ScGMTRawToDigi() {};
@@ -21,8 +21,8 @@ ScGMTRawToDigi::~ScGMTRawToDigi() {};
 void ScGMTRawToDigi::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
-  Handle<SRDCollection> ScoutingRawDataCollection;
-  iEvent.getByToken( rawToken, ScoutingRawDataCollection );
+  Handle<SDSRawDataCollection> ScoutingRawDataCollection;
+  iEvent.getByToken(rawToken, ScoutingRawDataCollection);
 
   const FEDRawData& sourceRawData = ScoutingRawDataCollection->FEDData(SDSNumbering::GmtSDSID);
   size_t orbitSize = sourceRawData.size();

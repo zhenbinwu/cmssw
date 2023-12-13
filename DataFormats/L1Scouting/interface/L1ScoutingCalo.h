@@ -2,20 +2,8 @@
 #define DataFormats_L1Scouting_L1ScoutingCalo_h
 
 #include "DataFormats/L1Scouting/interface/OrbitCollection.h"
-#include "DataFormats/L1Trigger/interface/EtSum.h"
 
 namespace l1ScoutingRun3 {
-
-  class ScJet;
-  typedef OrbitCollection<ScJet>    ScJetOrbitCollection;
-  class ScEGamma;
-  typedef OrbitCollection<ScEGamma> ScEGammaOrbitCollection;
-  class ScTau;
-  typedef OrbitCollection<ScTau>    ScTauOrbitCollection;
-  class ScEtSum;
-  typedef OrbitCollection<ScEtSum>  ScEtSumOrbitCollection;
-  class ScBxSums;
-  typedef OrbitCollection<ScBxSums> ScBxSumsOrbitCollection;
 
   class ScCaloObject {
   public:
@@ -35,12 +23,7 @@ namespace l1ScoutingRun3 {
       hwPhi_(hwPhi),
       hwIso_(iso) {}
 
-    ScCaloObject(const ScCaloObject& other) = default;
-    ScCaloObject(ScCaloObject&& other) = default;
-    ScCaloObject & operator=(const ScCaloObject& other) = default;
-    ScCaloObject & operator=(ScCaloObject&& other) = default;
-
-    void swap(ScCaloObject& other){
+    void swap(ScCaloObject& other) {
       using std::swap;
       swap(hwEt_, other.hwEt_);
       swap(hwEta_, other.hwEta_);
@@ -107,48 +90,6 @@ namespace l1ScoutingRun3 {
     : ScCaloObject(hwEt, hwEta ,hwPhi , iso) {}
   };
 
-
-  class ScEtSum {
-  public:
-    ScEtSum()
-    : hwEt_(0),
-      hwPhi_(0),
-      type_(l1t::EtSum::kUninitialized) {}
-
-    ScEtSum(
-      int hwEt,
-      int hwPhi,
-      l1t::EtSum::EtSumType type)
-    : hwEt_(hwEt),
-      hwPhi_(hwPhi),
-      type_(type) {}
-
-    ScEtSum(const ScEtSum& other) = default;
-    ScEtSum(ScEtSum&& other) = default;
-    ScEtSum & operator=(const ScEtSum& other) = default;
-    ScEtSum & operator=(ScEtSum&& other) = default;
-
-    void swap(ScEtSum& other){
-      using std::swap;
-      swap(hwEt_, other.hwEt_);
-      swap(hwPhi_, other.hwPhi_);
-      swap(type_, other.type_);
-    }
-
-    void setHwEt(int hwEt) { hwEt_= hwEt;}
-    void setHwPhi(int hwPhi) { hwPhi_= hwPhi;}
-    void setType(l1t::EtSum::EtSumType type) { type_= type;}
-
-    int hwEt() const {return hwEt_;}
-    int hwPhi() const {return hwPhi_;}
-    l1t::EtSum::EtSumType type() const {return type_;}
-
-  private:
-    int hwEt_;
-    int hwPhi_;
-    l1t::EtSum::EtSumType type_;
-  };
-
   class ScBxSums {
 
   public:
@@ -176,58 +117,50 @@ namespace l1ScoutingRun3 {
       centrality_(0)
     {}
 
-    ScBxSums(
-      int hwTotalEt,
-      int hwTotalEtEm,
-      int hwTotalHt,
-      int hwMissEt,
-      int hwMissEtPhi,
-      int hwMissHt,
-      int hwMissHtPhi,
-      int hwMissEtHF,
-      int hwMissEtHFPhi,
-      int hwMissHtHF,
-      int hwMissHtHFPhi,
-      int hwAsymEt,
-      int hwAsymHt,
-      int hwAsymEtHF,
-      int hwAsymHtHF,
-      int minBiasHFP0,
-      int minBiasHFM0,
-      int minBiasHFP1,
-      int minBiasHFM1,
-      int towerCount,
-      int centrality
-    )
-    : hwTotalEt_(hwTotalEt),
-      hwTotalEtEm_(hwTotalEtEm),
-      hwTotalHt_(hwTotalHt),
-      hwMissEt_(hwMissEt),
-      hwMissEtPhi_(hwMissEtPhi),
-      hwMissHt_(hwMissHt),
-      hwMissHtPhi_(hwMissHtPhi),
-      hwMissEtHF_(hwMissEtHF),
-      hwMissEtHFPhi_(hwMissEtHFPhi),
-      hwMissHtHF_(hwMissHtHF),
-      hwMissHtHFPhi_(hwMissHtHFPhi),
-      hwAsymEt_(hwAsymEt),
-      hwAsymHt_(hwAsymHt),
-      hwAsymEtHF_(hwAsymEtHF),
-      hwAsymHtHF_(hwAsymHtHF),
-      minBiasHFP0_(minBiasHFP0),
-      minBiasHFM0_(minBiasHFM0),
-      minBiasHFP1_(minBiasHFP1),
-      minBiasHFM1_(minBiasHFM1),
-      towerCount_(towerCount),
-      centrality_(centrality)
-    {}
+    ScBxSums(int hwTotalEt,
+             int hwTotalEtEm,
+             int hwTotalHt,
+             int hwMissEt, 
+             int hwMissEtPhi,
+             int hwMissHt,
+             int hwMissHtPhi,
+             int hwMissEtHF,
+             int hwMissEtHFPhi,
+             int hwMissHtHF,
+             int hwMissHtHFPhi,
+             int hwAsymEt,
+             int hwAsymHt,
+             int hwAsymEtHF,
+             int hwAsymHtHF,
+             int minBiasHFP0,
+             int minBiasHFM0,
+             int minBiasHFP1,
+             int minBiasHFM1,
+             int towerCount,
+             int centrality)
+        : hwTotalEt_(hwTotalEt),
+          hwTotalEtEm_(hwTotalEtEm),
+          hwTotalHt_(hwTotalHt),
+          hwMissEt_(hwMissEt),
+          hwMissEtPhi_(hwMissEtPhi),
+          hwMissHt_(hwMissHt),
+          hwMissHtPhi_(hwMissHtPhi),
+          hwMissEtHF_(hwMissEtHF),
+          hwMissEtHFPhi_(hwMissEtHFPhi),
+          hwMissHtHF_(hwMissHtHF),
+          hwMissHtHFPhi_(hwMissHtHFPhi),
+          hwAsymEt_(hwAsymEt),
+          hwAsymHt_(hwAsymHt),
+          hwAsymEtHF_(hwAsymEtHF),
+          hwAsymHtHF_(hwAsymHtHF),
+          minBiasHFP0_(minBiasHFP0),
+          minBiasHFM0_(minBiasHFM0),
+          minBiasHFP1_(minBiasHFP1),
+          minBiasHFM1_(minBiasHFM1),
+          towerCount_(towerCount),
+          centrality_(centrality) {}
 
-    ScBxSums(const ScBxSums& other) = default;
-    ScBxSums(ScBxSums&& other) = default;
-    ScBxSums & operator=(const ScBxSums& other) = default;
-    ScBxSums & operator=(ScBxSums&& other) = default;
-
-    void swap(ScBxSums& other){
+    void swap(ScBxSums& other) {
       using std::swap;
       swap(hwTotalEt_, other.hwTotalEt_);
       swap(hwTotalEtEm_, other.hwTotalEtEm_);
@@ -320,5 +253,10 @@ namespace l1ScoutingRun3 {
     int centrality_;
   };
 
-} // namespace l1ScoutingRun3
-#endif // DataFormats_L1Scouting_L1ScoutingCalo_h
+  typedef OrbitCollection<ScJet> ScJetOrbitCollection;
+  typedef OrbitCollection<ScEGamma> ScEGammaOrbitCollection;
+  typedef OrbitCollection<ScTau> ScTauOrbitCollection;
+  typedef OrbitCollection<ScBxSums> ScBxSumsOrbitCollection;
+
+}  // namespace l1ScoutingRun3
+#endif  // DataFormats_L1Scouting_L1ScoutingCalo_h
