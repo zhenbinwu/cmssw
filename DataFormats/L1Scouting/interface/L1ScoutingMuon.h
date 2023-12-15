@@ -5,50 +5,48 @@
 
 namespace l1ScoutingRun3 {
 
-  class ScMuon {
+  class Muon {
   public:
+    Muon()
+        : hwPt_(0),
+          hwEta_(0),
+          hwPhi_(0),
+          hwQual_(0),
+          hwChrg_(0),
+          hwChrgv_(0),
+          hwIso_(0),
+          tfIndex_(0),
+          hwEtaAtVtx_(0),
+          hwPhiAtVtx_(0),
+          hwPtUnconstrained_(0),
+          hwDXY_(0) {}
 
-    ScMuon()
-    : hwPt_(0),
-      hwEta_(0),
-      hwPhi_(0),
-      hwQual_(0),
-      hwChrg_(0),
-      hwChrgv_(0),
-      hwIso_(0),
-      tfIndex_(0),
-      hwEtaAtVtx_(0),
-      hwPhiAtVtx_(0),
-      hwPtUnconstrained_(0),
-      hwDXY_(0) {}
+    Muon(int hwPt,
+         int hwEta,
+         int hwPhi,
+         int hwQual,
+         int hwChrg,
+         int hwChrgv,
+         int hwIso,
+         int tfIndex,
+         int hwEtaAtVtx,
+         int hwPhiAtVtx,
+         int hwPtUnconstrained,
+         int hwDXY)
+        : hwPt_(hwPt),
+          hwEta_(hwEta),
+          hwPhi_(hwPhi),
+          hwQual_(hwQual),
+          hwChrg_(hwChrg),
+          hwChrgv_(hwChrgv),
+          hwIso_(hwIso),
+          tfIndex_(tfIndex),
+          hwEtaAtVtx_(hwEtaAtVtx),
+          hwPhiAtVtx_(hwPhiAtVtx),
+          hwPtUnconstrained_(hwPtUnconstrained),
+          hwDXY_(hwDXY) {}
 
-    ScMuon(
-      int hwPt,
-      int hwEta,
-      int hwPhi,
-      int hwQual,
-      int hwChrg,
-      int hwChrgv,
-      int hwIso,
-      int tfIndex,
-      int hwEtaAtVtx,
-      int hwPhiAtVtx,
-      int hwPtUnconstrained,
-      int hwDXY)
-    : hwPt_(hwPt),
-      hwEta_(hwEta),
-      hwPhi_(hwPhi),
-      hwQual_(hwQual),
-      hwChrg_(hwChrg),
-      hwChrgv_(hwChrgv),
-      hwIso_(hwIso),
-      tfIndex_(tfIndex),
-      hwEtaAtVtx_(hwEtaAtVtx),
-      hwPhiAtVtx_(hwPhiAtVtx),
-      hwPtUnconstrained_(hwPtUnconstrained),
-      hwDXY_(hwDXY) {}
-
-    void swap(ScMuon& other) {
+    void swap(Muon& other) {
       using std::swap;
       swap(hwPt_, other.hwPt_);
       swap(hwEta_, other.hwEta_);
@@ -106,7 +104,7 @@ namespace l1ScoutingRun3 {
     int hwDXY_;
   };
 
-  typedef OrbitCollection<ScMuon> ScMuonOrbitCollection;
+  typedef OrbitCollection<Muon> MuonOrbitCollection;
 
 }  // namespace l1ScoutingRun3
 

@@ -20,6 +20,7 @@
 #include "DataFormats/L1Scouting/interface/L1ScoutingMuon.h"
 #include "DataFormats/L1Scouting/interface/L1ScoutingCalo.h"
 #include "L1TriggerScouting/Utilities/interface/printScObjects.h"
+#include "L1TriggerScouting/Utilities/interface/convertToL1TFormat.h"
 
 using namespace l1ScoutingRun3;
 
@@ -34,10 +35,18 @@ class DumpScObjects : public edm::stream::EDAnalyzer<> {
     // method for analyzing the events
     void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  private:
+  // the tokens to access the data
+  edm::EDGetTokenT<MuonOrbitCollection> gmtMuonsToken_;
+  edm::EDGetTokenT<JetOrbitCollection> caloJetsToken_;
+  edm::EDGetTokenT<EGammaOrbitCollection> caloEGammasToken_;
+  edm::EDGetTokenT<TauOrbitCollection> caloTausToken_;
+  edm::EDGetTokenT<BxSumsOrbitCollection> caloEtSumsToken_;
 
-    // dump contenct of BX
-    void printBx(unsigned bx);
+  edm::Handle<MuonOrbitCollection> muonHandle_;
+  edm::Handle<JetOrbitCollection> jetHandle_;
+  edm::Handle<EGammaOrbitCollection> eGammaHandle_;
+  edm::Handle<TauOrbitCollection> tauHandle_;
+  edm::Handle<BxSumsOrbitCollection> etSumHandle_;
 
     // the tokens to access the data
     edm::EDGetTokenT<ScMuonOrbitCollection>    gmtMuonsToken_;
@@ -101,6 +110,17 @@ DumpScObjects::DumpScObjects(const edm::ParameterSet& iConfig):
   if (checkTaus_) caloTausToken_    = consumes<ScTauOrbitCollection>(iConfig.getParameter<edm::InputTag>("caloTausTag"));
   if (checkEtSums_) caloEtSumsToken_  = consumes<ScBxSumsOrbitCollection>(iConfig.getParameter<edm::InputTag>("caloEtSumsTag"));
 
+      skipEmptyBx_(iConfig.getUntrackedParameter<bool>("skipEmptyBx", true)) {
+  if (checkMuons_)
+    gmtMuonsToken_ = consumes<MuonOrbitCollection>(iConfig.getParameter<edm::InputTag>("gmtMuonsTag"));
+  if (checkJets_)
+    caloJetsToken_ = consumes<JetOrbitCollection>(iConfig.getParameter<edm::InputTag>("caloJetsTag"));
+  if (checkEGammas_)
+    caloEGammasToken_ = consumes<EGammaOrbitCollection>(iConfig.getParameter<edm::InputTag>("caloEGammasTag"));
+  if (checkTaus_)
+    caloTausToken_ = consumes<TauOrbitCollection>(iConfig.getParameter<edm::InputTag>("caloTausTag"));
+  if (checkEtSums_)
+    caloEtSumsToken_ = consumes<BxSumsOrbitCollection>(iConfig.getParameter<edm::InputTag>("caloEtSumsTag"));
 }
 // -----------------------------------------------------------------------------
 
@@ -179,49 +199,48 @@ void DumpScObjects::printBx(unsigned bx){
 
   if (checkMuons_ && muonHandle_.isValid()) {
     int i = 0;
-    const auto &muons = muonHandle_->bxIterator(bx);
-    for (const auto& muon: muons){
+    const auto& muons = muonHandle_->bxIterator(bx);
+    for (const auto& muon : muons) {
       std::cout << "--- Muon " << i << " ---\n";
-      printScMuon(muon);
+      printMuon(muon);
       i++;
     }
   }
 
   if (checkJets_ && jetHandle_.isValid()) {
     int i = 0;
-    const auto &jets = jetHandle_->bxIterator(bx);
-    for (const auto& jet: jets){
+    const auto& jets = jetHandle_->bxIterator(bx);
+    for (const auto& jet : jets) {
       std::cout << "--- Jet " << i << " ---\n";
-      printScJet(jet);
+      printJet(jet);
       i++;
     }
   }
 
   if (checkEGammas_ && jetHandle_.isValid()) {
     int i = 0;
-    const auto &eGammas = eGammaHandle_->bxIterator(bx);
-    for (const auto& egamma: eGammas){
+    const auto& eGammas = eGammaHandle_->bxIterator(bx);
+    for (const auto& egamma : eGammas) {
       std::cout << "--- E/Gamma " << i << " ---\n";
-      printScEGamma(egamma);
+      printEGamma(egamma);
       i++;
     }
   }
 
   if (checkTaus_ && tauHandle_.isValid()) {
     int i = 0;
-    const auto &taus = tauHandle_->bxIterator(bx);
-    for (const auto& tau: taus){
+    const auto& taus = tauHandle_->bxIterator(bx);
+    for (const auto& tau : taus) {
       std::cout << "--- Tau " << i << " ---\n";
-      printScTau(tau);
+      printTau(tau);
       i++;
     }
   }
 
   if (checkEtSums_ && etSumHandle_.isValid()) {
-    const auto &sums = etSumHandle_->bxIterator(bx);
-    for (const auto& sum: sums){
+    const auto& sums = etSumHandle_->bxIterator(bx);
+    for (const auto& sum : sums) {
       std::cout << "--- Calo Sums ---\n";
-      printScBxSums(sum);
     }
   }
 
