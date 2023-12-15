@@ -11,6 +11,7 @@ namespace l1ScoutingRun3 {
 
     CaloObject(int hwEt, int hwEta, int hwPhi, int iso) : hwEt_(hwEt), hwEta_(hwEta), hwPhi_(hwPhi), hwIso_(iso) {}
 
+<<<<<<< HEAD
     void swap(CaloObject& other) {
       using std::swap;
       swap(hwEt_, other.hwEt_);
@@ -23,6 +24,12 @@ namespace l1ScoutingRun3 {
     void setHwEta(int hwEta) { hwEta_= hwEta;}
     void setHwPhi(int hwPhi) { hwPhi_= hwPhi;}
     void setHwIso(int hwIso) { hwIso_= hwIso;}
+=======
+    void setHwEt(int hwEt) { hwEt_ = hwEt; }
+    void setHwEta(int hwEta) { hwEta_ = hwEta; }
+    void setHwPhi(int hwPhi) { hwPhi_ = hwPhi; }
+    void setHwIso(int hwIso) { hwIso_ = hwIso; }
+>>>>>>> f0b7204e33e (Added Exception to OrbitCollection::getBxSize(), removed swap method from Scouting classes)
 
     int hwEt() const {return hwEt_;}
     int hwEta() const {return hwEta_;}
@@ -131,6 +138,7 @@ namespace l1ScoutingRun3 {
           towerCount_(towerCount),
           centrality_(centrality) {}
 
+<<<<<<< HEAD
     void swap(BxSums& other) {
       using std::swap;
       swap(hwTotalEt_, other.hwTotalEt_);
@@ -177,6 +185,29 @@ namespace l1ScoutingRun3 {
     void setHwMissHtHFPhi(int hwMissHtHFPhi) {hwMissHtHFPhi_ = hwMissHtHFPhi;}
     void setHwAsymHtHF(int hwAsymHtHF) {hwAsymHtHF_ = hwAsymHtHF;}
     void setCentrality(int centrality) {centrality_ = centrality;}
+=======
+    void setHwTotalEt(int hwTotalEt) { hwTotalEt_ = hwTotalEt; }
+    void setHwTotalEtEm(int hwTotalEtEm) { hwTotalEtEm_ = hwTotalEtEm; }
+    void setMinBiasHFP0(int minBiasHFP0) { minBiasHFP0_ = minBiasHFP0; }
+    void setHwTotalHt(int hwTotalHt) { hwTotalHt_ = hwTotalHt; }
+    void setTowerCount(int towerCount) { towerCount_ = towerCount; }
+    void setMinBiasHFM0(int minBiasHFM0) { minBiasHFM0_ = minBiasHFM0; }
+    void setHwMissEt(int hwMissEt) { hwMissEt_ = hwMissEt; }
+    void setHwMissEtPhi(int hwMissEtPhi) { hwMissEtPhi_ = hwMissEtPhi; }
+    void setHwAsymEt(int hwAsymEt) { hwAsymEt_ = hwAsymEt; }
+    void setMinBiasHFP1(int minBiasHFP1) { minBiasHFP1_ = minBiasHFP1; }
+    void setHwMissHt(int hwMissHt) { hwMissHt_ = hwMissHt; }
+    void setHwMissHtPhi(int hwMissHtPhi) { hwMissHtPhi_ = hwMissHtPhi; }
+    void setHwAsymHt(int hwAsymHt) { hwAsymHt_ = hwAsymHt; }
+    void setMinBiasHFM1(int minBiasHFM1) { minBiasHFM1_ = minBiasHFM1; }
+    void setHwMissEtHF(int hwMissEtHF) { hwMissEtHF_ = hwMissEtHF; }
+    void setHwMissEtHFPhi(int hwMissEtHFPhi) { hwMissEtHFPhi_ = hwMissEtHFPhi; }
+    void setHwAsymEtHF(int hwAsymEtHF) { hwAsymEtHF_ = hwAsymEtHF; }
+    void setHwMissHtHF(int hwMissHtHF) { hwMissHtHF_ = hwMissHtHF; }
+    void setHwMissHtHFPhi(int hwMissHtHFPhi) { hwMissHtHFPhi_ = hwMissHtHFPhi; }
+    void setHwAsymHtHF(int hwAsymHtHF) { hwAsymHtHF_ = hwAsymHtHF; }
+    void setCentrality(int centrality) { centrality_ = centrality; }
+>>>>>>> f0b7204e33e (Added Exception to OrbitCollection::getBxSize(), removed swap method from Scouting classes)
 
     const int hwTotalEt() const { return hwTotalEt_;}
     const int hwTotalEtEm() const { return hwTotalEtEm_;}

@@ -32,12 +32,15 @@ class OrbitCollection {
     OrbitCollection & operator=(const OrbitCollection& other) = default;
     OrbitCollection & operator=(OrbitCollection&& other) = default;
 
+<<<<<<< HEAD
     void swap(OrbitCollection& other){
       using std::swap;
       swap(bxOffsets_, other.bxOffsets_);
       swap(data_, other.data_);
     }
 
+=======
+>>>>>>> f0b7204e33e (Added Exception to OrbitCollection::getBxSize(), removed swap method from Scouting classes)
   // Fill the orbit collection starting from a vector of vectors, one per BX.
   // Objects are copied into a flat data vector, and a second vector is used to keep track
   // of the starting index in the data vector for every BX.
@@ -82,7 +85,7 @@ class OrbitCollection {
   // get number of objects stored in a BX
   int getBxSize(unsigned bx) const {
     if (bx >= orbitBufferSize_) {
-      edm::LogWarning("OrbitCollection") << "Called getBxSize() of a bx out of the orbit range."
+      cms::Exception("OrbitCollection") << "Called getBxSize() of a bx out of the orbit range."
                                          << " BX = " << bx;
       return 0;
     }

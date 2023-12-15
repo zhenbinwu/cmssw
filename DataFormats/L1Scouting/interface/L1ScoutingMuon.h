@@ -46,6 +46,7 @@ namespace l1ScoutingRun3 {
           hwPtUnconstrained_(hwPtUnconstrained),
           hwDXY_(hwDXY) {}
 
+<<<<<<< HEAD
     void swap(Muon& other) {
       using std::swap;
       swap(hwPt_, other.hwPt_);
@@ -74,6 +75,20 @@ namespace l1ScoutingRun3 {
     void setHwPhiAtVtx(int hwPhiAtVtx) { hwPhiAtVtx_= hwPhiAtVtx;}
     void setHwPtUnconstrained(int hwPtUnconstrained) { hwPtUnconstrained_= hwPtUnconstrained;}
     void setHwDXY(int hwDXY) { hwDXY_= hwDXY;}
+=======
+    void setHwPt(int hwPt) { hwPt_ = hwPt; }
+    void setHwEta(int hwEta) { hwEta_ = hwEta; }
+    void setHwPhi(int hwPhi) { hwPhi_ = hwPhi; }
+    void setHwQual(int hwQual) { hwQual_ = hwQual; }
+    void setHwChrg(int hwChrg) { hwChrg_ = hwChrg; }
+    void setHwChrgv(int hwChrgv) { hwChrgv_ = hwChrgv; }
+    void setHwIso(int hwIso) { hwIso_ = hwIso; }
+    void setTfIndex(int tfIndex) { tfIndex_ = tfIndex; }
+    void setHwEtaAtVtx(int hwEtaAtVtx) { hwEtaAtVtx_ = hwEtaAtVtx; }
+    void setHwPhiAtVtx(int hwPhiAtVtx) { hwPhiAtVtx_ = hwPhiAtVtx; }
+    void setHwPtUnconstrained(int hwPtUnconstrained) { hwPtUnconstrained_ = hwPtUnconstrained; }
+    void setHwDXY(int hwDXY) { hwDXY_ = hwDXY; }
+>>>>>>> f0b7204e33e (Added Exception to OrbitCollection::getBxSize(), removed swap method from Scouting classes)
 
     int hwPt() const {return hwPt_;}
     int hwEta() const {return hwEta_;}
