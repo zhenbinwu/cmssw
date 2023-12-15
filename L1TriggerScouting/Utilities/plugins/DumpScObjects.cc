@@ -241,6 +241,7 @@ void DumpScObjects::printBx(unsigned bx){
     const auto& sums = etSumHandle_->bxIterator(bx);
     for (const auto& sum : sums) {
       std::cout << "--- Calo Sums ---\n";
+      printBxSums(sum);
     }
   }
 
