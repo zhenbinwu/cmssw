@@ -1063,8 +1063,7 @@ upgradeWFs['PatatrackPixelOnlyTripletsGPUProfiling'] = PatatrackWorkflow(
 upgradeWFs['PatatrackECALOnlyAlpaka'] = PatatrackWorkflow(
     digi = {
         # customize the ECAL Local Reco part of the HLT menu for Alpaka
-        '--procModifiers': 'alpaka',
-        '--customise' : 'HLTrigger/Configuration/customizeHLTforAlpaka.customizeHLTforAlpakaEcalLocalReco'
+        '--procModifiers': 'alpaka', # alpaka modifier activates customiseHLTForAlpaka 
     },
     reco = {
         '-s': 'RAW2DIGI:RawToDigi_ecalOnly,RECO:reconstruction_ecalOnly,VALIDATION:@ecalOnlyValidation,DQM:@ecalOnly',
@@ -1542,8 +1541,7 @@ upgradeWFs['PatatrackFullRecoTripletsGPUValidation'] = PatatrackWorkflow(
 
 upgradeWFs['PatatrackPixelOnlyAlpaka'] = PatatrackWorkflow(
     digi = {
-        '--procModifiers': 'alpaka',
-        '--customise' : 'HLTrigger/Configuration/customizeHLTforAlpaka.customizeHLTforAlpakaPixelReco'
+        '--procModifiers': 'alpaka', # alpaka modifier activates customiseHLTForAlpaka 
     },
     reco = {
         '-s': 'RAW2DIGI:RawToDigi_pixelOnly,RECO:reconstruction_pixelTrackingOnly,VALIDATION:@pixelTrackingOnlyValidation,DQM:@pixelTrackingOnlyDQM',
@@ -1558,8 +1556,7 @@ upgradeWFs['PatatrackPixelOnlyAlpaka'] = PatatrackWorkflow(
 
 upgradeWFs['PatatrackPixelOnlyAlpakaValidation'] = PatatrackWorkflow(
     digi = {
-        '--procModifiers': 'alpaka',
-        '--customise' : 'HLTrigger/Configuration/customizeHLTforAlpaka.customizeHLTforAlpakaPixelReco'
+        '--procModifiers': 'alpaka', # alpaka modifier activates customiseHLTForAlpaka 
     },
     reco = {
         '-s': 'RAW2DIGI:RawToDigi_pixelOnly,RECO:reconstruction_pixelTrackingOnly,VALIDATION:@pixelTrackingOnlyValidation,DQM:@pixelTrackingOnlyDQM',
@@ -1574,8 +1571,7 @@ upgradeWFs['PatatrackPixelOnlyAlpakaValidation'] = PatatrackWorkflow(
 
 upgradeWFs['PatatrackPixelOnlyAlpakaProfiling'] = PatatrackWorkflow(
     digi = {
-        '--procModifiers': 'alpaka',
-        '--customise' : 'HLTrigger/Configuration/customizeHLTforAlpaka.customizeHLTforAlpakaPixelReco'
+        '--procModifiers': 'alpaka', # alpaka modifier activates customiseHLTForAlpaka 
     },
     reco = {
         '-s': 'RAW2DIGI:RawToDigi_pixelOnly,RECO:reconstruction_pixelTrackingOnly',
