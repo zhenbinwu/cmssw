@@ -4,7 +4,7 @@ from L1Trigger.Phase2L1GMT.gmtFwdMuons_cfi import *
 from L1Trigger.Phase2L1GMT.gmtSAMuons_cfi import *
 from L1Trigger.Phase2L1GMT.gmtTkMuons_cfi import *
 l1tGMTStubs = cms.Sequence(gmtStubs)
-l1tGMTMuons = cms.Sequence(gmtKMTFMuons*gmtFwdMuons*gmtSAMuons*gmtTkMuons)
+l1tGMTMuons = cms.Sequence(gmtKMTFMuons*gmtFwdMuons*gmtSAMuons*gmtTkMuons*gmtTau23Mus)
 
 l1tGMTFilteredMuons = cms.EDProducer('Phase2L1TGMTFilter',
                     srcMuons = cms.InputTag("l1tTkMuonsGmt",""),
@@ -12,5 +12,4 @@ l1tGMTFilteredMuons = cms.EDProducer('Phase2L1TGMTFilter',
                     ptBarrelMin = cms.int32(8),
                     ptEndcapMin = cms.int32(8),
                     etaBE = cms.double(0.9)
-                                     
 )
