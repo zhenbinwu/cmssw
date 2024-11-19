@@ -17,8 +17,8 @@
 #define PHASE2GMT_TOPOLOGICALALGORITHM
 
 #include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
-#include "ConvertedTTTrack.h"
 #include "DataFormats/L1TMuonPhase2/interface/Constants.h"
+#include "ConvertedTTTrack.h"
 
 #include <fstream>
 #include <memory>

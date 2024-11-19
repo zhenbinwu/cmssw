@@ -179,11 +179,15 @@ l1tSAMuonsGmt = gmtSAMuons.clone(
 l1tTkMuonsGmt = gmtTkMuons.clone(
     srcStubs  = 'l1tStubsGmt:tps'
 )
+l1tTau23MusGmt = gmtTau23Mus.clone(
+    srcMuons  = 'l1tTkMuonsGmt'
+)
 _phase2_siml1emulator.add( l1tStubsGmt )
 _phase2_siml1emulator.add( l1tKMTFMuonsGmt )
 _phase2_siml1emulator.add( l1tFwdMuonsGmt )
 _phase2_siml1emulator.add( l1tSAMuonsGmt )
 _phase2_siml1emulator.add( l1tTkMuonsGmt )
+_phase2_siml1emulator.add( l1tTau23MusGmt )
 
 # Tracker Objects
 # ########################################################################
