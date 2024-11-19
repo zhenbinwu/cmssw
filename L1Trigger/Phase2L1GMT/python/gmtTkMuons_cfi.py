@@ -22,11 +22,14 @@ gmtTkMuons = cms.EDProducer('Phase2L1TGMTTkMuonProducer',
                        verbose       = cms.int32(0),
                        IsodumpForHLS = cms.int32(0),
                      ),
-                    tauto3mu = cms.PSet()
-
 )
 
-
-
-
-
+gmtTau23Mus = cms.EDProducer('Phase2L1TGMTTau23MuProducer',
+                             srcMuons = cms.InputTag("l1tTkMuonsGmt",""),
+                             verbose       = cms.int32(1),
+                             IsodumpForHLS = cms.int32(0),
+                             dopairdRCut = cms.bool(True),
+                             dopairdzCut = cms.bool(True),
+                             pairdRCut = cms.int32(1300),
+                             pairdzCut = cms.int32(17)
+                            )
