@@ -111,7 +111,9 @@ void SectorProcessor::select(const TriggerPrimitive& tp, const TPInfo& tp_info) 
 
 void SectorProcessor::process(EMTFHitCollection& out_hits,
                               EMTFTrackCollection& out_tracks,
-                              EMTFInputCollection& out_inputs) {
+                              EMTFInputCollection& out_inputs, 
+                              l1t::MuonStubCollection& out_stubs, 
+                              l1t::SAMuonCollection& out_samuons ) {
   // ===========================================================================
   // Merge subsystem selections
   // ===========================================================================
@@ -163,8 +165,8 @@ void SectorProcessor::process(EMTFHitCollection& out_hits,
   populateSegments(bx_window_hits_, seg_to_hit, segments);
 
   // Build Tracks
-  buildTracks(seg_to_hit, segments, false, out_tracks);  // With prompt setup
-  buildTracks(seg_to_hit, segments, true, out_tracks);   // With displaced setup
+  EMTFTrackCollection prompt_tracks = buildTracks(seg_to_hit, segments, false, out_tracks);    // With prompt setup
+  EMTFTrackCollection displaced_tracks = buildTracks(seg_to_hit, segments, true, out_tracks);  // With displaced setup
 
   // ===========================================================================
   // Record segments/hits used in track building
@@ -190,6 +192,8 @@ void SectorProcessor::process(EMTFHitCollection& out_hits,
 
     out_inputs.push_back(emtf_input);
   }
+
+  buildHybridStubs(bx_window_hits_, prompt_tracks, displaced_tracks);
 }
 
 void SectorProcessor::copyTP(const ILinkTPCMap& source, ILinkTPCMap& target) const {
@@ -381,10 +385,10 @@ void SectorProcessor::populateSegments(const std::vector<EMTFHitCollection>& bx_
   }  // End loop from latest BX Collection to oldest BX Hit Collection
 }
 
-void SectorProcessor::buildTracks(const std::map<int, int>& seg_to_hit,
-                                  const segment_collection_t& segments,
-                                  const bool& displaced_en,
-                                  EMTFTrackCollection& out_tracks) {
+EMTFTrackCollection SectorProcessor::buildTracks(const std::map<int, int>& seg_to_hit,
+                                                 const segment_collection_t& segments,
+                                                 const bool& displaced_en,
+                                                 EMTFTrackCollection& out_tracks) {
   // Apply Hitmap Building Layer: Convert segments into hitmaps
   std::vector<hitmap_t> zone_hitmaps;
 
@@ -418,4 +422,12 @@ void SectorProcessor::buildTracks(const std::map<int, int>& seg_to_hit,
 
   // Record tracks
   out_tracks.insert(out_tracks.end(), bx_tracks.begin(), bx_tracks.end());
+
+  return bx_tracks;
+}
+
+void SectorProcessor::buildHybridStubs(const std::vector<EMTFHitCollection>& bx_window_hits,
+                                       EMTFTrackCollection& prompt_tracks,
+                                       EMTFTrackCollection& displaced_tracks) {
+  context_.hybrid_stub_layer_.apply(bx_window_hits_, prompt_tracks, displaced_tracks);
 }

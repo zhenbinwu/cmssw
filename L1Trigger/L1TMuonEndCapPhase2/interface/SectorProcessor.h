@@ -3,6 +3,8 @@
 
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFfwd.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFTypes.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 
 namespace emtf::phase2 {
 
@@ -18,7 +20,7 @@ namespace emtf::phase2 {
 
     void select(const TriggerPrimitive&, const TPInfo&);
 
-    void process(EMTFHitCollection&, EMTFTrackCollection&, EMTFInputCollection&);
+    void process(EMTFHitCollection&, EMTFTrackCollection&, EMTFInputCollection&, l1t::MuonStubCollection&, l1t::SAMuonCollection& );
 
   private:
     const EMTFContext& context_;
@@ -42,7 +44,14 @@ namespace emtf::phase2 {
 
     void populateSegments(const std::vector<EMTFHitCollection>&, std::map<int, int>&, segment_collection_t&);
 
-    void buildTracks(const std::map<int, int>&, const segment_collection_t&, const bool&, EMTFTrackCollection&);
+    void buildHybridStubs(const std::vector<EMTFHitCollection>& bx_window_hits,
+                          EMTFTrackCollection& prompt_tracks,
+                          EMTFTrackCollection& displaced_tracks);
+
+    EMTFTrackCollection buildTracks(const std::map<int, int>&,
+                                    const segment_collection_t&,
+                                    const bool&,
+                                    EMTFTrackCollection&);
   };
 
 }  // namespace emtf::phase2

@@ -4,6 +4,8 @@
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFfwd.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFTypes.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFContext.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 
 namespace emtf::phase2 {
 
@@ -20,7 +22,9 @@ namespace emtf::phase2 {
         // Output
         EMTFHitCollection&,
         EMTFTrackCollection&,
-        EMTFInputCollection&);
+        EMTFInputCollection&, 
+        l1t::MuonStubCollection&,
+        l1t::SAMuonCollection& );
 
     void onJobBegin();
 

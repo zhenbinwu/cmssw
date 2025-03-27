@@ -71,7 +71,9 @@ void TrackFinder::process(
     // Output
     EMTFHitCollection& out_hits,
     EMTFTrackCollection& out_tracks,
-    EMTFInputCollection& out_inputs) {
+    EMTFInputCollection& out_inputs, 
+    l1t::MuonStubCollection& out_stubs, 
+    l1t::SAMuonCollection& out_samuons) {
   // ===========================================================================
   // Clear output collections
   // ===========================================================================
@@ -79,6 +81,8 @@ void TrackFinder::process(
   out_hits.clear();
   out_tracks.clear();
   out_inputs.clear();
+  out_stubs.clear();
+  out_samuons.clear();
 
   // ===========================================================================
   // Load the event configuration
@@ -199,7 +203,7 @@ void TrackFinder::process(
       }
 
       // Process trigger primitives
-      sector_processor->process(out_hits, out_tracks, out_inputs);
+      sector_processor->process(out_hits, out_tracks, out_inputs, out_stubs, out_samuons);
     }
 
     // Free memory: Removes BX TPCollections after all Sector Processors have selected their TPrimitives

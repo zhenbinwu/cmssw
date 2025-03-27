@@ -42,6 +42,11 @@ namespace emtf::phase2 {
     constexpr int kNumTrackSites = 12;       // per track
     constexpr int kNumTrackSitesRM = 5;      // per track
 
+    // Hybrid Stub variables
+    // phi 10 X eta 3 X tflayer 5 = 350? This is large!
+    constexpr int kNumHybridStubs = 350;  // per sector
+    constexpr int kNumStubsPerSec = 54;   // per sector
+
     constexpr int kChamberHitmapBW = 90;         // 24 deg
     constexpr int kChamberHitmapJoinedBW = 315;  // 84 deg
     constexpr int kHitmapNRows = 8;

@@ -11,6 +11,7 @@
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/PatternMatchingLayer.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/RoadSortingLayer.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/TrackBuildingLayer.h"
+#include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/HybridStubLayer.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/DuplicateRemovalLayer.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/ParameterAssignmentLayer.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/Algo/OutputLayer.h"
@@ -59,6 +60,7 @@ namespace emtf::phase2 {
     algo::PatternMatchingLayer pattern_matching_layer_;
     algo::RoadSortingLayer road_sorting_layer_;
     algo::TrackBuildingLayer track_building_layer_;
+    algo::HybridStubLayer hybrid_stub_layer_;
     algo::DuplicateRemovalLayer duplicate_removal_layer_;
     algo::ParameterAssignmentLayer parameter_assignment_layer_;
     algo::OutputLayer output_layer_;

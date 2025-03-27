@@ -164,6 +164,49 @@ namespace emtf::phase2 {
     site_segs_t site_segs;
     site_mask_t site_mask;
   };
+
+  // Local hybrid stubs
+  typedef ap_uint<1> hbstub_valid_t;
+  typedef ap_uint<3> hbstub_tflayer_t;
+  typedef ap_int<4> hbstub_etaId_t;
+  typedef ap_int<6> hbstub_globphiId_t;
+  typedef ap_int<4> hbstub_secphiId_t;
+  typedef ap_int<2> hbstub_stubId_t;
+  typedef ap_uint<7> hbstub_chamber_t;
+
+  struct hybrid_stub_t {
+    hbstub_valid_t valid;
+    hbstub_tflayer_t tflayer;
+    hbstub_etaId_t etaId;
+    hbstub_globphiId_t globphiId;
+    hbstub_secphiId_t secphiId;
+    hbstub_stubId_t stubId;
+
+    seg_phi_t phi_1;
+    seg_bend_t bend_1;
+    seg_theta_t theta1_1;
+    seg_theta_t theta2_1;
+    seg_qual_t qual1_1;
+    seg_qual_t qual2_1;
+    seg_time_t time_1;
+    hbstub_chamber_t chamber_1;
+
+    seg_phi_t phi_2;
+    seg_bend_t bend_2;
+    seg_theta_t theta1_2;
+    seg_theta_t theta2_2;
+    seg_qual_t qual1_2;
+    seg_qual_t qual2_2;
+    seg_time_t time_2;
+    hbstub_chamber_t chamber_2;
+
+    seg_layer_t layer;
+    seg_bx_t bx;
+  };
+
+  typedef std::vector<hybrid_stub_t> hbstub_collection_t;
+  typedef std::array<hybrid_stub_t, v3::kNumHybridStubs> hbstub_array_t;
+
 }  // namespace emtf::phase2
 
 typedef L1TMuon::subsystem_type SubsystemType;
