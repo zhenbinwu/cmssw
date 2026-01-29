@@ -40,6 +40,7 @@ private:
   double eta2LSB_;
   double etaMatch_;
   double phiMatch_;
+  bool useEMTFStubs_;
   bool verbose_;
 };
 

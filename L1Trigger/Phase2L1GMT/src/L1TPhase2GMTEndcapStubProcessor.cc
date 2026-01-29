@@ -16,6 +16,7 @@ L1TPhase2GMTEndcapStubProcessor::L1TPhase2GMTEndcapStubProcessor(const edm::Para
       eta2LSB_(iConfig.getParameter<double>("eta2LSB")),
       etaMatch_(iConfig.getParameter<double>("etaMatch")),
       phiMatch_(iConfig.getParameter<double>("phiMatch")),
+      useEMTFStubs_(iConfig.getParameter<unsigned int>("getstubs")),
       verbose_(iConfig.getParameter<unsigned int>("verbose")) {}
 
 L1TPhase2GMTEndcapStubProcessor::~L1TPhase2GMTEndcapStubProcessor() {}
@@ -238,7 +239,33 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
     out.push_back(stub);
     cleanedRPC = freeRPC;
   };
-  return out;
+
+  if (useEMTFStubs_) {
+    l1t::MuonStubCollection onlyOMTFout;
+    // Now filter out only the OMTF hybrid stubs.
+    const float omtfetacut = 1.35;
+    for (const auto& o : out) {
+      if (((o.offline_eta1() != 0) && (abs(o.offline_eta1()) <= omtfetacut)) ||
+          ((o.offline_eta2() != 0) && (abs(o.offline_eta2()) <= omtfetacut))) {
+        onlyOMTFout.push_back(o);
+        std::cout << o.offline_eta1() << " ; " << o.offline_eta1() << std::endl;
+      }
+      else{
+        const auto& stub = o;
+    std::cout << "original EMTF Stub bx=" << stub.bxNum() << " TF=" << stub.tfLayer()
+                                 << " etaRegion=" << stub.etaRegion() << " phiRegion=" << stub.phiRegion()
+                                 << " depthRegion=" << stub.depthRegion() << "  coord1=" << stub.offline_coord1() << ","
+                                 << stub.coord1() << " coord2=" << stub.offline_coord2() << "," << stub.coord2()
+                                 << " eta1=" << stub.offline_eta1() << "," << stub.eta1()
+                                 << " eta2=" << stub.offline_eta2() << "," << stub.eta2()
+                                 << " quality=" << stub.quality() << " etaQuality=" << stub.etaQuality() << std::endl;
+      }
+    }
+
+    return onlyOMTFout;
+
+  } else
+    return out;
 }
 
 l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::makeStubs(

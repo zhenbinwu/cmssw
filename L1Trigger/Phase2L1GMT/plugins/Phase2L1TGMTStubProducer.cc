@@ -38,7 +38,9 @@ private:
 
   L1TPhase2GMTEndcapStubProcessor* procEndcap_;
   L1TPhase2GMTBarrelStubProcessor* procBarrel_;
+  edm::EDGetTokenT<std::vector<l1t::MuonStub>> srcEMTFStubs_;
   L1TMuon::GeometryTranslator* translator_;
+  int useEMTFStubs_;
   int verbose_;
 };
 
@@ -50,6 +52,8 @@ Phase2L1TGMTStubProducer::Phase2L1TGMTStubProducer(const edm::ParameterSet& iCon
       srcRPC_(consumes<RPCDigiCollection>(iConfig.getParameter<edm::InputTag>("srcRPC"))),
       procEndcap_(new L1TPhase2GMTEndcapStubProcessor(iConfig.getParameter<edm::ParameterSet>("Endcap"))),
       procBarrel_(new L1TPhase2GMTBarrelStubProcessor(iConfig.getParameter<edm::ParameterSet>("Barrel"))),
+      srcEMTFStubs_(consumes<std::vector<l1t::MuonStub>>(iConfig.getParameter<edm::InputTag>("srcEMTFStubs"))),
+      useEMTFStubs_(iConfig.getParameter<int>("getEndcapStubs")),
       verbose_(iConfig.getParameter<int>("verbose")) {
   produces<l1t::MuonStubCollection>("kmtf");
   produces<l1t::MuonStubCollection>("tps");
@@ -115,6 +119,23 @@ void Phase2L1TGMTStubProducer::produce(edm::Event& iEvent, const edm::EventSetup
   for (auto& stub : stubsEndcap) {
     stubs.push_back(stub);
   }
+
+  if (useEMTFStubs_) {
+    Handle<std::vector<l1t::MuonStub>> EMTFstubHandle;
+    iEvent.getByToken(srcEMTFStubs_, EMTFstubHandle);
+    for (size_t i = 0; i < EMTFstubHandle->size(); ++i) {
+      l1t::MuonStubRef stub(EMTFstubHandle, i);
+      stubs.push_back(*stub);
+    std::cout << "Homemake EMTF Stub bx=" << stub->bxNum() << " TF=" << stub->tfLayer()
+                                 << " etaRegion=" << stub->etaRegion() << " phiRegion=" << stub->phiRegion()
+                                 << " depthRegion=" << stub->depthRegion() << "  coord1=" << stub->offline_coord1() << ","
+                                 << stub->coord1() << " coord2=" << stub->offline_coord2() << "," << stub->coord2()
+                                 << " eta1=" << stub->offline_eta1() << "," << stub->eta1()
+                                 << " eta2=" << stub->offline_eta2() << "," << stub->eta2()
+                                 << " quality=" << stub->quality() << " etaQuality=" << stub->etaQuality() << std::endl;
+    }
+  }
+
   l1t::MuonStubCollection stubsBarrel = procBarrel_->makeStubs(dtDigis.product(), dtThetaDigis.product());
   for (auto& stub : stubsBarrel) {
     //convert to Hybrid
@@ -136,13 +157,16 @@ void Phase2L1TGMTStubProducer::fillDescriptions(edm::ConfigurationDescriptions& 
   // gmtStubs
   edm::ParameterSetDescription desc;
   desc.add<int>("verbose", 0);
+  desc.add<int>("getEndcapStubs", 0);
   desc.add<edm::InputTag>("srcCSC", edm::InputTag("simCscTriggerPrimitiveDigis"));
   desc.add<edm::InputTag>("srcDT", edm::InputTag("dtTriggerPhase2PrimitiveDigis"));
   desc.add<edm::InputTag>("srcDTTheta", edm::InputTag("simDtTriggerPrimitiveDigis"));
   desc.add<edm::InputTag>("srcRPC", edm::InputTag("simMuonRPCDigis"));
+  desc.add<edm::InputTag>("srcEMTFStubs", edm::InputTag("simEmtfDigisPhase2"));
   {
     edm::ParameterSetDescription psd0;
     psd0.add<unsigned int>("verbose", 0);
+    psd0.add<unsigned int>("getstubs", 0);
     psd0.add<int>("minBX", 0);
     psd0.add<int>("maxBX", 0);
     psd0.add<double>("coord1LSB", 0.02453124992);
