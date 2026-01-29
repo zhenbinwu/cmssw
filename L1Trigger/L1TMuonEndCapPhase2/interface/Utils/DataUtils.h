@@ -150,6 +150,17 @@ namespace emtf::phase2::data {
 
     return mid;
   }
+  // Calculate delta phi between two angles
+  template <typename T>
+  T deltaPhi(T phi1, T phi2) {
+    T dphi = phi1 - phi2;
+    while (dphi > M_PI)
+      dphi -= 2 * M_PI;
+    while (dphi < -M_PI)
+      dphi += 2 * M_PI;
+    return dphi;
+  }
+
 }  // namespace emtf::phase2::data
 
 #endif  // L1Trigger_L1TMuonEndCapPhase2_DataUtils_h not defined

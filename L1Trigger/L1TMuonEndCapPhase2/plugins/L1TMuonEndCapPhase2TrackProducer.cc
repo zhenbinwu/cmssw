@@ -13,7 +13,9 @@ L1TMuonEndCapPhase2TrackProducer::L1TMuonEndCapPhase2TrackProducer(const edm::Pa
     : track_finder_(std::make_unique<emtf::phase2::TrackFinder>(pset, consumesCollector())),
       hit_token_(produces<emtf::phase2::EMTFHitCollection>()),
       trk_token_(produces<emtf::phase2::EMTFTrackCollection>()),
-      in_token_(produces<emtf::phase2::EMTFInputCollection>()) {}
+      in_token_(produces<emtf::phase2::EMTFInputCollection>()),
+      stub_token_(produces<l1t::MuonStubCollection>()),
+      samu_token_(produces<l1t::SAMuonCollection>()) {}
 
 void L1TMuonEndCapPhase2TrackProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
@@ -61,14 +63,18 @@ void L1TMuonEndCapPhase2TrackProducer::produce(edm::Event& event, const edm::Eve
   emtf::phase2::EMTFHitCollection out_hits;
   emtf::phase2::EMTFTrackCollection out_tracks;
   emtf::phase2::EMTFInputCollection out_inputs;
+  l1t::MuonStubCollection out_stubs;
+  l1t::SAMuonCollection out_samuons;
 
   // Forward event to track finder
-  track_finder_->process(event, event_setup, out_hits, out_tracks, out_inputs);
+  track_finder_->process(event, event_setup, out_hits, out_tracks, out_inputs, out_stubs, out_samuons);
 
   // Output
   event.emplace(hit_token_, std::move(out_hits));
   event.emplace(trk_token_, std::move(out_tracks));
   event.emplace(in_token_, std::move(out_inputs));
+  event.emplace(stub_token_, std::move(out_stubs));
+  event.emplace(samu_token_, std::move(out_samuons));
 }
 
 void L1TMuonEndCapPhase2TrackProducer::beginStream(edm::StreamID stream_id) { track_finder_->onJobBegin(); }

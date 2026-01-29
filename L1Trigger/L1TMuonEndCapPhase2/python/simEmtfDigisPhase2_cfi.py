@@ -8,7 +8,7 @@ simEmtfDigisMCPhase2 = cms.EDProducer(
     # Verbosity level
     Verbosity = cms.untracked.int32(3),
 
-    # Validation
+    # Validatiok
     ValidationDirectory = cms.string("L1Trigger/L1TMuonEndCapPhase2/data/validation"),
 
     # Neural Network Models
@@ -20,8 +20,10 @@ simEmtfDigisMCPhase2 = cms.EDProducer(
     #   * 'simCscTriggerPrimitiveDigis','MPCSORTED' : simulated trigger primitives (LCTs) from re-emulating CSC digis
     #   * 'csctfDigis' : real trigger primitives as received by CSCTF (legacy trigger), available only in 2016 data
     #   * 'emtfStage2Digis' : real trigger primitives as received by EMTF, unpacked in EventFilter/L1TRawToDigi/
-    CSCInput = cms.InputTag('simCscTriggerPrimitiveDigisForEMTF','MPCSORTED'),
+    # CSCInput = cms.InputTag('simCscTriggerPrimitiveDigisForEMTF','MPCSORTED'),
     RPCInput = cms.InputTag('rpcRecHitsForEMTF'),
+    CSCInput = cms.InputTag('simCscTriggerPrimitiveDigis'),
+    # RPCInput = cms.InputTag('simMuonRPCDigis'),
     GEMInput = cms.InputTag('simMuonGEMPadDigiClusters'),
     ME0Input = cms.InputTag('me0TriggerConvertedPseudoDigis'),
     GE0Input = cms.InputTag('ge0TriggerConvertedPseudoDigis'),

@@ -85,10 +85,11 @@ void RPCTPCollector::collect(const edm::Event& i_event, BXTPCMap& bx_tpc_map) co
       continue;
     }
 
-    // Short-Circuit: Skip Overlap region (RE1/3, RE2/3)
-    if (tp_station <= 2 && tp_ring == 3) {
-      continue;
-    }
+    // Remove for all
+    //// Short-Circuit: Skip Overlap region (RE1/3, RE2/3)
+    //if (tp_station <= 2 && tp_ring == 3) {
+      //continue;
+    //}
 
     // Short-Circuit: Reject wide clusters
     if (tp_rpc_type == rpc::Type::kiRPC) {

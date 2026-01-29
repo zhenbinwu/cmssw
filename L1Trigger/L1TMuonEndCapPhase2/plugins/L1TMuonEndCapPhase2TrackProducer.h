@@ -13,6 +13,8 @@
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFfwd.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFTypes.h"
 #include "L1Trigger/L1TMuonEndCapPhase2/interface/EMTFContext.h"
+#include "DataFormats/L1TMuonPhase2/interface/MuonStub.h"
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 
 class L1TMuonEndCapPhase2TrackProducer : public edm::stream::EDProducer<> {
 public:
@@ -28,6 +30,8 @@ private:
   edm::EDPutTokenT<emtf::phase2::EMTFHitCollection> hit_token_;
   edm::EDPutTokenT<emtf::phase2::EMTFTrackCollection> trk_token_;
   edm::EDPutTokenT<emtf::phase2::EMTFInputCollection> in_token_;
+  edm::EDPutTokenT<l1t::MuonStubCollection> stub_token_;
+  edm::EDPutTokenT<l1t::SAMuonCollection> samu_token_;
 
   // Producer Functions
   void produce(edm::Event&, const edm::EventSetup&) override;

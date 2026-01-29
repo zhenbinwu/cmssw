@@ -38,6 +38,7 @@ EMTFContext::EMTFContext(const edm::ParameterSet& pset, edm::ConsumesCollector i
       pattern_matching_layer_(*this),
       road_sorting_layer_(*this),
       track_building_layer_(*this),
+      hybrid_stub_layer_(*this),
       duplicate_removal_layer_(*this),
       parameter_assignment_layer_(*this),
       output_layer_(*this) {
